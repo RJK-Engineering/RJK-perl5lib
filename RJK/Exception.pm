@@ -1,0 +1,21 @@
+package RJK::Exception;
+
+sub GeneralCatch {
+    if ( UNIVERSAL::isa($_, 'Exception') ) {
+        print STDERR ref, "\n\n";
+        print STDERR "Message:\n", $_->error, "\n";
+        if ($_->Fields) {
+            print STDERR "\nFields:\n";
+            foreach my $field ($_->Fields) {
+                print STDERR "$field = ", $_->$field//"(undef)", "\n";
+            }
+        }
+        print STDERR "\n", $_->trace->as_string;
+        exit 1;
+    } else {
+        print STDERR "$_\n", Devel::StackTrace->new->as_string;
+        exit 1;
+    }
+}
+
+1;
