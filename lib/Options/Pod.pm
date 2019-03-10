@@ -89,7 +89,10 @@ use Pod::Checker qw(podchecker);
 use Pod::Html    qw(pod2html);
 use Pod::Usage   qw();
 
-my %conf;
+my %conf = (
+    'tri-state' => 0,
+    comments_included => 1,
+);
 my $header;
 my %opts;
 my $optConf;
@@ -117,7 +120,6 @@ Additional options:
 ###############################################################################
 
 sub Configure {
-    %conf = ();
     my @opts;
     my %confOptions = (
         'tri-state' => 1,
@@ -270,7 +272,9 @@ sub HandleOptions {
 }
 
 sub pod2usage {
-    Pod::Usage::pod2usage(@_);
+    my %opts = @_;
+    $opts{-verbose} //= 99;
+    Pod::Usage::pod2usage(%opts);
 }
 
 sub WritePod {
