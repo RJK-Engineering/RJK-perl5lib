@@ -35,10 +35,8 @@ Options::Pod::GetOptions(
     'tri-state:0' => ...,
 
     ['Pod'],
-    Options::Pod::Options           # podcheck, pod2html, genpod and savepod options
-)
-&& Options::Pod::HandleOptions()    # handle podcheck, pod2html, genpod and savepod options
-|| exit;                            # an error occurred
+    Options::Pod::Options           # podcheck, pod2html, genpod and writepod options
+);
 </verbatim>
 
 Command Line:
@@ -47,7 +45,7 @@ Command Line:
 perl script.pl --podcheck
 perl script.pl --pod2html
 perl script.pl --genpod
-perl script.pl --genpod --savepod
+perl script.pl --genpod --writepod
 perl script.pl +tri-state
 </verbatim>
 
@@ -59,7 +57,7 @@ This package adds the following functionality using
    * Option to call [[http://perldoc.perl.org/podchecker.html][podchecker]].
    * Option to call [[http://perldoc.perl.org/pod2html.html][pod2html]].
    * Option to generate POD from [[http://perldoc.perl.org/Getopt/Long.html][Getopt::Long]] configuration.
-   * Option to save generated POD to the script it was generated from.
+   * Option to write generated POD to the script it was generated from.
    * Tri-state options.
 
 ---++ Tri-state options
@@ -74,10 +72,10 @@ Options::Pod::Configure("tri-state");
 my @options = ('tri-state:0' => ...);
 </verbatim>
 
-| *Option* | *Value* | *Meaning* |
-| =-tri-state= | =0= (argument specification ":0") | disabled |
-| =+tri-state= | =1= | enabled |
-| not specified | =undef= or a default value | don't care |
+| *Option*      | *Value*                           | *Meaning*  |
+| =-tri-state=  | =0= (argument specification ":0") | disabled   |
+| =+tri-state=  | =1=                               | enabled    |
+| not specified | =undef= or a default value        | don't care |
 
 =cut
 
@@ -89,11 +87,13 @@ use warnings;
 use Getopt::Long qw();
 use Pod::Checker qw(podchecker);
 use Pod::Html    qw(pod2html);
+use Pod::Usage   qw();
 
 my %conf;
 my $header;
 my %opts;
 my $optConf;
+my $helpLevels;
 
 my $optionSectionStart = '=for options start';
 my $optionSectionEnd = '=for options end';
@@ -166,14 +166,27 @@ sub Options {
 
     'genpod' => \$opts{generatePod}, $conf{comments_included} ?
         "Generate POD for options." : (),
-    'savepod' => \$opts{savePod}, $conf{comments_included} ?
-        "Save generated POD to script file.\n".
+    'writepod' => \$opts{writePod}, $conf{comments_included} ?
+        "Write generated POD to script file.\n".
         "The POD text will be inserted between C<$optionSectionStart> and\n".
         "C<$optionSectionEnd> tags.\n".
         "If no C<$optionSectionEnd> tag is present, the POD text will be\n".
         "inserted after the C<$optionSectionStart> tag and a\n".
         "C<$optionSectionEnd> tag will be added.\n".
-        "A backup is created." : (),
+        "A backup is created." : ()
+}
+
+sub HelpOptions {
+    $helpLevels = shift;
+    my $repeat = $helpLevels && @$helpLevels > 1 ? "+" : "";
+    "h|help|?$repeat" => \$opts{help}, $conf{comments_included} ? "Display extended help." : ()
+}
+
+sub MessageOptions {
+    my $opts = shift;
+    'v|verbose' => \$opts->{verbose}, $conf{comments_included} ? "Be verbose." : (),
+    'q|quiet' => \$opts->{quiet}, $conf{comments_included} ? "Be quiet." : (),
+    'debug' => \$opts->{debug}, $conf{comments_included} ? "Display debug information." : ()
 }
 
 ###############################################################################
@@ -199,32 +212,42 @@ sub GetOptions {
     }
 
     my @getoptConf;
-    for (my $i=0; $i<@$optConf; $i+=$conf{comments_included}?3:2) {
+    my $paramsPerOption = $conf{comments_included} ? 3 : 2;
+    for (my $i=0; $i<@$optConf; $i+=$paramsPerOption) {
         if (ref $optConf->[$i]) {
-            $i -= 2;
+            $i -= $paramsPerOption - 1;
             next;
         }
         push @getoptConf, $optConf->[$i], $optConf->[$i+1];
     }
 
-    return Getopt::Long::GetOptions(@getoptConf);
+    my $go = Getopt::Long::GetOptions(@getoptConf);
+    HandleOptions();
+    return $go;
 }
 
 ###############################################################################
 =pod
 
----+++ !HandleOptions() -> $success
+---+++ !HandleOptions()
 
-Use POD functionality.
+Handle configured options.
 
 =cut
 ###############################################################################
 
 sub HandleOptions {
-    if ($opts{generatePod}) {
+    my $sections;
+    my $exitstatus;
+
+    if ($opts{help}) {
+        $sections = $helpLevels ? $helpLevels->[$opts{help} - 1][0] : "";
+        $sections ||= "DESCRIPTION|SYNOPSIS|OPTIONS";
+        $exitstatus = 0;
+    } elsif ($opts{generatePod}) {
         if ($optConf) {
-            if ($opts{savePod}) {
-                SavePod() || return;
+            if ($opts{writePod}) {
+                WritePod();
             } else {
                 print GeneratePod();
             }
@@ -232,16 +255,25 @@ sub HandleOptions {
             die "No configuration, use ".__PACKAGE__."::GetOptions(..configuration..)";
         }
         exit;
-    } else {
-        if ($opts{savePod}) {
-            print "Option --savepod without --genpod.\n";
-            return;
-        }
+    } elsif ($opts{writePod}) {
+        print "Option --writepod without --genpod.\n";
+        $sections = "POD OPTIONS";
     }
-    return 1;
+
+    if ($sections) {
+        Pod::Usage::pod2usage(
+            -verbose => 99,
+            defined $exitstatus ? (-exitstatus => $exitstatus) : (),
+            -sections => $sections,
+        );
+    }
 }
 
-sub SavePod {
+sub pod2usage {
+    Pod::Usage::pod2usage(@_);
+}
+
+sub WritePod {
     my ($sectStart, $sectEnd);
 
     # look for start and end strings
@@ -295,21 +327,40 @@ Generate POD for command line options.
 ###############################################################################
 
 sub GeneratePod {
-    my $pod = "=over 4\n\n";
-
-    for (my $i=0; $i<@$optConf; $i+=$conf{comments_included}?3:2) {
-        if (ref $optConf->[$i]) {
-            $pod .= "=back\n\n";
-            $pod .= "=head2 $optConf->[$i][0]\n\n";
-            $pod .= "=over 4\n\n";
-            if ($optConf->[$i][1]) {
-                # additional pod text
-                $optConf->[$i][1] =~ s/==/=/g;
-                $pod .= "$optConf->[$i][1]\n\n";
-                $pod .= "=back\n\n";
-                $pod .= "=over 4\n\n";
+    my $pod;
+    my $paramsPerOption = $conf{comments_included} ? 3 : 2;
+    for (my $i=0; $i<@$optConf; $i+=$paramsPerOption) {
+        my $ref = $optConf->[$i];
+        if (ref $ref) {
+            $pod .= "=back\n\n" if $i;
+            if (ref ref $ref) {
+                $pod .= "=head2 $ref->[0][0]\n\n";
+            } else {
+                $pod .= "=head1 $ref->[0]\n\n";
             }
-            $i -= 2;
+            $pod .= "=over 4\n\n";
+            if ($ref->[1]) {
+                # additional pod text
+                $ref->[1] =~ s/==/=/g; # unescape
+                $pod .= "$ref->[1]\n\n";
+
+                $pod .= "=back\n\n";     # needed??????
+                $pod .= "=over 4\n\n";   #
+            }
+            $i -= $paramsPerOption - 1;
+            next;
+        }
+
+        my $doubleDash = $conf{bundling} ? "--" : "-";
+
+        if ($optConf->[$i] eq 'h|help|?+' and $helpLevels) {
+            for (my $l=0; $l<@$helpLevels; $l++) {
+                my ($podSections, $comment) = @{$helpLevels->[$l]};
+                my $q = $l ? '"' : "";
+                $pod .= sprintf "=item B<-h%s $q${doubleDash}help%s$q -?%s>\n\n",
+                        "h" x $l, " ${doubleDash}help" x $l, "?" x $l;
+                $pod .= "$comment\n\n";
+            }
             next;
         }
 
@@ -330,7 +381,7 @@ sub GeneratePod {
 
         $pod .= "=item B<";
         $pod .= $opts // join " ", map {
-            $conf{bundling} && length > 1 ? "--$_" : "-$_"
+            length > 1 ? "$doubleDash$_" : "-$_"
         } split /\|/, $optSpec;
         $pod .= " [$typeSpec]" if $typeSpec;
         $pod .= ">\n\n";
