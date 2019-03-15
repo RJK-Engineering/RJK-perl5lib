@@ -8,6 +8,9 @@ Console input/output functionality.
 
 package RJK::Win32::Console;
 
+use strict;
+use warnings;
+
 ###############################################################################
 =pod
 
