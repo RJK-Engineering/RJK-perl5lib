@@ -91,9 +91,12 @@ use Pod::Usage   qw();
 
 my %conf = (
     'tri-state' => 0,
+    bundling => 1,
     comments_included => 1,
 );
-my $header;
+my @getoptConf;
+my %myOptions = map { $_ => 1 } qw(tri-state comments_included);
+
 my %opts;
 my $optConf;
 my $helpLevels;
@@ -120,16 +123,10 @@ Additional options:
 ###############################################################################
 
 sub Configure {
-    my @opts;
-    my %confOptions = (
-        'tri-state' => 1,
-        comments_included => 1
-    );
     foreach (@_) {
         $conf{$_} = 1;
-        push @opts, $_ unless $confOptions{$_};
+        push @getoptConf, $_ unless $myOptions{$_};
     }
-    Getopt::Long::Configure(@opts);
 }
 
 ###############################################################################
@@ -204,6 +201,8 @@ See: [[http://perldoc.perl.org/Getopt/Long.html][Getopt::Long]]
 sub GetOptions {
     @$optConf = @_;
 
+    Getopt::Long::Configure(@getoptConf);
+
     if ($conf{'tri-state'}) {
         # values: 0=disabled, 1=enabled, 2=don't care
         # "-option" = disable option = value 0 (getopt spec: 'option:0')
@@ -213,17 +212,17 @@ sub GetOptions {
         #~ print "@ARGV\n";
     }
 
-    my @getoptConf;
+    my @getoptOptConf;
     my $paramsPerOption = $conf{comments_included} ? 3 : 2;
     for (my $i=0; $i<@$optConf; $i+=$paramsPerOption) {
         if (ref $optConf->[$i]) {
             $i -= $paramsPerOption - 1;
             next;
         }
-        push @getoptConf, $optConf->[$i], $optConf->[$i+1];
+        push @getoptOptConf, $optConf->[$i], $optConf->[$i+1];
     }
 
-    my $go = Getopt::Long::GetOptions(@getoptConf);
+    my $go = Getopt::Long::GetOptions(@getoptOptConf);
     HandleOptions();
     return $go;
 }
