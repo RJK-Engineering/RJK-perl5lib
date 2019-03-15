@@ -37,14 +37,14 @@ sub GetDriveLetter {
 ---+++ ConnectDrive($path)
 Connect network drive.
 =$path= can be a complete path or a drive letter.
-Drive host must be set in =FILECHECK_DRIVE_HOST= environment variable.
+Drive host must be set in =RJK_NETWORK_DRIVE_HOST= environment variable.
 
 =cut
 ###############################################################################
 
 sub ConnectDrive {
     my $path = shift;
-    my $host = $ENV{FILECHECK_DRIVE_HOST} || return;
+    my $host = $ENV{RJK_NETWORK_DRIVE_HOST} || die "Environment variable RJK_NETWORK_DRIVE_HOST not set";
 
     my $drive = $path;
     unless ($path =~ /^\w$/) {
