@@ -1,5 +1,8 @@
 package RJK::Exception;
 
+use strict;
+use warnings;
+
 sub GeneralCatch {
     if ( UNIVERSAL::isa($_, 'Exception') ) {
         print STDERR ref, "\n\n";
