@@ -1,5 +1,8 @@
 package RJK::DbTable;
 
+use strict;
+use warnings;
+
 sub new {
     my $self = bless {}, shift;
     my %opts = @_;
@@ -85,11 +88,12 @@ sub update {
 }
 
 sub delete {
-    my ($self, $id) = @_;
+    my ($self, $object) = @_;
 
     $self->{eventHandlers}{preDelete}($object);
 
     $self->{sth} = $self->{dbh}->prepare($self->{deleteStatement});
+    my $id = $self->getId($object);
     $self->{sth}->execute($id);
 
     $self->{eventHandlers}{postDelete}($object);
