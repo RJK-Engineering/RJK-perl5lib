@@ -91,11 +91,11 @@ use Pod::Usage   qw();
 
 my %conf = (
     'tri-state' => 0,
-    bundling => 1,
     comments_included => 1,
 );
-my @getoptConf;
-my %myOptions = map { $_ => 1 } qw(tri-state comments_included);
+my %getoptConf = (
+    bundling => 1,
+);
 
 my %opts;
 my $optConf;
@@ -124,8 +124,11 @@ Additional options:
 
 sub Configure {
     foreach (@_) {
-        $conf{$_} = 1;
-        push @getoptConf, $_ unless $myOptions{$_};
+        if (exists $conf{$_}) {
+            $conf{$_} = 1;
+        } else {
+            $getoptConf{$_} = 1
+        }
     }
 }
 
@@ -201,7 +204,7 @@ See: [[http://perldoc.perl.org/Getopt/Long.html][Getopt::Long]]
 sub GetOptions {
     @$optConf = @_;
 
-    Getopt::Long::Configure(@getoptConf);
+    Getopt::Long::Configure(grep { $getoptConf{$_} } keys %getoptConf);
 
     if ($conf{'tri-state'}) {
         # values: 0=disabled, 1=enabled, 2=don't care
