@@ -173,7 +173,6 @@ boolean, a value of 1 will be assigned when the option is used.
 ###############################################################################
 
 my %opts = ();
-Options::Pod::Configure("bundling", "no_ignore_case", "comments_included");
 Options::Pod::GetOptions(
     ['HELP OPTIONS'],
     Options::Pod::HelpOptions([
@@ -191,12 +190,12 @@ Options::Pod::GetOptions(
 
     ['POD OPTIONS'],
     Options::Pod::Options
-)
-&& Options::Pod::HandleOptions();
+) || Options::Pod::pod2usage(
+    -sections => "DISPLAY EXTENDED HELP",
+);
 
 $opts{required} //
 @ARGV || Options::Pod::pod2usage(
-    -verbose => 99,
     -sections => "DESCRIPTION|SYNOPSIS|DISPLAY EXTENDED HELP",
 );
 
