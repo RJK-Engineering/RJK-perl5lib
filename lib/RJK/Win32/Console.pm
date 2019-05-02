@@ -11,6 +11,9 @@ package RJK::Win32::Console;
 use strict;
 use warnings;
 
+use Win32::Console;
+require Win32::Console::ANSI;
+
 ###############################################################################
 =pod
 
@@ -26,16 +29,13 @@ sub new {
     my $self = bless {}, shift;
 
     if ($^O eq 'MSWin32') {
-        use Win32::Console; #FIXME using "use" conditionally has "no use" :)~
-        require Win32::Console::ANSI;
         $self->{wcStdOut} = new Win32::Console(STD_OUTPUT_HANDLE);
         $self->{wcStdIn} = new Win32::Console(STD_INPUT_HANDLE);
     } else {
-        die "Console not supported";
+        die "OS not supported";
     }
 
-    $self->{grid} = undef;
-    $self->{print} = 1;
+    $self->{echo} = 1;
     return $self;
 }
 
@@ -77,9 +77,32 @@ See =[[http://search.cpan.org/~jdb/Win32-Console-0.10/Console.pm][Win32::Console
 sub write     { $_[0]->{wcStdOut}->Write($_[1]) }
 sub flush     { $_[0]->{wcStdIn}->Flush() }
 
-sub pauseIfNoPrompt {
+###############################################################################
+=pod
+
+---+++ pause()
+Wait for keyboard key press.
+
+---+++ askConfirm($question) -> $confirmed
+Returns true if "y" or "Y" key is pressed.
+
+---+++ ask($question, \@choices) -> $choice
+Waits for choice selection.
+   * =$choices= - Array containing choices: [ $key, $displayValue, $returnValue ]
+      * If no $returnValue is given $displayValue will be returned.
+      * If no $displayValue is given $key will be displayed and returned.
+
+---+++ select($choices) -> $choice
+Prints lists of choices and waits for choice selection.
+   * =$choices= - Array containing list of choices
+
+---+++ question($question, $value)
+
+=cut
+###############################################################################
+
+sub pause {
     my $self = shift;
-    return if $ENV{PROMPT} || $ENV{PS1};
     while (1) {
         my @event = $self->{wcStdIn}->Input();
         last if $event[0]
@@ -105,7 +128,7 @@ sub askConfirm {
             last if $event[5] > 0;
         }
     }
-    print "$key\n" if $self->{print};
+    $self->{wcStdOut}->Write("$key\n") if $self->{echo};
     return lc $key eq 'y'
 }
 
@@ -113,10 +136,10 @@ sub ask {
     my ($self, $question, $choices) = @_;
 
     $self->{wcStdOut}->Write("$question (");
-    $self->{wcStdOut}->Write(join "/", map { $_->[1] } @$choices);
+    $self->{wcStdOut}->Write(join "/", map { $_->[1] // $_->[0] } @$choices);
     $self->{wcStdOut}->Write(") ");
 
-    my %retvals = map { $_->[0] => $_->[2] } @$choices;
+    my %retvals = map { $_->[0] => $_->[2] // $_->[1] // $_->[0] } @$choices;
     my $key = chr(0);
     do {
         my @event = $self->{wcStdIn}->Input();
@@ -230,12 +253,11 @@ sub question {
             }
             $c->Cursor(@c);
             $prevKey = $prevKey == 27 ? 0 : $event[3];
-            #~ print "$event[3]\n";
         }
     } while ($key != 13); # enter
 
     my $input = $c->ReadChar($endPos - $homePos, @startCursor[0..1]);
-    print "\n";
+    $c->Write("\n");
 
     return $input;
 }
@@ -264,9 +286,9 @@ sub newline {
 =pod
 
 ---+++ printLine($string, $trim)
-Print string after ensuring we're on a new line (see =newline()=).
+Print string after ensuring we're on a new line (see =newline()=) and move
+cursor to the next line.
 Trims string to fit on one line if =$trim= has a true value.
-Appends a newline character.
 
 =cut
 ###############################################################################
@@ -275,8 +297,12 @@ sub printLine {
     my ($self, $str, $trim) = @_;
     $self->newline;
     my $columns = ($self->{wcStdOut}->Info)[0];
-    print substr($str, 0, $columns); # chop string to fit on line
-    print "\n" if length $str < $columns;
+    if ($trim) {
+        $self->{wcStdOut}->Write(substr $str, 0, $columns);
+    }
+    # move cursor to next line if not already because it wrapped at eol at the
+    # end of the string written, i.e. the string fits the screen width exactly.
+    $self->{wcStdOut}->Write("\n") if length($str) % $columns;
 }
 
 ###############################################################################
@@ -293,8 +319,8 @@ sub updateLine {
     my ($self, $str, $trim) = @_;
 
     # get cursor position
-    my @c = $self->{wcStdOut}->Cursor;
-    my $x = $c[0];
+    my $o = $self->{wcStdOut};
+    my ($x, $y) = my @c = $o->Cursor;
 
     # adjust string
     if ($trim || $x) {
@@ -302,7 +328,7 @@ sub updateLine {
         my $chomped = 0;
         $chomped++ while chomp $str;
 
-        my $columns = ($self->{wcStdOut}->Info)[0] - 1;
+        my $columns = ($o->Info)[0] - 1;
         my $length = length $str;
 
         if ($trim) {
@@ -314,37 +340,39 @@ sub updateLine {
         }
 
         if ($x) {
-            # erase previous text
-            my $b = $x - $length;
-            if ($b > 0) {
-                $c[0] = $length;
-                $self->{wcStdOut}->Cursor(@c);
-                $self->{wcStdOut}->Write(" " x $b);
+            # erase previous text not printed over by new text
+            my $n = $x - $length;
+            if ($n > 0) {
+                $o->FillChar(" ", $n, $length, $y);
             }
             # go to start of line
             $c[0] = 0;
-            $self->{wcStdOut}->Cursor(@c);
+            #~ print  "$length == $columns\n";
+            #~ $c[1]-- if $length == $columns;
+            $o->Cursor(@c);
         }
 
         # append chomped newlines
         $str .= "\n" x $chomped;
     }
 
-    $self->{wcStdOut}->Write($str);
+    $o->Write($str);
 }
 
 ###############################################################################
 =pod
 
----+++ lineUp()
+---+++ lineUp([$nrOfLines])
+Move cursor up. Defaults to 1 line.
 
 =cut
 ###############################################################################
 
 sub lineUp {
-    my $self = shift;
+    my ($self, $nrOfLines) = @_;
+    $nrOfLines ||= 1;
     my @c = $self->{wcStdOut}->Cursor;
-    $c[1]--;
+    $c[1] -= $nrOfLines;
     $self->{wcStdOut}->Cursor(@c);
 }
 
