@@ -180,6 +180,11 @@ sub Options {
 
 sub HelpOptions {
     $helpLevels = shift;
+    if (! ref $helpLevels) {
+        $helpLevels = [[ $helpLevels ]];
+    } elsif (! ref ref $helpLevels) {
+        $helpLevels = [ $helpLevels ];
+    }
     my $repeat = $helpLevels && @$helpLevels > 1 ? "+" : "";
     "h|help|?$repeat" => \$opts{help}, $conf{comments_included} ? "Display extended help." : ()
 }
@@ -226,7 +231,12 @@ sub GetOptions {
     }
 
     my $go = Getopt::Long::GetOptions(@getoptOptConf);
-    HandleOptions();
+    if ($go) {
+        HandleOptions();
+    } else {
+        pod2usage(-sections => "DISPLAY EXTENDED HELP");
+    }
+
     return $go;
 }
 

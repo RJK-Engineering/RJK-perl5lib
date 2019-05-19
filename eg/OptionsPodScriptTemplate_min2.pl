@@ -32,8 +32,6 @@ Options::Pod::GetOptions(
     Options::Pod::HelpOptions("DESCRIPTION|SYNOPSIS|HELP|POD"),
     ['POD'],
     Options::Pod::Options
-) || Options::Pod::pod2usage(
-    -sections => "DISPLAY EXTENDED HELP"
 );
 
 @ARGV || Options::Pod::pod2usage(
