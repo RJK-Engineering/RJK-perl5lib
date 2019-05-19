@@ -21,15 +21,17 @@ script.pl -h
 =cut
 ###############################################################################
 
-my %opts = ();
+my %opts;
 Options::Pod::GetOptions(
+    ['OPTIONS'],
+    'v|switch' => \$opts{verbose}, "Description",
     's|string=s' => \$opts{string}, "Description {argumentname}",
     'i|integer=i' => \$opts{integer}, "Description {integer}",
     'e|extendedint=o' => \$opts{extended}, "Description {extendedintegerperlstyle}",
     'f|realnumber=f' => \$opts{float}, "Description {real}",
 
     ['HELP'],
-    Options::Pod::HelpOptions("DESCRIPTION|SYNOPSIS|HELP|POD"),
+    Options::Pod::HelpOptions("DESCRIPTION|SYNOPSIS|OPTIONS|HELP|POD"),
     ['POD'],
     Options::Pod::Options
 );
