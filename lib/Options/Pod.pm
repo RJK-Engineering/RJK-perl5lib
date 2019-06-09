@@ -257,7 +257,6 @@ sub HandleOptions {
     if ($opts{help}) {
         $sections = $helpLevels ? $helpLevels->[$opts{help} - 1][0] : "";
         $sections ||= "DESCRIPTION|SYNOPSIS|OPTIONS";
-        $exitstatus = 1;
     } elsif ($opts{generatePod}) {
         if ($optConf) {
             if ($opts{writePod}) {
@@ -271,7 +270,7 @@ sub HandleOptions {
         exit;
     } elsif ($opts{writePod}) {
         print "Option --writepod without --genpod.\n";
-        $sections = "POD OPTIONS";
+        $sections = "POD";
     }
 
     if ($sections) {
