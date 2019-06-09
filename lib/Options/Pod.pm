@@ -257,7 +257,7 @@ sub HandleOptions {
     if ($opts{help}) {
         $sections = $helpLevels ? $helpLevels->[$opts{help} - 1][0] : "";
         $sections ||= "DESCRIPTION|SYNOPSIS|OPTIONS";
-        $exitstatus = 0;
+        $exitstatus = 1;
     } elsif ($opts{generatePod}) {
         if ($optConf) {
             if ($opts{writePod}) {
