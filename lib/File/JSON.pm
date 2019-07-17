@@ -1,12 +1,9 @@
 package File::JSON;
 use parent 'File::DataFile';
 
-# Author: Rob Klinkhamer
-# $Revision: 1.17 $
-# $Date: 2017/11/24 10:10:06 $
-
 use strict;
 use warnings;
+
 use JSON;
 use Try::Tiny;
 
