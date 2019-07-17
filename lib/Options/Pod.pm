@@ -123,13 +123,15 @@ Additional options:
 ###############################################################################
 
 sub Configure {
-    foreach (@_) {
+    my @opts = @_;
+    foreach (@opts) {
         if (exists $conf{$_}) {
             $conf{$_} = 1;
         } else {
             $getoptConf{$_} = 1
         }
     }
+    return;
 }
 
 ###############################################################################
@@ -143,6 +145,7 @@ Returns POD functionality options.
 ###############################################################################
 
 sub Options {
+    return
     'podcheck' => sub {
         my $r = podchecker($0);
         print("$0 pod syntax OK.\n") unless $r;
@@ -186,14 +189,16 @@ sub HelpOptions {
         $helpLevels = [ $helpLevels ];
     }
     my $repeat = $helpLevels && @$helpLevels > 1 ? "+" : "";
-    "h|help|?$repeat" => \$opts{help}, $conf{comments_included} ? "Display extended help." : ()
+    return
+    "h|help|?$repeat" => \$opts{help}, $conf{comments_included} ? "Display extended help." : ();
 }
 
 sub MessageOptions {
     my $opts = shift;
+    return
     'v|verbose' => \$opts->{verbose}, $conf{comments_included} ? "Be verbose." : (),
     'q|quiet' => \$opts->{quiet}, $conf{comments_included} ? "Be quiet." : (),
-    'debug' => \$opts->{debug}, $conf{comments_included} ? "Display debug information." : ()
+    'debug' => \$opts->{debug}, $conf{comments_included} ? "Display debug information." : ();
 }
 
 ###############################################################################
@@ -280,12 +285,13 @@ sub HandleOptions {
             -sections => $sections,
         );
     }
+    return;
 }
 
 sub pod2usage {
     my %opts = @_;
     $opts{-verbose} //= 99;
-    Pod::Usage::pod2usage(%opts);
+    return Pod::Usage::pod2usage(%opts);
 }
 
 sub WritePod {
