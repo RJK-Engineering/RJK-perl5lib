@@ -1,11 +1,11 @@
 =begin TML
 
----+ package Interactive::Default
-Default functionality for class Interactive.
+---+ package RJK::Interactive::Default
+Default functionality for class RJK::Interactive.
 
 =cut
 
-package Interactive::Default;
+package RJK::Interactive::Default;
 
 use strict;
 use warnings;
@@ -23,7 +23,7 @@ sub print {
 =pod
 
 ---++ ask($question, %opts) -> $answer
-See =Interactive::Ask()=.
+See =RJK::Interactive::Ask()=.
 
 =cut
 ###############################################################################
@@ -54,7 +54,7 @@ sub ask {
 =pod
 
 ---++ confirm($question, $ok) -> $boolean
-See =Interactive::Confirm()=.
+See =RJK::Interactive::Confirm()=.
 
 =cut
 ###############################################################################
@@ -71,7 +71,7 @@ sub confirm {
 =pod
 
 ---++ itemFromList($list) -> $answer
-See =Interactive::ItemFromList()=.
+See =RJK::Interactive::ItemFromList()=.
 
 =cut
 ###############################################################################
@@ -94,7 +94,7 @@ sub itemFromList {
 =pod
 
 ---++ readChar() -> $string
-See =Interactive::ReadChar()=.
+See =RJK::Interactive::ReadChar()=.
 
 =cut
 ###############################################################################
@@ -109,7 +109,7 @@ sub readChar {
 =pod
 
 ---++ readLine() -> $string
-See =Interactive::ReadLine()=.
+See =RJK::Interactive::ReadLine()=.
 
 =cut
 ###############################################################################
@@ -124,7 +124,7 @@ sub readLine {
 =pod
 
 ---++ pause()
-See =Interactive::Pause()=.
+See =RJK::Interactive::Pause()=.
 
 =cut
 ###############################################################################

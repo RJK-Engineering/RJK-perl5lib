@@ -1,12 +1,12 @@
 =begin TML
 
----+ package Interactive::Term::ReadKey
+---+ package RJK::Interactive::Term::ReadKey
 Console user i/o widgets using Term::ReadKey.
 
 =cut
 
-package Interactive::Term::ReadKey;
-use parent 'Interactive::Default';
+package RJK::Interactive::Term::ReadKey;
+use parent 'RJK::Interactive::Default';
 
 use strict;
 use warnings;
@@ -23,7 +23,7 @@ sub print {
 =pod
 
 ---++ readChar() -> $string
-See =Interactive::ReadChar()=.
+See =RJK::Interactive::ReadChar()=.
 
 =cut
 ###############################################################################
