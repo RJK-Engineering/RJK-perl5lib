@@ -439,7 +439,7 @@ sub _loadFileType {
         # slashes are invalid
         if ($pattern =~ /[\\\/]/) {
             throw TotalCmd::Search::InvalidPatternException(
-                error => sprintf("Invalid pattern: %s", $pattern),
+                error => sprintf("Invalid pattern: %s for %s", $pattern, $self->{name}),
                 pattern => $pattern,
             );
 
@@ -454,11 +454,6 @@ sub _loadFileType {
             push @{$fileTypesByName{lc $pattern}}, $self->{name};
             push @{$self->{filenames}}, $pattern;
 
-        } else {
-            throw TotalCmd::Search::InvalidPatternException(
-                error => sprintf("Invalid pattern: %s", $pattern),
-                pattern => $pattern,
-            );
         }
     }
 }
