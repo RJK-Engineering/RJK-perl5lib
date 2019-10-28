@@ -65,11 +65,62 @@ Returns a new =TotalCmd::Settings= object.
 sub init {
     my $self = shift;
 
-    $self->{_tcmdinc} = TotalCmd::Inc::GetTotalCmdInc($self->{tcmdinc});
-    $self->{_tcmdini} = TotalCmd::Ini::GetTotalCmdIni($self->{tcmdini});
-    $self->{_usercmd} = TotalCmd::UsercmdIni::GetUsercmdIni($self->{usercmd});
+    $self->{_tcmdinc} = GetTotalCmdInc($self->{tcmdinc}) if $self->{tcmdinc};
+    $self->{_tcmdini} = GetTotalCmdIni($self->{tcmdini}) if $self->{tcmdini};
+    $self->{_usercmd} = GetUsercmdIni($self->{usercmd}) if $self->{usercmd};
 
     SetBarDirs($ENV{COMMANDER_INI});
+}
+
+###############################################################################
+=pod
+
+---+++ GetTotalCmdInc([$path]) -> TotalCmd::Inc
+Returns a =TotalCmd::Inc= object for =$path=.
+Loads =totalcmd.inc=, throws a =TotalCmd::Exception= on failure.
+
+=cut
+###############################################################################
+
+sub GetTotalCmdInc {
+    my $path = shift;
+    my $tcmdinc = TotalCmd::Inc->new($path);
+    $tcmdinc->read()
+        || throw TotalCmd::Exception("Error loading totalcmd.inc");
+}
+
+###############################################################################
+=pod
+
+---+++ GetTotalCmdIni([$path]) -> TotalCmd::Ini
+Returns a =TotalCmd::Ini object for =$path=.
+Loads =totalcmd.ini=, throws a =TotalCmd::Exception= on failure.
+
+=cut
+###############################################################################
+
+sub GetTotalCmdIni {
+    my $path = shift;
+    my $tcmdini = TotalCmd::Ini->new($path);
+    $tcmdini->read()
+        || throw TotalCmd::Exception("Error loading totalcmd.ini");
+}
+
+###############################################################################
+=pod
+
+---+++ GetUsercmdIni([$path]) -> TotalCmd::UsercmdIni
+Returns a =TotalCmd::UsercmdIni object for =$path=.
+Loads =usercmd.ini=, throws a =TotalCmd::Exception= on failure.
+
+=cut
+###############################################################################
+
+sub GetUsercmdIni {
+    my $path = shift;
+    my $usercmdini = TotalCmd::UsercmdIni->new($path);
+    $usercmdini->read()
+        || throw TotalCmd::Exception("Error loading usercmd.ini");
 }
 
 sub SetBarDirs {
