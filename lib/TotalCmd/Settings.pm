@@ -19,6 +19,7 @@ use Exception::Class (
 
 use Try::Tiny;
 
+use File::PathFinder qw(FindPath);
 use TotalCmd::ButtonBar;
 use TotalCmd::Inc;
 use TotalCmd::Ini;
@@ -65,9 +66,9 @@ Returns a new =TotalCmd::Settings= object.
 sub init {
     my $self = shift;
 
-    $self->{_tcmdinc} = GetTotalCmdInc($self->{tcmdinc}) if $self->{tcmdinc};
-    $self->{_tcmdini} = GetTotalCmdIni($self->{tcmdini}) if $self->{tcmdini};
-    $self->{_usercmd} = GetUsercmdIni($self->{usercmd}) if $self->{usercmd};
+    $self->{_tcmdinc} = GetTotalCmdInc($self->{tcmdinc});
+    $self->{_tcmdini} = GetTotalCmdIni($self->{tcmdini});
+    $self->{_usercmd} = GetUsercmdIni($self->{usercmd});
 
     SetBarDirs($ENV{COMMANDER_INI});
 }
@@ -77,6 +78,7 @@ sub init {
 
 ---+++ GetTotalCmdInc([$path]) -> TotalCmd::Inc
 Returns a =TotalCmd::Inc= object for =$path=.
+Tries to find the file in common locations if =$path= is undefined.
 Loads =totalcmd.inc=, throws a =TotalCmd::Exception= on failure.
 
 =cut
@@ -84,6 +86,13 @@ Loads =totalcmd.inc=, throws a =TotalCmd::Exception= on failure.
 
 sub GetTotalCmdInc {
     my $path = shift;
+    $path = FindPath(
+        $path // (),
+        "%COMMANDER_PATH%/TOTALCMD.INC",
+        "%LOCALAPPDATA%/TOTALCMD.INC",
+        "%LOCALAPPDATA%/TotalCommander/TOTALCMD.INC",
+    ) || throw TotalCmd::Exception("Can't find totalcmd.inc");
+
     my $tcmdinc = TotalCmd::Inc->new($path);
     $tcmdinc->read()
         || throw TotalCmd::Exception("Error loading totalcmd.inc");
@@ -94,6 +103,7 @@ sub GetTotalCmdInc {
 
 ---+++ GetTotalCmdIni([$path]) -> TotalCmd::Ini
 Returns a =TotalCmd::Ini object for =$path=.
+Tries to find the file in common locations if =$path= is undefined.
 Loads =totalcmd.ini=, throws a =TotalCmd::Exception= on failure.
 
 =cut
@@ -101,6 +111,15 @@ Loads =totalcmd.ini=, throws a =TotalCmd::Exception= on failure.
 
 sub GetTotalCmdIni {
     my $path = shift;
+    $path = FindPath(
+        $path // (),
+        "%COMMANDER_INI%",
+        "%LOCALAPPDATA%/wincmd.ini",
+        "%LOCALAPPDATA%/totalcmd.ini",
+        "%LOCALAPPDATA%/TotalCommander/wincmd.ini",
+        "%LOCALAPPDATA%/TotalCommander/totalcmd.ini",
+    ) || throw TotalCmd::Exception("Can't find totalcmd.ini");
+
     my $tcmdini = TotalCmd::Ini->new($path);
     $tcmdini->read()
         || throw TotalCmd::Exception("Error loading totalcmd.ini");
@@ -111,6 +130,7 @@ sub GetTotalCmdIni {
 
 ---+++ GetUsercmdIni([$path]) -> TotalCmd::UsercmdIni
 Returns a =TotalCmd::UsercmdIni object for =$path=.
+Tries to find the file in common locations if =$path= is undefined.
 Loads =usercmd.ini=, throws a =TotalCmd::Exception= on failure.
 
 =cut
@@ -118,6 +138,13 @@ Loads =usercmd.ini=, throws a =TotalCmd::Exception= on failure.
 
 sub GetUsercmdIni {
     my $path = shift;
+    $path = FindPath(
+        $path // (),
+        "%COMMANDER_PATH%/usercmd.ini",
+        "%LOCALAPPDATA%/usercmd.ini",
+        "%LOCALAPPDATA%/TotalCommander/usercmd.ini",
+    ) || throw TotalCmd::Exception("Can't find usercmd.ini");
+
     my $usercmdini = TotalCmd::UsercmdIni->new($path);
     $usercmdini->read()
         || throw TotalCmd::Exception("Error loading usercmd.ini");
