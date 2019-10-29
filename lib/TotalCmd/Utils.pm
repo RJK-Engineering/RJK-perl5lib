@@ -87,27 +87,6 @@ sub pathListfromArguments {
 ###############################################################################
 =pod
 
----++ findPath(@paths)
-Look in common locations with environment variable substitution.
-
-=cut
-###############################################################################
-
-sub findPath {
-    my @paths = @_;
-    my $path;
-    foreach (@paths) {
-        s|%(\w+)%|$ENV{$1}//''|ge;
-        next unless -e;
-        $path = $_;
-        last;
-    }
-    return $path;
-}
-
-###############################################################################
-=pod
-
 ---++ tempFile([$extension]) -> ($handle, $filename)
 Returns =undef= for =$filename= if no file location can be found.
 Returns =undef= for =$handle= if file can not be opened.
@@ -118,11 +97,12 @@ Returns =undef= for =$handle= if file can not be opened.
 
 sub tempFile {
     my $extension = shift // "tmp";
-    my $tempDir = findPath('%TEMP%') || return;
-    my $file;
+    my $dir = $ENV{TEMP};
+    return if ! -d $dir;
 
+    my $file;
     do {
-        $file = "$tempDir/CMD";
+        $file = "$dir/CMD";
         $file .= sprintf "%X", int rand(16) for 1..4;
         $file .= ".$extension";
     } while (-e $file);
