@@ -1,10 +1,5 @@
 package Media::Info::FFmpeg;
 
-my $_version = '$Revision: 1.10 $';
-$_version =~ s/\$Revision: //;
-$_version =~ s/ \$//;
-our $VERSION = $_version;
-
 use strict;
 use warnings;
 
@@ -129,6 +124,7 @@ sub info {
     return $info;
 }
 
+# greatest common factor
 sub gcf {
   my ($x, $y) = @_;
   ($x, $y) = ($y, $x % $y) while $y;
