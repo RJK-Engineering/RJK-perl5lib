@@ -145,4 +145,27 @@ sub setSourceTargetPaths {
     system @args;
 }
 
+###############################################################################
+=pod
+
+---++ pauseInTotalCmdEnv($msg)
+Pause if the environment variable COMMANDER_EXE is set, indicating the program
+was started from within Total Commander. Prints =$msg= if it is defined, prints
+no message if =$msg= is an empty string, prints a default message otherwise.
+
+=cut
+###############################################################################
+
+sub pauseInTotalCmdEnv {
+    my $msg = shift;
+
+    if (defined $msg) {
+        print "$msg\n" if $msg ne "";
+    } else {
+        print "Press enter to continue.\n";
+    }
+
+    <STDIN> if $ENV{COMMANDER_EXE};
+}
+
 1;
