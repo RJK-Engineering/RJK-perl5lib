@@ -148,7 +148,7 @@ sub Options {
     return
     'podcheck' => sub {
         my $r = podchecker($0);
-        print("$0 pod syntax OK.\n") unless $r;
+        print "$0 pod syntax OK.\n" unless $r;
         exit $r;
     }, $conf{comments_included} ?
         "Run podchecker." : (),
@@ -183,12 +183,12 @@ sub Options {
 
 sub HelpOptions {
     $helpLevels = shift;
-    if (! ref $helpLevels) {
-        $helpLevels = [[ $helpLevels ]];
-    } elsif (! ref ref $helpLevels) {
-        $helpLevels = [ $helpLevels ];
+    if (ref $helpLevels) {
+        $helpLevels = [ $helpLevels ] if ! ref $helpLevels->[0];
+    } else {
+        die "Invalid parameters to ".__PACKAGE__."::HelpOptions";
     }
-    my $repeat = $helpLevels && @$helpLevels > 1 ? "+" : "";
+    my $repeat = @$helpLevels > 1 ? "+" : "";
     return
     "h|help|?$repeat" => \$opts{help}, $conf{comments_included} ? "Display extended help." : ();
 }
@@ -222,7 +222,6 @@ sub GetOptions {
         # "+option" = enable option = value 1
         # option not specified = default value $opts{option} = 2
         @ARGV = map { /^\+/ ? ($_, 1) : $_ } @ARGV;
-        #~ print "@ARGV\n";
     }
 
     my @getoptOptConf;
