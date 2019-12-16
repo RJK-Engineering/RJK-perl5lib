@@ -77,6 +77,18 @@ my @options = ('tri-state:0' => ...);
 | =+tri-state=  | =1=                               | enabled    |
 | not specified | =undef= or a default value        | don't care |
 
+---++ TODO
+
+<verbatim>
+
+add "default: .." if option specifies ":<value>"
+- default for
+   - string values = ""
+   - numeric values = 0
+   - "+" = increments
+
+</verbatim>
+
 =cut
 
 package Options::Pod;
@@ -99,7 +111,7 @@ my %getoptConf = (
 
 my %opts;
 my $optConf;
-my $helpLevels;
+my $helpLevels = [[]];
 
 my $optionSectionStart = '=for options start';
 my $optionSectionEnd = '=for options end';
@@ -185,8 +197,15 @@ sub HelpOptions {
     $helpLevels = shift;
     if (ref $helpLevels) {
         $helpLevels = [ $helpLevels ] if ! ref $helpLevels->[0];
-    } else {
+    } elsif (defined $helpLevels) {
         die "Invalid parameters to ".__PACKAGE__."::HelpOptions";
+    } else {
+        $helpLevels = [
+            [ "OPTIONS", "Display program options." ],
+            [ "HELP", "Display help options." ],
+            [ "POD", "Display POD options." ],
+            [ "", "Display complete help." ]
+        ];
     }
     my $repeat = @$helpLevels > 1 ? "+" : "";
     return
@@ -353,7 +372,7 @@ sub GeneratePod {
         my $ref = $optConf->[$i];
         if (ref $ref) {
             $pod .= "=back\n\n" if $i;
-            if (ref ref $ref) {
+            if (ref $ref->[0]) {
                 $pod .= "=head2 $ref->[0][0]\n\n";
             } else {
                 $pod .= "=head1 $ref->[0]\n\n";
@@ -364,8 +383,8 @@ sub GeneratePod {
                 $ref->[1] =~ s/==/=/g; # unescape
                 $pod .= "$ref->[1]\n\n";
 
-                $pod .= "=back\n\n";     # needed??????
-                $pod .= "=over 4\n\n";   #
+                $pod .= "=back\n\n";
+                $pod .= "=over 4\n\n";
             }
             $i -= $paramsPerOption - 1;
             next;
