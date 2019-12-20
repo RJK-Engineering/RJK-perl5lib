@@ -23,6 +23,7 @@ script.pl -h
 
 my %opts;
 Options::Pod::GetOptions(
+    # must start with array ref containing section header!
     ['OPTIONS'],
     'v|switch' => \$opts{verbose}, "Description",
     's|string=s' => \$opts{string}, "Description {argumentname}",
@@ -30,10 +31,10 @@ Options::Pod::GetOptions(
     'e|extendedint=o' => \$opts{extended}, "Description {extendedintegerperlstyle}",
     'f|realnumber=f' => \$opts{float}, "Description {real}",
 
-    ['HELP'],
-    Options::Pod::HelpOptions("DESCRIPTION|SYNOPSIS|OPTIONS|HELP|POD"),
     ['POD'],
-    Options::Pod::Options
+    Options::Pod::Options,
+    ['HELP'],
+    Options::Pod::HelpOptions("DESCRIPTION|SYNOPSIS|OPTIONS|POD|HELP")
 );
 
 @ARGV || Options::Pod::pod2usage(

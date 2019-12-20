@@ -22,10 +22,11 @@ script.pl -h
 ###############################################################################
 
 Options::Pod::GetOptions(
-    ['HELP'],
-    Options::Pod::HelpOptions("DESCRIPTION|SYNOPSIS|HELP|POD"),
+    # must start with array ref containing section header!
     ['POD'],
-    Options::Pod::Options
+    Options::Pod::Options,
+    ['HELP'],
+    Options::Pod::HelpOptions
 );
 
 @ARGV || Options::Pod::pod2usage(
