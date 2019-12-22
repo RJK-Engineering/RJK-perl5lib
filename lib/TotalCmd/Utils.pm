@@ -87,18 +87,30 @@ sub pathListfromArguments {
 ###############################################################################
 =pod
 
----++ tempFile([$extension]) -> ($handle, $filename)
-Returns =undef= for =$filename= if no file location can be found.
-Returns =undef= for =$handle= if file can not be opened.
-=$extension= defaults to "tmp".
+---++ tempFile([$extension]) -> ($handle, $filename, $error)
+Create a temp file in =$ENV{TEMP}= and return a file handle for it.
+   * =$extension= - temp file extension, defaults to "tmp"
+   * =$handle= - file handle for the temp file
+   * =$filename= - path of the temp file
+   * =$error= - contains error message if an error occurred
 
 =cut
 ###############################################################################
 
 sub tempFile {
     my $extension = shift // "tmp";
+
+    unless (exists $ENV{TEMP} && defined $ENV{TEMP}) {
+        return (undef, undef, "Environment variable TEMP not defined");
+    }
+
     my $dir = $ENV{TEMP};
-    return if ! -d $dir;
+    unless (-d $dir) {
+        return (undef, undef, "Not a directory: $dir");
+    }
+    unless (-r $dir) {
+        return (undef, undef, "Directory not readable: $dir");
+    }
 
     my $file;
     do {
@@ -107,7 +119,7 @@ sub tempFile {
         $file .= ".$extension";
     } while (-e $file);
 
-    open (my $fh, '>', $file) || return (undef, $file);
+    open (my $fh, '>', $file) || return (undef, $file, "$!");
     return ($fh, $file);
 }
 
