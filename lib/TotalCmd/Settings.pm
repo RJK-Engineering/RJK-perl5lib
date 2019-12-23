@@ -73,6 +73,10 @@ sub init {
     SetBarDirs($ENV{COMMANDER_INI});
 }
 
+sub ini { $_[0]{_tcmdini} }
+sub inc { $_[0]{_tcmdinc} }
+sub user { $_[0]{_usercmd} }
+
 ###############################################################################
 =pod
 
