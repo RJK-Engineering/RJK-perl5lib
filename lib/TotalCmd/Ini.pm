@@ -133,26 +133,28 @@ sub filepath { $_[0]{path} }
 ---++ INI file
 
 ---+++ read([$path]) -> TotalCmd::Ini
-Read data from file. Returns false on failure, callee on success.
+Read data from file. Returns nothing on failure, callee on success.
 
 ---+++ write([$path]) -> TotalCmd::Ini
-Write data to file. Returns false on failure, callee on succes.
+Write data to file. Returns nothing on failure, callee on success.
 
 =cut
 ###############################################################################
 
 sub read {
-    my $self = shift;
-    $self->{ini}->read(shift);
+    my ($self, $file) = @_;
+    $file //= $self->{path};
 
+    $self->{ini}->read($file) || return;
     $self->_loadSearches();
 
     return $self;
 }
 
 sub write {
-    my $self = shift;
-    return $self if $self->{ini}->write(shift);
+    my ($self, $file) = @_;
+    $file //= $self->{path};
+    return $self if $self->{ini}->write($file);
 }
 
 ###############################################################################
