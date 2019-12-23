@@ -114,11 +114,6 @@ my $UserMenuNumberStart = 700;
 ---+++ new($path) -> TotalCmd::Ini
 Returns a new =TotalCmd::Ini= object.
 
----+++ GetTotalCmdIni([$path]) -> TotalCmd::Ini
-Returns a =TotalCmd::Ini= singleton object for =$path=.
-Tries to find =totalcmd.ini= if =$path= is undefined.
-Loads =totalcmd.ini=, throws a =TotalCmd::Ini::Exception= on failure.
-
 =cut
 ###############################################################################
 
