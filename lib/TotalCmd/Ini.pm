@@ -237,7 +237,7 @@ sub _getSubmenu {
 
 sub setMenu {
     my ($self, $menu, $items) = @_;
-    $self->{ini}->setHashList($menu, $items, [qw(menu cmd param path key)]);
+    $self->{ini}->setHashList($menu, $items, [qw(menu cmd param path iconic key)]);
 }
 
 ###############################################################################
