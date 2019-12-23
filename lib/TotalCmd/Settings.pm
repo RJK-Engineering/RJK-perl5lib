@@ -83,6 +83,7 @@ sub user { $_[0]{_usercmd} }
 ---+++ GetTotalCmdInc([$path]) -> TotalCmd::Inc
 Returns a =TotalCmd::Inc= object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
+Returns nothing if file is not found.
 Loads =totalcmd.inc=, throws a =TotalCmd::Exception= on failure.
 
 =cut
@@ -93,9 +94,10 @@ sub GetTotalCmdInc {
     $path = FindPath(
         $path // (),
         "%COMMANDER_PATH%/TOTALCMD.INC",
+        "%APPDATA%/GHISLER/TOTALCMD.INC",
         "%LOCALAPPDATA%/TOTALCMD.INC",
         "%LOCALAPPDATA%/TotalCommander/TOTALCMD.INC",
-    ) || throw TotalCmd::Exception("Can't find totalcmd.inc");
+    ) || return;
 
     my $tcmdinc = TotalCmd::Inc->new($path);
     $tcmdinc->read()
@@ -108,6 +110,7 @@ sub GetTotalCmdInc {
 ---+++ GetTotalCmdIni([$path]) -> TotalCmd::Ini
 Returns a =TotalCmd::Ini object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
+Returns nothing if file is not found.
 Loads =totalcmd.ini=, throws a =TotalCmd::Exception= on failure.
 
 =cut
@@ -118,11 +121,12 @@ sub GetTotalCmdIni {
     $path = FindPath(
         $path // (),
         "%COMMANDER_INI%",
+        "%APPDATA%/GHISLER/wincmd.ini",
         "%LOCALAPPDATA%/wincmd.ini",
         "%LOCALAPPDATA%/totalcmd.ini",
         "%LOCALAPPDATA%/TotalCommander/wincmd.ini",
         "%LOCALAPPDATA%/TotalCommander/totalcmd.ini",
-    ) || throw TotalCmd::Exception("Can't find totalcmd.ini");
+    ) || return;
 
     my $tcmdini = TotalCmd::Ini->new($path);
     $tcmdini->read()
@@ -135,6 +139,7 @@ sub GetTotalCmdIni {
 ---+++ GetUsercmdIni([$path]) -> TotalCmd::UsercmdIni
 Returns a =TotalCmd::UsercmdIni object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
+Returns nothing if file is not found.
 Loads =usercmd.ini=, throws a =TotalCmd::Exception= on failure.
 
 =cut
@@ -145,9 +150,10 @@ sub GetUsercmdIni {
     $path = FindPath(
         $path // (),
         "%COMMANDER_PATH%/usercmd.ini",
+        "%APPDATA%/GHISLER/usercmd.ini",
         "%LOCALAPPDATA%/usercmd.ini",
         "%LOCALAPPDATA%/TotalCommander/usercmd.ini",
-    ) || throw TotalCmd::Exception("Can't find usercmd.ini");
+    ) || return;
 
     my $usercmdini = TotalCmd::UsercmdIni->new($path);
     $usercmdini->read()
