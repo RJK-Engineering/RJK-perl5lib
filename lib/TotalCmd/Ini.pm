@@ -92,6 +92,7 @@ use strict;
 use warnings;
 
 use File::Ini;
+use TotalCmd::Menu;
 use TotalCmd::Search;
 
 use Exception::Class (
@@ -184,6 +185,30 @@ Throws =TotalCmd::Ini::SubmenuException= if =$itemNr= is not a submenu.
 =cut
 ###############################################################################
 
+sub getStartMenu {
+    my ($self) = @_;
+    return new TotalCmd::Menu(
+        title => "StartMenu",
+        items => scalar $self->{ini}->getHashList(
+            'user', 'number',
+            { source => 'StartMenu' }
+        )
+    );
+}
+
+sub setStartMenu {
+    my ($self, $menu) = @_;
+    $self->setMenu('user', $menu->{items});
+}
+
+sub getDirMenu {
+    my ($self) = @_;
+    return $self->{ini}->getHashList(
+        'DirMenu', 'number',
+        { source => 'DirMenu' }
+    );
+}
+
 sub getMenuItem {
     my ($self, $menu, $number) = @_;
     my $items = $self->getMenuItems($menu);
@@ -192,6 +217,7 @@ sub getMenuItem {
 
 sub getMenuItems {
     my ($self, $menu, $submenuNr) = @_;
+    $submenuNr = $submenuNr->{number} if ref $submenuNr;
     my @items = $self->{ini}->getHashList(
         $menu, 'number',
         { source => $menu eq 'user' ? 'StartMenu' : $menu }
