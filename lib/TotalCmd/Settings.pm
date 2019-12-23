@@ -295,9 +295,6 @@ Throws =TotalCmd::Exception= if =$itemNr= is not a submenu.
 ---++++ getSubmenus($menu) -> @commands or \@commands
 Get submenus.
 
----++++ saveMenu($menu, $items)
-Throws =TotalCmd::Exception=.
-
 =cut
 ###############################################################################
 
@@ -315,12 +312,6 @@ sub getMenuItems {
 sub getSubmenus {
     my ($self, $menu) = @_;
     $self->{_tcmdini}->getSubmenus($menu);
-}
-
-sub saveMenu {
-    my ($self, $menu, $items) = @_;
-    $self->{_tcmdini}->setMenu($menu, $items);
-    $self->{_tcmdini}->write("a.ini");
 }
 
 ###############################################################################
