@@ -329,12 +329,13 @@ containing the interpreted data.
 ###############################################################################
 
 sub parse {
-    my ($self, $section, $key, $default) = @_;
+    my ($self, $section, $key, $default, $filter) = @_;
     my $pl = $self->getPropertyList($section) || return;
     my @keys = $self->getKeys($section);
     my $data;
 
     foreach (@keys) {
+        next if $filter && ! /$filter/i;
         my $value = $pl->get($_);
         # lists
         if (/^(.*?)(\d+)$/) {
@@ -383,7 +384,7 @@ Returns a list of values.%BR%
 ---+++ getLists($section) -> ( $name => $array ) or { $name => $array }
 Returns a hash of lists.%BR%
 
----+++ getHashList($section) -> ( $hash ) or [ $hash ]
+---+++ getHashList($section, $key, $default) -> ( $hash ) or [ $hash ]
 Returns a list of hashes.%BR%
 
 ---+++ getHash($section, $name) -> $hash or %hash
@@ -392,10 +393,10 @@ Returns a hash of values.%BR%
 ---+++ getHashLHS($section, $name) -> $hash or %hash
 Returns a hash of values.%BR%
 
----+++ getHashes($section) -> ( $name => $hash ) or { $name => $hash }
+---+++ getHashes($section, $key) -> ( $name => $hash ) or { $name => $hash }
 Returns a hash of hashes.%BR%
 
----+++ getHashesLHS($section) -> ( $name => $hash ) or { $name => $hash }
+---+++ getHashesLHS($section, $key) -> ( $name => $hash ) or { $name => $hash }
 Returns a hash of hashes.%BR%
 
 ---+++ setList($section, $array, $name) -> $propertyList
@@ -431,8 +432,8 @@ sub getLists {
 }
 
 sub getHashList {
-    my ($self, $section, $key, $default) = @_;
-    my $data = $self->parse($section, $key, $default) || return;
+    my ($self, $section, $key, $default, $filter) = @_;
+    my $data = $self->parse($section, $key, $default, $filter) || return;
     $data = $data->{hashList};
     shift @$data unless defined $data->[0]; # when list starts at 1
     return wantarray ? @$data : $data;
