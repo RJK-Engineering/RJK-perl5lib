@@ -12,7 +12,6 @@ package File::Ini;
 use strict;
 use warnings;
 
-use File::IniCompareResult;
 use PropertyList;
 
 ###############################################################################
@@ -600,64 +599,6 @@ sub setHashListRHS {
     }
     $self->{keys}{$section} = \@props;
     return $pl;
-}
-
-###############################################################################
-=pod
-
----++ Compare
-
----+++ sectionEquals($ini, $section, \&compareSub) -> $result
-   * =$ini= - =File::Ini= object to compare to
-   * =$section= - section name
-   * =&compareSub= - compare subroutine accepting two sections as arguments and returning a boolean
-   * =$result= - boolean
-
----+++ compare($ini) -> $result
-   * =$ini= - =File::Ini= object to compare to
-   * =$result= - [[ViewEmbeddedDoc?module=File::IniCompareResult][File::IniCompareResult]]
-
-=cut
-###############################################################################
-
-sub sectionEquals {
-    my ($self, $ini, $section, $compareSub) = @_;
-    my $p1 = $self->getSection($section) || return;
-    my $p2 = $ini->getSection($section) || return;
-    return $compareSub->($p1, $p2);
-}
-
-sub compare {
-    my ($left, $right) = @_;
-
-    my $res = new File::IniCompareResult();
-
-    foreach my $section (@{$left->sections}) {
-        if (exists $right->{properties}{$section}) {
-            $res->properties->{$section} =
-                $left->{properties}{$section}->compare(
-                    $right->{properties}{$section},
-                    orderLeft => $left->getPropertyNames($section),
-                    orderRight => $right->getPropertyNames($section),
-                );
-
-            if ($res->properties->{$section}->hasDifferences) {
-                push @{$res->sections->unequal}, $section;
-            } else {
-                push @{$res->sections->equal}, $section;
-            }
-        } else {
-            push @{$res->sections->left}, $section;
-        }
-    }
-
-    foreach my $section (@{$right->sections}) {
-        if (! exists $left->{properties}{$section}) {
-            push @{$res->sections->right}, $section;
-        }
-    }
-
-    return $res;
 }
 
 1;
