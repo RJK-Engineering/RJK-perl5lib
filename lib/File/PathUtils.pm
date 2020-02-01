@@ -15,6 +15,7 @@ our @EXPORT_OK = qw(
     CompletePath
     ExtractPath
     GetPaths
+    RenamedString
 );
 
 ###############################################################################
@@ -120,6 +121,48 @@ sub GetPaths {
     }
 
     return wantarray ? @paths : \@paths;
+}
+
+###############################################################################
+=pod
+
+---+++ RenamedString($from, $to) -> $string
+   * =$from= - path before rename, e.g: =dir/subdir1/file.ext=
+   * =$to= - path after rename, e.g: =dir/subdir2/file.ext=
+   * =$string= - formatted string, e.g: =dir/{subdir1 => subdir2}/file.ext=
+
+=cut
+###############################################################################
+
+sub RenamedString {
+    my ($from, $to) = @_;
+    my $string;
+
+    my @from = split m|/|, $from;
+    my @to = split m|/|, $to;
+
+    my $i = 0;
+    for (; $i < @to; $i++) {
+        last if $from[$i] ne $to[$i];
+    }
+
+    my $j = $#to;
+    my $d = @to - @from;
+    for (; $j >= 0; $j--) {
+        last if $from[$j-$d] ne $to[$j];
+    }
+
+    $string = join "/", @to[0..$i-1];
+    $string .= "/" if $string;
+
+    my $f = join "/", @from[$i..$j-$d];
+    my $t = join "/", @to[$i..$j];
+    $string .= "{$f => $t}";
+
+    $string .= "/" if @to[++$j..$#to];
+    $string .= join "/", @to[$j..$#to];
+
+    return $string;
 }
 
 1;
