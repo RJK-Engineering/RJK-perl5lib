@@ -19,7 +19,7 @@ sub fetchInstance {
 }
 
 sub fetchInstanceByPath {
-    my ($store, $path, $properties) = @_;
+    my ($self, $store, $path, $properties) = @_;
     $store->fetchObjectByPath(TBM::Constants::CLASSNAME_DOCUMENT, $path, $properties);
 }
 
@@ -32,6 +32,13 @@ sub getInstanceByPath {
     my ($store, $class, $path) = @_;
     $store->getObjectByPath(TBM::Constants::CLASSNAME_DOCUMENT, $path);
 }
+
+package TBM::Factory::JSON;
+our @ISA='TBM::Factory::Document';
+#~ use parent 'TBM::Factory::Document';
+
+use TBM::Constants;
+
 
 package TBM::Factory::Folder;
 

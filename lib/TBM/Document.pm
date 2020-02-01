@@ -4,6 +4,8 @@ use parent 'TBM::FileObject';
 use strict;
 use warnings;
 
+use File::Spec::Functions qw(catdir);
+
 sub getContent {
     my $self = shift;
     return $self->{content};
@@ -30,6 +32,16 @@ sub getTextContent {
 sub setTextContent {
     my ($self, @text) = @_;
     $self->{textContent} = \@text;
+}
+
+sub checkIn {
+    my ($self) = @_;
+    if ($self->hasContent && $self->{name}) {
+        #~ my $path = catdir($self->{path}, $self->{name});
+        #~ open my $fh, ">", $path or die "$!: $path";
+        #~ print $fh $self->getTextContent;
+        #~ close $fh;
+    }
 }
 
 1;
