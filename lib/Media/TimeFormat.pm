@@ -15,11 +15,11 @@ sub humanReadableFormat {
     my $mins = int $s / 60;
     $s -= $mins * 60;
 
-    return sprintf("%uy %ud %u:%2.2u:%2.2u", $years, $days, $hours, $mins, $s)
+    return sprintf("%uy %ud %u:%02u:%02u", $years, $days, $hours, $mins, $s)
         if $years;
-    return sprintf("%ud %u:%2.2u:%2.2u", $days, $hours, $mins, $s)
+    return sprintf("%ud %u:%02u:%02u", $days, $hours, $mins, $s)
         if $days;
-    return sprintf("%u:%2.2u:%2.2u", $hours, $mins, $s)
+    return sprintf("%u:%02u:%02u", $hours, $mins, $s)
         if $hours;
     return sprintf("%u:%02u", $mins, $s)
         if $mins;
