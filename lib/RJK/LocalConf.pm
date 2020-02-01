@@ -33,15 +33,45 @@ sub GetOptions {
 
 sub loadConf {
     my ($path, $options) = @_;
+    my $propertiesFormat = $path =~ /\.properties$/i;
+    my $eat;
 
     open my $fh, '<', $path or die "$!";
     while (<$fh>) {
-        next if /^\W/;
-        chomp;
+        s/^\s+//;                                           # trim leading space
+        next unless /./;                                    # skip empty line
+        next if /^[!#]/;                                    # skip comments
+        s/\s+$//;                                           # trim trailing space
+
+        if ($eat) {
+            my $option = $eat;
+            $eat = s/\\$//;                                 # remove backslash
+
+            if (! $propertiesFormat) {
+                s/\s+$//;                                   # trim trailing space after removing backslash
+                $options->{$option} .= "\n";
+            }
+            $options->{$option} .= $_;
+
+            $eat = $option if $eat;
+            next;
+        }
+        $eat = s/\\$//;                                     # remove backslash
+
         my @option = split /=/, $_, 2;
+        $option[1] =~ s/^\s+//;                             # trim leading space
+        $option[0] =~ s/\s+$//;                             # trim trailing space
+        $option[0] =~ s/\.(\w?)/\U$1/g;                     # make camelCase
+        if ($propertiesFormat) {
+            $option[1] =~ s/\\([rnt'"\\])/"qq|\\$1|"/gee;   # escaped characters
+        } elsif ($eat) {
+            $option[1] =~ s/\s+$//;                         # trim trailing space after removing backslash
+        }
+
         $options->{$option[0]} = $option[1];
+
+        $eat = $option[0] if $eat;
     }
 }
 
 1;
-
