@@ -276,6 +276,12 @@ sub setMenu {
 ---+++ getShortcuts() -> %shortcuts or \%shortcuts
 Get =$keyCombo => $commandName= hash.
 
+---++++ getColors() -> \@colors
+   * =@colors= - List of { Color => $color, Search => $search }
+
+---++++ setColors(\@colors)
+   * =@colors= - List of { Color => $color, Search => $search }
+
 =cut
 ###############################################################################
 
@@ -288,6 +294,48 @@ sub getShortcuts {
     my ($self) = @_;
     my $shortcuts = $self->{ini}->getSection('Shortcuts');
     return wantarray ? %$shortcuts : $shortcuts;
+}
+
+sub getColors {
+    my ($self) = @_;
+    return $self->{ini}->getHashListRHS("Colors", {
+        name => "ColorFilter",
+        key => "nr",
+        defaultKey => "Search",
+    });
+}
+
+sub setColors {
+    my ($self, $colors) = @_;
+
+    my $other = {};
+    $self->{ini}->getHashListRHS("Colors", {
+        name => "ColorFilter",
+        key => "nr",
+        defaultKey => "Search",
+        otherProps => $other
+    });
+    $self->{ini}->setHashListRHS("Colors", $colors, {
+        name => "ColorFilter",
+        keys => [qw(Search Color)],
+        defaultKey => "Search"
+    });
+    $self->{ini}->prependAll("Colors", $other);
+
+
+    #~ $self->{ini}->replaceHashListRHS("Colors", $colors, {
+    #~     name => "ColorFilter",
+    #~     keys => [qw(Search Color)],
+    #~     defaultKey => "Search"
+    #~ });
+
+
+    $self->{ini}->clearHashListRHS("Colors", $colors, "ColorFilter");
+    $self->{ini}->setHashListRHS("Colors", $colors, {
+        name => "ColorFilter",
+        keys => [qw(Search Color)],
+        defaultKey => "Search"
+    });
 }
 
 ###############################################################################
