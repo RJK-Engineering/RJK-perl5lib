@@ -423,7 +423,7 @@ sub inCategory {
 
 sub _loadSearches {
     my $self = shift;
-    my %s = $self->{ini}->getHashes('searches', 'name');
+    my %s = $self->{ini}->getHashes('searches', { key => 'name' });
     foreach (values %s) {
         $self->{searches}{$_->{name}} = new TotalCmd::Search(%$_);
     }
