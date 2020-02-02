@@ -525,7 +525,7 @@ sub ParseDate {
         $year += $3 < 70 ? 2000 : 1900 if $3 < 100;
 
         $dateTime = $strptime->parse_datetime(
-            sprintf "%2.2u%2.2u%4.4u%2.2u%2.2u%2.2u",
+            sprintf "%02u%02u%04u%02u%02u%02u",
                 $1, $2, $year, $4//0, $5//0, $6//0
         );
 
