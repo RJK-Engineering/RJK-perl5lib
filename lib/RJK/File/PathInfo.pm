@@ -8,6 +8,7 @@ use File::Spec::Functions qw();
 use Exporter ();
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
+    rel2abs
     filename
     directory
     basename
@@ -18,15 +19,19 @@ our @EXPORT_OK = (@EXPORT, qw(
     splitname
     hidden
     catdir
+    path
 ));
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
-# from absolute path
-
-sub filename {
-    #~ (File::Spec::Functions::splitpath(@_))[2]
-    ($_[0] =~ /([^\\\/]+)$/)[0]
+sub rel2abs {
+    File::Spec::Functions::rel2abs(@_)
 }
+
+sub path {
+    File::Spec::Functions::path()
+}
+
+# from absolute path
 
 sub directory {
     File::Spec::Functions::catdir((File::Spec::Functions::splitpath(@_))[0,1])
@@ -37,6 +42,10 @@ sub splitpath {
 }
 
 # from absolute or relative path
+
+sub filename {
+    ($_[0] =~ /([^\\\/]+)$/)[0]
+}
 
 sub basename {
     (splitname(@_))[0]
@@ -51,7 +60,7 @@ sub splitname {
 }
 
 sub hidden {
-    ((splitname(@_))[0] =~ /^\./)
+    filename(@_) =~ /^\./
 }
 
 # join
