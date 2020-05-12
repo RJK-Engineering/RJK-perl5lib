@@ -11,14 +11,26 @@ our @EXPORT_OK = qw(
     GetProcessList
 );
 
+my @fields = qw(
+    ImageName
+    PID
+    SessionName
+    SessionNr
+    MemUsage
+    Status
+    UserName
+    CPUTime
+    WindowTitle
+);
+
 sub GetPid {
     my $pid = shift;
-    my ($header, $fields);
+    my $values;
     _GetList(sub {
-        ($header, $fields) = @_;
-        $fields->{PID} == $pid || undef $fields;
+        $values = shift;
+        $values->{PID} == $pid || undef $values;
     });
-    return $fields;
+    return $values;
 }
 
 sub ProcessExists {
@@ -31,36 +43,35 @@ sub GetProcessList {
     my @list;
 
     _GetList(sub {
-        my ($header, $fields) = @_;
-        return if $fields->{ImageName} !~ /$procNameRegex/;
+        my $values = shift;
+        return if $values->{ImageName} !~ /$procNameRegex/;
 
-        push @list, $fields;
+        push @list, $values;
         return;
     });
 
-    return wantarray ? @list : \@list;
+    return \@list;
 }
 
 sub _GetList {
     my $callback = shift;
-    my @header;
+    my $header = 1;
 
     foreach (`tasklist /v /fo csv`) {
-        chomp;
-        s/^"//;
-        s/"$//;
-        my @fields = split /","/;
-
-        unless (@header) {
-            #~ @header = @fields;
-            @header = map { s/\s+//gr } @fields;
+        if ($header) {
+            $header = 0;
             next;
         }
 
-        my %hash;
-        @hash{@header} = @fields;
+        chomp;
+        s/^"//;
+        s/"$//;
 
-        last if $callback->(\@header, \%hash);
+        my @values = split /","/;
+        my %hash;
+        @hash{@fields} = @values;
+
+        last if $callback->(\%hash);
     }
 }
 
