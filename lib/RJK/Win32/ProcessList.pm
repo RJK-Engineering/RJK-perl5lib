@@ -39,18 +39,32 @@ sub ProcessExists {
 }
 
 sub GetProcessList {
-    my $procNameRegex = shift // ".";
+    my $procNameRegex = shift;
+    my $match = shift // "ImageName";
     my @list;
 
     _GetList(sub {
         my $values = shift;
-        return if $values->{ImageName} !~ /$procNameRegex/;
-
-        push @list, $values;
-        return;
+        return if $procNameRegex && $values->{$match} !~ /$procNameRegex/;
+        return push @list, $values;
     });
 
     return \@list;
+}
+
+sub GetProcessHash {
+    my $procNameRegex = shift;
+    my $match = shift // "ImageName";
+    my $key = shift // "PID";
+    my %hash;
+
+    _GetList(sub {
+        my $values = shift;
+        return if $procNameRegex && $values->{$match} !~ /$procNameRegex/;
+        return $values->{$key} = $values;
+    });
+
+    return \%hash;
 }
 
 sub _GetList {
@@ -71,7 +85,7 @@ sub _GetList {
         my %hash;
         @hash{@fields} = @values;
 
-        last if $callback->(\%hash);
+        last unless $callback->(\%hash);
     }
 }
 
