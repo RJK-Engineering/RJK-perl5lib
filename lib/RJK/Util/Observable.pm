@@ -27,18 +27,21 @@ sub hasObserver {
 
 sub notifyObservers {
     my ($self, $event) = @_;
-    my ($hash, $code);
+
+    my ($isEventObject, $method);
+    if ($isEventObject = ref $event eq "HASH") {
+        $method = "handle" . $event->{type} . "Event";
+    }
 
     foreach (@{$self->{observers}}) {
-        if ($hash //= ref $event eq "HASH") {
-            my $method = "handle" . $event->{type} . "Event";
+        if ($isEventObject) {
             $_->$method($event->{payload}) if $_->can($method);
         } elsif ($_->can("update")) {
             $_->update($event);
         } elsif (ref $_ eq "CODE") {
             $_->($event);
         } else {
-            warn "Invalid event: $event";
+            warn "No handler found for event $event and observer $_";
         }
     }
 }
