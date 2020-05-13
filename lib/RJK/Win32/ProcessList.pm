@@ -45,7 +45,7 @@ sub GetProcessList {
 
     _GetList(sub {
         my $values = shift;
-        return if $procNameRegex && $values->{$match} !~ /$procNameRegex/;
+        return 1 if $procNameRegex && $values->{$match} !~ /$procNameRegex/;
         return push @list, $values;
     });
 
@@ -60,7 +60,7 @@ sub GetProcessHash {
 
     _GetList(sub {
         my $values = shift;
-        return if $procNameRegex && $values->{$match} !~ /$procNameRegex/;
+        return 1 if $procNameRegex && $values->{$match} !~ /$procNameRegex/;
         return $values->{$key} = $values;
     });
 
