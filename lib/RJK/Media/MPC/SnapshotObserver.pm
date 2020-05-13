@@ -4,42 +4,39 @@ use parent 'RJK::Media::MPC::Observer';
 use strict;
 use warnings;
 
-sub decoratePayload {
+sub retrieveStatus {
     my ($self, $snapshot) = @_;
-    my $filename = $snapshot->{name};
-    my %payload = (snapshot => $snapshot);
+    # first Observer sets status
+    return if $snapshot->{status};
+
+    my $filename = $snapshot->{mediaFilename};
 
     my $process = $self->getProcess($filename);
     if ($process) {
-        $payload{process} = $process;
-        $payload{path} = $process->{WindowTitle};
+        $snapshot->{process} = $process;
+        $snapshot->{mediaFilePath} = $process->{WindowTitle};
     } else {
         print "$filename not playing\n";
-        $payload{path} = $self->findFileInDirHistory($filename);
+        $snapshot->{mediaFilePath} = $self->findFileInDirHistory($filename);
     }
 
-    my $status = $self->{mpcMon}->getPlayerStatus();
-    if ($status->{file}) {
-        if ($status->{file} eq $filename) {
-            $payload{status} = $status;
-            if (! $payload{path}) {
-                $payload{path} = $payload{status}{filepath};
-                $payload{dir} = $payload{status}{filedir};
-            } elsif ($payload{path} ne $payload{status}{filepath}) {
-                print "WARN Path mismatch: $payload{path}\n";
-                print "WARN Path mismatch: $payload{status}{filepath}\n";
-            }
+    $snapshot->{status} = $self->{mpcMon}->getPlayerStatus();
+    if ($snapshot->{status}{file} && $snapshot->{status}{file} eq $filename) {
+        if (! $snapshot->{mediaFilePath}) {
+            $snapshot->{mediaFilePath} = $snapshot->{status}{filepath};
+            $snapshot->{mediaFileDir} = $snapshot->{status}{filedir};
+        } elsif ($snapshot->{mediaFilePath} ne $snapshot->{status}{filepath}) {
+            print "WARN Path mismatch: $snapshot->{mediaFilePath}\n";
+            print "WARN Path mismatch: $snapshot->{status}{filepath}\n";
         }
     }
 
-    $payload{path} || return;
+    $snapshot->{mediaFilePath} || return;
 
-    if (! $payload{dir}) {
-        $payload{dir} = $payload{path} =~ s/[\\\/]+[^\\\/]+$//r;
+    if (! $snapshot->{mediaFileDir}) {
+        $snapshot->{mediaFileDir} = $snapshot->{mediaFilePath} =~ s/[\\\/]+[^\\\/]+$//r;
     }
-    $self->addToDirHistory($payload{dir}) if $payload{dir};
-
-    return \%payload;
+    $self->addToDirHistory($snapshot->{mediaFileDir}) if $snapshot->{mediaFileDir};
 }
 
 sub getProcess {
