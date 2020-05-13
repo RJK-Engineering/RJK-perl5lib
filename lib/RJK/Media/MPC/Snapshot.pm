@@ -13,12 +13,12 @@ use warnings;
 =pod
 
 ---++++ filename([$filename]) -> $filename
----++++ name([$name]) -> $name
+---++++ mediaFilename([$mediaFilename]) -> $mediaFilename
 ---++++ position([$position]) -> $position
 ---++++ date([$date]) -> $date
 ---++++ time([$time]) -> $time
 ---++++ datetime([$datetime]) -> $datetime
----++++ datetime_array([$datetime_array]) -> $datetime_array
+---++++ datetimeArray([$datetimeArray]) -> $datetimeArray
 
 =cut
 ###############################################################################
@@ -26,12 +26,12 @@ use warnings;
 use Class::AccessorMaker {
     filename => "",
     extension => "",
-    name => "",
+    mediaFilename => "",
     position => "",
     date => "",
     time => "",
     datetime => "",
-    datetime_array => "",
+    datetimeArray => "",
 }, "no_new";
 
 ###############################################################################
@@ -42,14 +42,14 @@ Returns a new =RJK::Media::MPC::Snapshot= object or nothing if =$filename= does
 not have the proper format.
 
 Filename format with extracted fields in brackets:
-   * ={name}_snapshot_{position}_[{date}_{time}].{extension}=
+   * ={mediaFilename}_snapshot_{position}_[{date}_{time}].{extension}=
 Field formats:
    * ={position}= =hh.mm.ss= or =mm.ss= (object attribute format: =hh:mm:ss=)
    * ={date}= =yyyy.mm.dd= (object attribute format: =dd-mm-yyyy=)
    * ={time}= =hh.mm.ss= (object attribute format: =hh:mm:ss=)
 Additional object attributes:
    * ={datetime}= datetime string in sortable format: =yyyymmddhhmmss=
-   * ={datetime_array}= array of date/time fields [yyyy, mm, dd, hh, mm, ss]
+   * ={datetimeArray}= array of date/time fields [yyyy, mm, dd, hh, mm, ss]
 
 =cut
 ###############################################################################
@@ -63,12 +63,12 @@ sub new {
         || return;
 
     $self->{extension} = $9;
-    $self->{name} = $1;
+    $self->{mediaFilename} = $1;
     $self->{position} = $2;
     $self->{date} = "$5-$4-$3";
     $self->{time} = "$6:$7:$8";
     $self->{datetime} = "$3$4$5$6$7$8";
-    $self->{datetime_array} = [$3, $4, $5, $6, $7, $8];
+    $self->{datetimeArray} = [$3, $4, $5, $6, $7, $8];
 
     my $c = $self->{position} =~ s/\./:/g;
     $self->{position} = "00:$self->{position}" if $c == 1;
