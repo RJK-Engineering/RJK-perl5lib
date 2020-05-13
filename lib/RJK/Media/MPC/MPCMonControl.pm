@@ -304,16 +304,6 @@ sub undo {
 
 ###############################################################################
 
-sub bookmark {
-    my ($self, $snapshot) = @_;
-    my $file = "$self->{opts}{snapshotDir}\\$snapshot->{filename}";
-    if ($self->moveToDir($file, $snapshot->{dir})) {
-        print "$snapshot->{filename}\n";
-    } else {
-        print "Error moving snapshot to $snapshot->{dir}\n";
-    }
-}
-
 sub deleteSnapshots {
     my ($self, $snapshots) = @_;
     # purge snapshots
