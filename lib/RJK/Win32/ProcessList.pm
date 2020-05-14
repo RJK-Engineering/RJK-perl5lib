@@ -57,7 +57,7 @@ sub GetProcessHash {
 
     _GetList(sub {
         my $values = shift;
-        return $values->{$key} = $values;
+        $hash{$values->{$key}} = $values;
     }, $imageName);
 
     return \%hash;
