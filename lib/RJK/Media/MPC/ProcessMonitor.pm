@@ -1,5 +1,5 @@
 package RJK::Media::MPC::ProcessMonitor;
-use parent 'RJK::Media::MPC::Monitor';
+use parent 'RJK::Util::ObservableMonitor';
 
 use strict;
 use warnings;
