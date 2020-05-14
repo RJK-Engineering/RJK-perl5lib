@@ -74,7 +74,8 @@ sub addObserver {
 
     my $class = "RJK::Media::MPC::Observers::$name";
     if (! eval ("require $class")) {
-        print "WARN Invalid Observer: $name\n";
+        my $err = $! || (split /\n/, $@)[0];
+        print "WARN Invalid Observer: $name ($err)\n";
         return;
     }
 
@@ -127,6 +128,20 @@ sub disableObserver {
         my ($name, $mon, $observer) = @_;
         if (! $self->{mon}{$mon}->removeObserver($observer)) {
             print "Observer already disabled: $name ($mon)\n";
+        }
+    });
+}
+
+sub observerSwitch {
+    my ($self, $name, $mon) = @_;
+    $self->getObservers($name, $mon, sub {
+        my ($name, $mon, $observer) = @_;
+        if ($self->{mon}{$mon}->hasObserver($observer)) {
+            print "Disabled $name for $mon\n";
+            $self->{mon}{$mon}->removeObserver($observer);
+        } else {
+            print "Enabled $name for $mon\n";
+            $self->{mon}{$mon}->addObserver($observer);
         }
     });
 }
