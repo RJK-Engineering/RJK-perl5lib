@@ -6,10 +6,11 @@ use Exporter ();
 
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(
-    GetPid
+    GetByPid
     ProcessExists
     GetProcessList
 );
+our %EXPORT_TAGS = (ALL => \@EXPORT_OK);
 
 my @fields = qw(
     ImageName
@@ -23,55 +24,54 @@ my @fields = qw(
     WindowTitle
 );
 
-sub GetPid {
+sub GetByPid {
     my $pid = shift;
     my $values;
     _GetList(sub {
         $values = shift;
-        $values->{PID} == $pid || undef $values;
-    });
+    }, $pid, "PID");
     return $values;
 }
 
 sub ProcessExists {
-    my $procName = shift;
-    return @{GetProcessList($procName)};
+    my $imageName = shift;
+    return @{GetProcessList($imageName)};
 }
 
 sub GetProcessList {
-    my $procNameRegex = shift;
-    my $match = shift // "ImageName";
+    my $imageName = shift;
     my @list;
 
     _GetList(sub {
         my $values = shift;
-        return 1 if $procNameRegex && $values->{$match} !~ /$procNameRegex/;
         return push @list, $values;
-    });
+    }, $imageName);
 
     return \@list;
 }
 
 sub GetProcessHash {
-    my $procNameRegex = shift;
-    my $match = shift // "ImageName";
-    my $key = shift // "PID";
+    my ($imageName, $key) = @_;
+    $key //= "PID";
     my %hash;
 
     _GetList(sub {
         my $values = shift;
-        return 1 if $procNameRegex && $values->{$match} !~ /$procNameRegex/;
         return $values->{$key} = $values;
-    });
+    }, $imageName);
 
     return \%hash;
 }
 
 sub _GetList {
-    my $callback = shift;
+    my ($callback, $value, $match) = @_;
+    $match //= "ImageName";
     my $header = 1;
 
-    foreach (`tasklist /v /fo csv`) {
+    my $cmd = "tasklist /v /fo csv";
+    $cmd .= " /fi \"$match eq $value\"" if defined $value;
+
+    foreach (`$cmd`) {
         if ($header) {
             $header = 0;
             next;
