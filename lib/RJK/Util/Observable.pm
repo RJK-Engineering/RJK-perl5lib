@@ -5,16 +5,22 @@ use warnings;
 
 sub addObserver {
     my ($self, @observers) = @_;
+
+    $self->{observers} //= [];
+    my $c = @{$self->{observers}};
+
     push @{$self->{observers}}, map {
         if (ref ne "CODE") {
             $_;
         } elsif (eval "require RJK::Util::SimpleObserver") {
             new RJK::Util::SimpleObserver($_);
         } else {
-            print "$@\n";
+            print STDERR "$@\n";
             die "$!";
         }
     } @observers;
+
+    $self->resume() unless $c;
 }
 
 sub removeObserver {
@@ -28,12 +34,26 @@ sub removeObserver {
             $observer != (ref eq "RJK::Util::SimpleObserver" ? $_->{sub} : $_)
         } @{$self->{observers}} ];
     }
+
+    $self->pause() if $c && ! @{$self->{observers}};
+
     return $c - @{$self->{observers}};
+
+}
+
+sub pause {}
+sub resume {}
+
+sub hasObservers {
+    my $self = shift;
+    return @{$self->{observers}} > 0;
 }
 
 sub hasObserver {
     my ($self, $observer) = @_;
-    return scalar grep { $_ == $observer } @{$self->{observers}};
+    return scalar grep {
+        $observer == (ref eq "RJK::Util::SimpleObserver" ? $_->{sub} : $_)
+    } @{$self->{observers}};
 }
 
 sub notifyObservers {
