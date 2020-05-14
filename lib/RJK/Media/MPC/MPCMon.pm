@@ -49,7 +49,9 @@ sub setupMonitors {
     my $self = shift;
 
     $self->{monitors} = [
-        $self->{mon}{IniMonitor} = new RJK::Media::MPC::IniMonitor()->init(),
+        $self->{mon}{IniMonitor} = new RJK::Media::MPC::IniMonitor(
+            file => $self->{opts}{mpcIni}
+        )->init(),
 
         $self->{mon}{ProcessMonitor} = new RJK::Media::MPC::ProcessMonitor()->init(),
 
