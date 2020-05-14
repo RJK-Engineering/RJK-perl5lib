@@ -13,15 +13,9 @@ use Class::AccessorMaker {
     unlinkSnapshots => 0
 };
 
-sub init {
-    my $self = shift;
-    $self->reset;
-    return $self;
-}
-
 sub resume {
     my $self = shift;
-    $self->reset();
+    $self->{prevSnapshots} = $self->getSnapshots();
 }
 
 sub doPoll {
@@ -44,11 +38,6 @@ sub doPoll {
         });
         $self->cleanupSnapshot($_->{filename});
     }
-}
-
-sub reset {
-    my $self = shift;
-    $self->{prevSnapshots} = $self->getSnapshots();
 }
 
 ###############################################################################
