@@ -7,12 +7,12 @@ use Exception::Class('Exception');
 use File::Path ();
 
 use RJK::Media::MPC::IniMonitor;
-use RJK::Media::MPC::ProcessMonitor;
 use RJK::Media::MPC::SnapshotMonitor;
 use RJK::Media::MPC::WebIFMonitor;
 
 use RJK::Util::JSON;
 use RJK::Util::LockFile;
+use RJK::Win32::ProcessList;
 
 sub new {
     my $self = bless {}, shift;
@@ -52,8 +52,6 @@ sub setupMonitors {
         $self->{mon}{IniMonitor} = new RJK::Media::MPC::IniMonitor(
             file => $self->{opts}{mpcIni}
         )->init(),
-
-        $self->{mon}{ProcessMonitor} = new RJK::Media::MPC::ProcessMonitor()->init(),
 
         $self->{mon}{SnapshotMonitor} = new RJK::Media::MPC::SnapshotMonitor(
             snapshotDir => $self->{opts}{snapshotDir},
@@ -100,7 +98,7 @@ sub poll {
 
 sub nowPlaying {
     my $self = shift;
-    return $self->{mon}{ProcessMonitor}->getProcessList();
+    return RJK::Win32::ProcessList::GetProcessList("mpc-hc64.exe");
 }
 
 sub getPlayerStatus {
