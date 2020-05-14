@@ -8,7 +8,7 @@ sub checkExistingLock {
         chomp $pid;
         close $fh;
 
-        my $proc = RJK::Win32::ProcessList::GetPid($pid);
+        my $proc = RJK::Win32::ProcessList::GetByPid($pid);
         if ($proc) {
             # TODO show process name
             # TODO option to force start
