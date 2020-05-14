@@ -5,7 +5,16 @@ use warnings;
 
 sub addObserver {
     my ($self, @observers) = @_;
-    push @{$self->{observers}}, @observers;
+    push @{$self->{observers}}, map {
+        if (ref ne "CODE") {
+            $_;
+        } elsif (eval "require RJK::Util::SimpleObserver") {
+            new RJK::Util::SimpleObserver($_);
+        } else {
+            print "$@\n";
+            die "$!";
+        }
+    } @observers;
 }
 
 sub removeObserver {
@@ -15,7 +24,9 @@ sub removeObserver {
     my $c = @{$self->{observers}};
 
     foreach my $observer (@observers) {
-        $self->{observers} = [ grep { $_ != $observer } @{$self->{observers}} ];
+        $self->{observers} = [ grep {
+            $observer != (ref eq "RJK::Util::SimpleObserver" ? $_->{sub} : $_)
+        } @{$self->{observers}} ];
     }
     return $c - @{$self->{observers}};
 }
@@ -28,20 +39,15 @@ sub hasObserver {
 sub notifyObservers {
     my ($self, $event) = @_;
 
-    my ($isEventObject, $method);
-    if ($isEventObject = ref $event eq "HASH") {
-        $method = "handle" . $event->{type} . "Event";
-    }
+    my $method = "handle" . $event->{type} . "Event";
 
     foreach (@{$self->{observers}}) {
-        if ($isEventObject) {
-            $_->$method($event->{payload}) if $_->can($method);
+        if ($_->can($method)) {
+            $_->$method($event->{payload});
         } elsif ($_->can("update")) {
             $_->update($event);
-        } elsif (ref $_ eq "CODE") {
-            $_->($event);
         } else {
-            warn "No handler found for event $event and observer $_";
+            warn "No handler method for $event->{type} event in observer class " . ref();
         }
     }
 }
