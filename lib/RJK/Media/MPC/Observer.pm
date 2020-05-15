@@ -9,4 +9,8 @@ sub new {
     return $self;
 }
 
+sub utils {
+    $_[0]{mpcMon}{utils}
+}
+
 1;
