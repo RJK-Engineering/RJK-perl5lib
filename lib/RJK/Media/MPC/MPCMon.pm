@@ -10,13 +10,15 @@ use RJK::Media::MPC::IniMonitor;
 use RJK::Media::MPC::SnapshotMonitor;
 use RJK::Media::MPC::WebIFMonitor;
 
+use RJK::Media::MPC::MPCMonUtils;
+
 use RJK::Util::JSON;
 use RJK::Util::LockFile;
 use RJK::Win32::ProcessList;
 
 sub new {
     my $self = bless {}, shift;
-    $self->{enabled} = {};
+    $self->{utils} = new RJK::Media::MPC::MPCMonUtils($self);
     return $self;
 }
 
