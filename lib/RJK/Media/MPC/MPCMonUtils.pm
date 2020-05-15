@@ -1,42 +1,49 @@
-package RJK::Media::MPC::SnapshotObserver;
-use parent 'RJK::Media::MPC::Observer';
+package RJK::Media::MPC::MPCMonUtils;
 
 use strict;
 use warnings;
 
-sub retrieveStatus {
-    my ($self, $snapshot) = @_;
+sub new {
+    my $self = bless {}, shift;
+    $self->{mpcMon} = shift;
+    return $self;
+}
+
+# Get status and path info for media file
+sub retrieveStatusInfo {
+    my ($self, $object, $mediaFilename) = @_;
+
     # first Observer sets status
-    return if $snapshot->{status};
+    return if $object->{status};
 
-    my $filename = $snapshot->{mediaFilename};
+    my $status = $object->{status} = {};
 
-    my $process = $self->getProcess($filename);
+    my $process = $self->getProcess($mediaFilename);
     if ($process) {
-        $snapshot->{process} = $process;
-        $snapshot->{mediaFilePath} = $process->{WindowTitle};
+        $status->{process} = $process;
+        $status->{mediaFilePath} = $process->{WindowTitle};
     } else {
-        print "$filename not playing\n";
-        $snapshot->{mediaFilePath} = $self->findFileInDirHistory($filename);
+        print "$mediaFilename not playing\n";
+        $status->{mediaFilePath} = $self->findFileInDirHistory($mediaFilename);
     }
 
-    $snapshot->{status} = $self->{mpcMon}->getPlayerStatus();
-    if ($snapshot->{status}{file} && $snapshot->{status}{file} eq $filename) {
-        if (! $snapshot->{mediaFilePath}) {
-            $snapshot->{mediaFilePath} = $snapshot->{status}{filepath};
-            $snapshot->{mediaFileDir} = $snapshot->{status}{filedir};
-        } elsif ($snapshot->{mediaFilePath} ne $snapshot->{status}{filepath}) {
-            print "WARN Path mismatch: $snapshot->{mediaFilePath}\n";
-            print "WARN Path mismatch: $snapshot->{status}{filepath}\n";
+    $status->{mpc} = $self->{mpcMon}->getPlayerStatus();
+    if ($status->{mpc}{file} && $status->{mpc}{file} eq $mediaFilename) {
+        if (! $status->{mediaFilePath}) {
+            $status->{mediaFilePath} = $status->{mpc}{filepath};
+            $status->{mediaFileDir} = $status->{mpc}{filedir};
+        } elsif ($status->{mediaFilePath} ne $status->{mpc}{filepath}) {
+            print "WARN Path mismatch: $status->{mediaFilePath}\n";
+            print "WARN Path mismatch: $status->{mpc}{filepath}\n";
         }
     }
 
-    $snapshot->{mediaFilePath} || return;
+    $status->{mediaFilePath} || return;
 
-    if (! $snapshot->{mediaFileDir}) {
-        $snapshot->{mediaFileDir} = $snapshot->{mediaFilePath} =~ s/[\\\/]+[^\\\/]+$//r;
+    if (! $status->{mediaFileDir}) {
+        $status->{mediaFileDir} = $status->{mediaFilePath} =~ s/[\\\/]+[^\\\/]+$//r;
     }
-    $self->addToDirHistory($snapshot->{mediaFileDir}) if $snapshot->{mediaFileDir};
+    $self->addToDirHistory($status->{mediaFileDir}) if $status->{mediaFileDir};
 }
 
 sub getProcess {
