@@ -1,5 +1,5 @@
 package RJK::Media::MPC::IniMonitor;
-use parent 'RJK::Util::FileMonitor';
+use parent 'RJK::Media::MPC::Monitor';
 
 use strict;
 use warnings;

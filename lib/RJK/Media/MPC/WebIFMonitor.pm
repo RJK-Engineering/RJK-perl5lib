@@ -1,5 +1,5 @@
 package RJK::Media::MPC::WebIFMonitor;
-use parent 'RJK::Util::ObservableMonitor';
+use parent 'RJK::Media::MPC::Monitor';
 
 use strict;
 use warnings;
