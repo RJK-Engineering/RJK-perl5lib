@@ -51,22 +51,26 @@ sub setupMonitors {
     my $self = shift;
 
     $self->{monitors} = [
-        $self->{mon}{IniMonitor} = new RJK::Media::MPC::IniMonitor(
+        $self->{observables}{IniMonitor} = new RJK::Media::MPC::IniMonitor(
             file => $self->{opts}{mpcIni}
         )->init(),
 
-        $self->{mon}{SnapshotMonitor} = new RJK::Media::MPC::SnapshotMonitor(
+        $self->{observables}{SnapshotMonitor} = new RJK::Media::MPC::SnapshotMonitor(
             snapshotDir => $self->{opts}{snapshotDir},
             unlinkSnapshots => 1
         )->init(),
 
-        $self->{mon}{WebIFMonitor} = new RJK::Media::MPC::WebIFMonitor(
+        $self->{observables}{WebIFMonitor} = new RJK::Media::MPC::WebIFMonitor(
             port => $self->{opts}{port},
             url => $self->{opts}{url},
             requestAgent => $self->{opts}{requestAgent},
             requestTimeout => $self->{opts}{requestTimeout},
         )->init(),
     ];
+
+    foreach my $mon (values %{$self->{observables}}) {
+        $mon->{name} = ("$mon" =~ /::(\w+)=/)[0];
+    }
 }
 
 sub addObserver {
@@ -79,13 +83,13 @@ sub addObserver {
         return;
     }
 
-    my $observer = $class->new($self);
-    my @mons = ref $mon ? @$mon : $mon ? ($mon) : keys %{$self->{mon}};
+    my $observer = $class->new($name, $self->{utils});
+    my @mons = ref $mon ? @$mon : $mon ? ($mon) : keys %{$self->{observables}};
 
     foreach $mon (@mons) {
         $self->{observers}{$mon}{$name} = $observer;
-        if ($self->{mon}{$mon}) {
-            $self->{mon}{$mon}->addObserver($observer);
+        if ($self->{observables}{$mon}) {
+            $self->{observables}{$mon}->addObserver($observer);
         } else {
             print "WARN Invalid monitor: $mon\n";
         }
@@ -105,7 +109,7 @@ sub nowPlaying {
 
 sub getPlayerStatus {
     my $self = shift;
-    return $self->{mon}{WebIFMonitor}->getStatus();
+    return $self->{observables}{WebIFMonitor}->getStatus();
 }
 
 ###############################################################################
@@ -114,10 +118,11 @@ sub enableObserver {
     my ($self, $name, $mon) = @_;
     $self->getObservers($name, $mon, sub {
         my ($name, $mon, $observer) = @_;
-        if ($self->{mon}{$mon}->hasObserver($observer)) {
-            print "Observer already enabled: $name ($mon)\n";
+        print "Enable: $mon => $name\n";
+        if ($self->{observables}{$mon}->hasObserver($observer)) {
+            print "Observer already enabled: $mon => $name\n";
         } else {
-            $self->{mon}{$mon}->addObserver($observer);
+            $self->{observables}{$mon}->addObserver($observer);
         }
     });
 }
@@ -126,8 +131,9 @@ sub disableObserver {
     my ($self, $name, $mon) = @_;
     $self->getObservers($name, $mon, sub {
         my ($name, $mon, $observer) = @_;
-        if (! $self->{mon}{$mon}->removeObserver($observer)) {
-            print "Observer already disabled: $name ($mon)\n";
+        print "Disable: $mon => $name\n";
+        if (! $self->{observables}{$mon}->removeObserver($observer)) {
+            print "Observer already disabled: $mon => $name\n";
         }
     });
 }
@@ -136,12 +142,12 @@ sub observerSwitch {
     my ($self, $name, $mon) = @_;
     $self->getObservers($name, $mon, sub {
         my ($name, $mon, $observer) = @_;
-        if ($self->{mon}{$mon}->hasObserver($observer)) {
+        if ($self->{observables}{$mon}->hasObserver($observer)) {
             print "Disabled $name for $mon\n";
-            $self->{mon}{$mon}->removeObserver($observer);
+            $self->{observables}{$mon}->removeObserver($observer);
         } else {
             print "Enabled $name for $mon\n";
-            $self->{mon}{$mon}->addObserver($observer);
+            $self->{observables}{$mon}->addObserver($observer);
         }
     });
 }
@@ -150,7 +156,7 @@ sub getObservers {
     my ($self, $name, $mon, $callback) = @_;
 
     if ($mon) {
-        if ($self->{mon}{$mon}) {
+        if ($self->{observables}{$mon}) {
             if (my $observer = $self->{observers}{$mon}{$name}) {
                 $callback->($name, $mon, $observer);
             } else {
@@ -161,7 +167,7 @@ sub getObservers {
         }
     } else {
         my $found = 0;
-        foreach $mon (keys %{$self->{mon}}) {
+        foreach $mon (keys %{$self->{observables}}) {
             if (my $observer = $self->{observers}{$mon}{$name}) {
                 $callback->($name, $mon, $observer);
                 $found = 1;
