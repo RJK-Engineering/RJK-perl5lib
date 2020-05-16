@@ -4,8 +4,7 @@ use parent 'RJK::Media::MPC::Observer';
 sub handleSnapshotCreatedEvent {
     my ($self, $snapshot, $monitor) = @_;
 
-    #~ my $mediaFile = $monitor->getMediaFile($snapshot);
-    my $mediaFile = $self->utils->getMediaFile($snapshot);
+    my $mediaFile = $monitor->getMediaFile($snapshot);
 
     if ($mediaFile->{dir}) {
         my $file = "$monitor->{snapshotDir}\\$snapshot->{filename}";
