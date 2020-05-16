@@ -9,41 +9,40 @@ sub new {
     return $self;
 }
 
-# Get status and path info for media file
-sub retrieveStatusInfo {
-    my ($self, $object, $mediaFilename) = @_;
+sub getMediaFile {
+    my ($self, $snapshot) = @_;
 
-    # first Observer sets status
-    return if $object->{status};
+    return $snapshot->{mediaFile} if $snapshot->{mediaFile};
 
-    my $status = $object->{status} = {};
-
+    my $mediaFile = {};
+    my $mediaFilename = $snapshot->{mediaFilename};
     my $process = $self->getProcess($mediaFilename);
+
     if ($process) {
-        $status->{process} = $process;
-        $status->{mediaFilePath} = $process->{WindowTitle};
+        $snapshot->{process} = $process;
+        $mediaFile->{path} = $process->{WindowTitle};
     } else {
         print "$mediaFilename not playing\n";
-        $status->{mediaFilePath} = $self->findFileInDirHistory($mediaFilename);
+        $mediaFile->{path} = $self->findFileInDirHistory($mediaFilename);
     }
 
-    $status->{mpc} = $self->{mpcMon}->getPlayerStatus();
-    if ($status->{mpc}{file} && $status->{mpc}{file} eq $mediaFilename) {
-        if (! $status->{mediaFilePath}) {
-            $status->{mediaFilePath} = $status->{mpc}{filepath};
-            $status->{mediaFileDir} = $status->{mpc}{filedir};
-        } elsif ($status->{mediaFilePath} ne $status->{mpc}{filepath}) {
-            print "WARN Path mismatch: $status->{mediaFilePath}\n";
-            print "WARN Path mismatch: $status->{mpc}{filepath}\n";
-        }
+    if ($mediaFile->{path}) {
+        $mediaFile->{dir} = $mediaFile->{path} =~ s/[\\\/]+[^\\\/]+$//r;
+        $self->addToDirHistory($mediaFile->{dir});
     }
 
-    $status->{mediaFilePath} || return;
+    $mediaFile->{name} = $mediaFilename;
 
-    if (! $status->{mediaFileDir}) {
-        $status->{mediaFileDir} = $status->{mediaFilePath} =~ s/[\\\/]+[^\\\/]+$//r;
-    }
-    $self->addToDirHistory($status->{mediaFileDir}) if $status->{mediaFileDir};
+    return $snapshot->{mediaFile} = $mediaFile;
+}
+
+sub getStatus {
+    my ($self, $snapshot) = @_;
+
+    my $status = $snapshot->{status};
+    $status = $self->{mpcMon}->getPlayerStatus() if ! $status;
+
+    return $snapshot->{status} = $status;
 }
 
 sub getProcess {
