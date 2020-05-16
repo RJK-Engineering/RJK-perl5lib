@@ -1,20 +1,12 @@
-package RJK::Media::MPC::Observers::Bookmark;
+package RJK::Media::MPC::Observers::Favorites;
 use parent 'RJK::Media::MPC::Observer';
 
 use strict;
 use warnings;
 
-sub handleSnapshotCreatedEvent {
-    my ($self, $snapshot, $monitor) = @_;
-
-    my $mediaFile = $monitor->getMediaFile($snapshot);
-
-    use Data::Dump;
-    dd $mediaFile;
-}
-
 sub handleFileChangedEvent {
     my ($self, $ini, $monitor) = @_;
+    print "Favorites TODO\n";
 
     my $favorites = $monitor->getIniSection($ini, "Favorites\\Files");
 
