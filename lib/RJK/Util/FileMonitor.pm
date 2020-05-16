@@ -18,7 +18,7 @@ sub doPoll {
     if ($self->{modified} && $modified != $self->{modified}) {
         $self->notifyObservers({
             type => "FileChanged",
-            payload => $self->{file}
+            payload => { file => $self->{file} }
         });
     }
     $self->{modified} = $modified;
