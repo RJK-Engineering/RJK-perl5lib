@@ -53,18 +53,22 @@ sub init {
     };
 }
 
+sub utils {
+    $_[0]{mpcMon}{utils};
+}
+
 sub addObservers {
     my $self = shift;
-    $self->{mpcMon}->addObserver('Bookmark', 'SnapshotMonitor');
-    $self->{mpcMon}->addObserver('Favorites', 'IniMonitor');
-    $self->{mpcMon}->addObserver('Positions', 'IniMonitor');
+    $self->{mpcMon}->addObserver('LogEvents');
     #~ $self->{mpcMon}->addObserver('CopySnapshotToMediaFileDir', 'SnapshotMonitor');
+    #~ $self->{mpcMon}->addObserver('Bookmark', 'SnapshotMonitor');
+    #~ $self->{mpcMon}->addObserver('Favorites', 'IniMonitor');
+    $self->{mpcMon}->addObserver('Categorize', 'SnapshotMonitor');
+    $self->{mpcMon}->addObserver('Positions', 'IniMonitor');
     $self->{mpcMon}->addObserver('LogRecentFiles', 'IniMonitor');
     $self->{mpcMon}->addObserver('LogFilePosition', 'IniMonitor');
     $self->{mpcMon}->addObserver('LogPlayingStats', 'WebIfMonitor');
     $self->{mpcMon}->addObserver('LogRecentPlaylists', 'MpcplMonitor');
-    $self->{mpcMon}->addObserver('LogEvents');
-    $self->{mpcMon}->addObserver('Categorize', 'SnapshotMonitor');
 
     foreach my $observable (values %{$self->{mpcMon}{observables}}) {
         foreach my $observer (@{$observable->{observers}}) {
@@ -266,7 +270,7 @@ sub status {
     for ('Snapshot monitor','Auto complete','Open mode') {
         print "$_: ", $self->{opts}{$_} ? "on" : "off", "\n";
     }
-    if (my $status = $self->{mpcMon}->getPlayerStatus) {
+    if (my $status = $self->utils->getPlayerStatus) {
         return $status->{filepath};
         my $path = $self->getOpenFilePath();
         print "Open: $path\n";

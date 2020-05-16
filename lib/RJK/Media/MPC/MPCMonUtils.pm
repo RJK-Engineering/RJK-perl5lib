@@ -3,17 +3,28 @@ package RJK::Media::MPC::MPCMonUtils;
 use strict;
 use warnings;
 
+use RJK::Win32::ProcessList;
+
 sub new {
     my $self = bless {}, shift;
     $self->{mpcMon} = shift;
     return $self;
 }
 
+sub nowPlaying {
+    return RJK::Win32::ProcessList::GetProcessList("mpc-hc64.exe");
+}
+
+sub getPlayerStatus {
+    my $self = shift;
+    return $self->{mpcMon}{observables}{WebIFMonitor}->getStatus();
+}
+
 sub getProcess {
     my ($self, $windowTitle) = @_;
     my $process;
 
-    my $processList = $self->{mpcMon}->nowPlaying();
+    my $processList = $self->nowPlaying();
     foreach (@$processList) {
         next if $_->{WindowTitle} !~ /\Q$windowTitle\E$/;
         print "WARN Duplicate file open: $process->{WindowTitle}\n" if $process;

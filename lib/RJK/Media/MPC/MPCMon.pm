@@ -14,7 +14,6 @@ use RJK::Media::MPC::MPCMonUtils;
 
 use RJK::Util::JSON;
 use RJK::Util::LockFile;
-use RJK::Win32::ProcessList;
 
 sub new {
     my $self = bless {}, shift;
@@ -98,18 +97,6 @@ sub addObserver {
 
 sub poll {
     $_->poll() for @{$_[0]{monitors}};
-}
-
-###############################################################################
-
-sub nowPlaying {
-    my $self = shift;
-    return RJK::Win32::ProcessList::GetProcessList("mpc-hc64.exe");
-}
-
-sub getPlayerStatus {
-    my $self = shift;
-    return $self->{observables}{WebIFMonitor}->getStatus();
 }
 
 ###############################################################################

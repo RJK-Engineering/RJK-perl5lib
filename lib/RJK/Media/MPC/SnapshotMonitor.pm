@@ -129,7 +129,7 @@ sub getMediaFile {
 sub getStatus {
     my ($self, $snapshot) = @_;
     return $snapshot->{status} if $snapshot->{status};
-    return $snapshot->{status} = $self->{mpcMon}->getPlayerStatus();
+    return $snapshot->{status} = $self->utils->getPlayerStatus();
 }
 
 1;
