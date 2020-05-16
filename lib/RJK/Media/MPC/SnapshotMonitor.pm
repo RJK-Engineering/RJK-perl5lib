@@ -128,11 +128,8 @@ sub getMediaFile {
 
 sub getStatus {
     my ($self, $snapshot) = @_;
-
-    my $status = $snapshot->{status};
-    $status = $self->{mpcMon}->getPlayerStatus() if ! $status;
-
-    return $snapshot->{status} = $status;
+    return $snapshot->{status} if $snapshot->{status};
+    return $snapshot->{status} = $self->{mpcMon}->getPlayerStatus();
 }
 
 1;
