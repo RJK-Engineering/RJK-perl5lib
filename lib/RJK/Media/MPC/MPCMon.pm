@@ -65,10 +65,10 @@ sub setupMonitors {
         ),
     ];
 
-    foreach my $mon (values %{$self->{observables}}) {
-        $mon->init();
-        $mon->{name} = ("$mon" =~ /::(\w+)=/)[0];
-        $mon->{utils} = $self->{utils};
+    foreach (@{$self->{monitors}}) {
+        $_->init();
+        $_->{name} = (/::(\w+)=/)[0];
+        $_->{utils} = $self->{utils};
     }
 }
 
