@@ -53,22 +53,21 @@ sub setupMonitors {
     $self->{monitors} = [
         $self->{observables}{IniMonitor} = new RJK::Media::MPC::IniMonitor(
             file => $self->{opts}{mpcIni}
-        )->init(),
-
+        ),
         $self->{observables}{SnapshotMonitor} = new RJK::Media::MPC::SnapshotMonitor(
             snapshotDir => $self->{opts}{snapshotDir},
             unlinkSnapshots => 1
-        )->init(),
-
+        ),
         $self->{observables}{WebIFMonitor} = new RJK::Media::MPC::WebIFMonitor(
             port => $self->{opts}{port},
             url => $self->{opts}{url},
             requestAgent => $self->{opts}{requestAgent},
             requestTimeout => $self->{opts}{requestTimeout},
-        )->init(),
+        ),
     ];
 
     foreach my $mon (values %{$self->{observables}}) {
+        $mon->init();
         $mon->{name} = ("$mon" =~ /::(\w+)=/)[0];
         $mon->{utils} = $self->{utils};
     }

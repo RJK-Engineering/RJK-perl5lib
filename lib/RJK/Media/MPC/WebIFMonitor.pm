@@ -21,7 +21,6 @@ sub new {
 sub init {
     my $self = shift;
     $self->{webIf} = new RJK::Media::MPC::WebIF(%{$self->{opts}})->init;
-    return $self;
 }
 
 sub doPoll {
