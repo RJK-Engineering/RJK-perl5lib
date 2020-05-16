@@ -46,6 +46,7 @@ sub resume {}
 
 sub hasObservers {
     my $self = shift;
+    $self->{observers} //= [];
     return @{$self->{observers}} > 0;
 }
 
@@ -63,9 +64,9 @@ sub notifyObservers {
 
     foreach (@{$self->{observers}}) {
         if ($_->can($method)) {
-            $_->$method($event->{payload});
+            $_->$method($event->{payload}, $self);
         } elsif ($_->can("update")) {
-            $_->update($event);
+            $_->update($event, $self);
         } else {
             warn "No handler method for $event->{type} event in observer class " . ref();
         }
