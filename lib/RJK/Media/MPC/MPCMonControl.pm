@@ -56,13 +56,13 @@ sub init {
 sub addObservers {
     my $self = shift;
     $self->{mpcMon}->addObserver('Bookmark', 'SnapshotMonitor');
-    #~ $self->{mpcMon}->addObserver('Favorites', 'IniMonitor');
+    $self->{mpcMon}->addObserver('Favorites', 'IniMonitor');
     $self->{mpcMon}->addObserver('Positions', 'IniMonitor');
-    $self->{mpcMon}->addObserver('CopySnapshotToMediaFileDir', 'SnapshotMonitor');
-    #~ $self->{mpcMon}->addObserver('LogRecentFiles', 'IniMonitor');
-    #~ $self->{mpcMon}->addObserver('LogFilePosition', 'IniMonitor');
-    #~ $self->{mpcMon}->addObserver('LogPlayingStats', 'WebIfMonitor');
-    #~ $self->{mpcMon}->addObserver('LogRecentPlaylists', 'MpcplMonitor');
+    #~ $self->{mpcMon}->addObserver('CopySnapshotToMediaFileDir', 'SnapshotMonitor');
+    $self->{mpcMon}->addObserver('LogRecentFiles', 'IniMonitor');
+    $self->{mpcMon}->addObserver('LogFilePosition', 'IniMonitor');
+    $self->{mpcMon}->addObserver('LogPlayingStats', 'WebIfMonitor');
+    $self->{mpcMon}->addObserver('LogRecentPlaylists', 'MpcplMonitor');
     $self->{mpcMon}->addObserver('LogEvents');
     $self->{mpcMon}->addObserver('Categorize', 'SnapshotMonitor');
 
