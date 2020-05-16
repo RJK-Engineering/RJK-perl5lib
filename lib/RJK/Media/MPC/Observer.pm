@@ -5,12 +5,12 @@ use warnings;
 
 sub new {
     my $self = bless {}, shift;
-    $self->{mpcMon} = shift;
+    $self->{name} = shift;
+    $self->{utils} = shift;
     return $self;
 }
 
-sub utils {
-    $_[0]{mpcMon}{utils}
-}
+sub name    { $_[0]{name} }
+sub utils   { $_[0]{utils} }
 
 1;
