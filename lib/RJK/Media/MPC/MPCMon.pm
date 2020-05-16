@@ -70,6 +70,7 @@ sub setupMonitors {
 
     foreach my $mon (values %{$self->{observables}}) {
         $mon->{name} = ("$mon" =~ /::(\w+)=/)[0];
+        $mon->{utils} = $self->{utils};
     }
 }
 
@@ -83,7 +84,7 @@ sub addObserver {
         return;
     }
 
-    my $observer = $class->new($name, $self->{utils});
+    my $observer = $class->new($name);
     my @mons = ref $mon ? @$mon : $mon ? ($mon) : keys %{$self->{observables}};
 
     foreach $mon (@mons) {
