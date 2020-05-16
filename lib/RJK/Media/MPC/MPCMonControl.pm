@@ -33,6 +33,7 @@ sub init {
     $self->{clipboard} = Win32::Clipboard();
     $self->{actions} = {
         '?' => \&Help,
+        1 => sub { $self->status },
         a => sub { $self->autoCompleteMode },
         b => sub { $self->bookmarkMode },
         c => sub { $self->setCategory },
@@ -46,7 +47,7 @@ sub init {
         p => sub { $self->{mpcMon}->pause },
         q => sub { $self->quit },
         r => sub { $self->reset },
-        s => sub { $self->status },
+        s => sub { $self->{mpcMon}->observerSwitch("CopySnapshotToMediaFileDir") },
         t => sub { $self->tag },
         u => sub { $self->undo },
     };
@@ -54,23 +55,22 @@ sub init {
 
 sub addObservers {
     my $self = shift;
-    $self->{mpcMon}->addObserver('Bookmark', ['SnapshotMonitor', 'IniMonitor']);
+    $self->{mpcMon}->addObserver('Bookmark', 'SnapshotMonitor');
+    #~ $self->{mpcMon}->addObserver('Favorites', 'IniMonitor');
+    $self->{mpcMon}->addObserver('Positions', 'IniMonitor');
     $self->{mpcMon}->addObserver('CopySnapshotToMediaFileDir', 'SnapshotMonitor');
-    $self->{mpcMon}->addObserver('LogRecentFiles', 'IniMonitor');
-    $self->{mpcMon}->addObserver('LogFilePosition', 'IniMonitor');
-    $self->{mpcMon}->addObserver('LogPlayingStats', 'WebIfMonitor');
-    $self->{mpcMon}->addObserver('LogRecentPlaylists', 'MpcplMonitor');
+    #~ $self->{mpcMon}->addObserver('LogRecentFiles', 'IniMonitor');
+    #~ $self->{mpcMon}->addObserver('LogFilePosition', 'IniMonitor');
+    #~ $self->{mpcMon}->addObserver('LogPlayingStats', 'WebIfMonitor');
+    #~ $self->{mpcMon}->addObserver('LogRecentPlaylists', 'MpcplMonitor');
     $self->{mpcMon}->addObserver('LogEvents');
-}
+    $self->{mpcMon}->addObserver('Categorize', 'SnapshotMonitor');
 
-sub enableObserver {
-    my ($self, $name, $mon) = @_;
-    $self->{mpcMon}->enableObserver($name, $mon);
-}
-
-sub disableObserver {
-    my ($self, $name, $mon) = @_;
-    $self->{mpcMon}->disableObserver($name, $mon);
+    foreach my $observable (values %{$self->{mpcMon}{observables}}) {
+        foreach my $observer (@{$observable->{observers}}) {
+            print "$observable->{name} => $observer->{name}\n";
+        }
+    }
 }
 
 sub start {
@@ -239,13 +239,6 @@ sub list {
 sub openMode {
     my $self = shift;
     $self->switch("Open mode");
-}
-
-sub switchSnapshotMon {
-    my $self = shift;
-    $self->switch("snapshotMon")
-    &&
-    $self->{mpcMon}->resume();
 }
 
 sub switch {
