@@ -11,8 +11,8 @@ use RJK::Media::MPC::SnapshotMonitor;
 use RJK::Media::MPC::WebIFMonitor;
 
 use RJK::Media::MPC::MPCMonUtils;
+use RJK::Media::MPC::MPCMonSettings;
 
-use RJK::Util::JSON;
 use RJK::Util::LockFile;
 
 sub new {
@@ -33,9 +33,8 @@ sub init {
 
     $self->checkDir($self->{opts}{snapshotBinDir});
 
-    if ($self->{opts}{statusFile}) {
-        $self->{statusFile} = new RJK::Util::JSON($self->{opts}{statusFile})->read;
-        $self->{status} = $self->{statusFile}->data;
+    if ($self->{opts}{settingsFile}) {
+        $self->{settings} = new RJK::Media::MPC::MPCMonSettings($self->{opts}{settingsFile});
     }
 
     $self->setupMonitors();
@@ -72,6 +71,13 @@ sub setupMonitors {
     }
 }
 
+sub poll {
+    $_->poll() for @{$_[0]{monitors}};
+    $_[0]{settings}->save();
+}
+
+###############################################################################
+
 sub addObserver {
     my ($self, $name, $mon) = @_;
 
@@ -94,12 +100,6 @@ sub addObserver {
         }
     }
 }
-
-sub poll {
-    $_->poll() for @{$_[0]{monitors}};
-}
-
-###############################################################################
 
 sub enableObserver {
     my ($self, $name, $mon) = @_;
