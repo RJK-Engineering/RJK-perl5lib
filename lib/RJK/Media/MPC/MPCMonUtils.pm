@@ -9,42 +9,6 @@ sub new {
     return $self;
 }
 
-sub getMediaFile {
-    my ($self, $snapshot) = @_;
-
-    return $snapshot->{mediaFile} if $snapshot->{mediaFile};
-
-    my $mediaFile = {};
-    my $mediaFilename = $snapshot->{mediaFilename};
-    my $process = $self->getProcess($mediaFilename);
-
-    if ($process) {
-        $snapshot->{process} = $process;
-        $mediaFile->{path} = $process->{WindowTitle};
-    } else {
-        print "$mediaFilename not playing\n";
-        $mediaFile->{path} = $self->findFileInDirHistory($mediaFilename);
-    }
-
-    if ($mediaFile->{path}) {
-        $mediaFile->{dir} = $mediaFile->{path} =~ s/[\\\/]+[^\\\/]+$//r;
-        $self->addToDirHistory($mediaFile->{dir});
-    }
-
-    $mediaFile->{name} = $mediaFilename;
-
-    return $snapshot->{mediaFile} = $mediaFile;
-}
-
-sub getStatus {
-    my ($self, $snapshot) = @_;
-
-    my $status = $snapshot->{status};
-    $status = $self->{mpcMon}->getPlayerStatus() if ! $status;
-
-    return $snapshot->{status} = $status;
-}
-
 sub getProcess {
     my ($self, $windowTitle) = @_;
     my $process;

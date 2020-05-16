@@ -97,4 +97,42 @@ sub cleanupSnapshot {
     unlink "$self->{snapshotDir}/$filename";
 }
 
+###############################################################################
+
+sub getMediaFile {
+    my ($self, $snapshot) = @_;
+
+    return $snapshot->{mediaFile} if $snapshot->{mediaFile};
+
+    my $mediaFile = {};
+    my $mediaFilename = $snapshot->{mediaFilename};
+    my $process = $self->utils->getProcess($mediaFilename);
+
+    if ($process) {
+        $snapshot->{process} = $process;
+        $mediaFile->{path} = $process->{WindowTitle};
+    } else {
+        print "$mediaFilename not playing\n";
+        $mediaFile->{path} = $self->utils->findFileInDirHistory($mediaFilename);
+    }
+
+    if ($mediaFile->{path}) {
+        $mediaFile->{dir} = $mediaFile->{path} =~ s/[\\\/]+[^\\\/]+$//r;
+        $self->utils->addToDirHistory($mediaFile->{dir});
+    }
+
+    $mediaFile->{name} = $mediaFilename;
+
+    return $snapshot->{mediaFile} = $mediaFile;
+}
+
+sub getStatus {
+    my ($self, $snapshot) = @_;
+
+    my $status = $snapshot->{status};
+    $status = $self->{mpcMon}->getPlayerStatus() if ! $status;
+
+    return $snapshot->{status} = $status;
+}
+
 1;
