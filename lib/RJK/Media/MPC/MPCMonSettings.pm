@@ -1,5 +1,8 @@
 package RJK::Media::MPC::MPCMonSettings;
 
+use strict;
+use warnings;
+
 use RJK::Util::JSON;
 
 sub new {
@@ -18,15 +21,45 @@ sub get {
 
 sub set {
     my ($self, $file, $prop, $value) = @_;
-    $file = $self->{settings}{$file} //= {};
-    $file->{$prop} = $value;
+
+    my $settings = $self->{settings}{$file} //= {};
+
+    $self->{previous} = {
+        file => $file,
+        prop => $prop,
+        value => $settings->{$prop}
+    };
+
+    $settings->{$prop} = $value;
+
     $self->{dirty} = 1;
 }
 
 sub save {
     my $self = shift;
-    $self->{settingsFile}->write if $self->{dirty};
+    return if ! $self->{dirty};
+    $self->{settingsFile}->write;
     $self->{dirty} = 0;
+}
+
+sub undo {
+    my $self = shift;
+    my $p = $self->{previous};
+    if ($p) {
+        delete $self->{settings}{ $p->{file} }{ $p->{prop} };
+        print "Undo: $p->{file} ($p->{prop})\n";
+        $self->{dirty} = 1;
+    } else {
+        print "No undo history\n";
+    }
+}
+
+sub list {
+    my $self = shift;
+    while (my ($file, $settings) = each %{$self->{settings}}) {
+        my $cat = $settings->{category};
+        printf "%s\t%s\n", $cat ? "$cat" : "", $file;
+    }
 }
 
 1;
