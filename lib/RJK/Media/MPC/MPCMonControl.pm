@@ -36,48 +36,22 @@ sub init {
     $self->{console} = new RJK::Win32::Console();
     $self->{clipboard} = Win32::Clipboard();
     $self->{actions} = {
-        '?' => \&Help,
+        escape => sub { $self->quit },
+        tab => sub { $self->{mpcMon}->settings->list },
+        l => sub { $self->{mpcMon}->settings->list },
+        enter => sub { $self->listObservers },
+        #~ '?' => help,
         1 => sub { $self->status },
-        a => sub { $self->autoCompleteMode },
-        b => sub { $self->bookmarkMode },
-        c => sub { $self->setCategory },
-        C => sub { $self->completeCategory },
-        d => sub { $self->deleteFiles },
-        h => \&Help,
-        l => sub { $self->list },
-        m => sub { $self->moveToCategory },
-        o => sub { $self->openFile },
-        O => sub { $self->openMode },
-        p => sub { $self->{mpcMon}->pause },
         q => sub { $self->quit },
-        r => sub { $self->reset },
         s => sub { $self->{mpcMon}->observerSwitch("CopySnapshotToMediaFileDir") },
-        t => sub { $self->tag },
-        u => sub { $self->undo },
+        u => sub { $self->{mpcMon}->settings->undo },
+        d => sub { $self->utils->category->delete },
+        m => sub { $self->utils->category->move },
     };
+
+    print "\n";
+    $self->status();
 }
-
-sub addObservers {
-    my $self = shift;
-    $self->{mpcMon}->addObserver('LogEvents');
-    #~ $self->{mpcMon}->addObserver('CopySnapshotToMediaFileDir', 'SnapshotMonitor');
-    #~ $self->{mpcMon}->addObserver('Bookmark', 'SnapshotMonitor');
-    #~ $self->{mpcMon}->addObserver('Favorites', 'IniMonitor');
-    $self->{mpcMon}->addObserver('Categorize', 'SnapshotMonitor');
-    $self->{mpcMon}->addObserver('Positions', 'IniMonitor');
-    $self->{mpcMon}->addObserver('LogRecentFiles', 'IniMonitor');
-    $self->{mpcMon}->addObserver('LogFilePosition', 'IniMonitor');
-    $self->{mpcMon}->addObserver('LogPlayingStats', 'WebIfMonitor');
-    $self->{mpcMon}->addObserver('LogRecentPlaylists', 'MpcplMonitor');
-
-    foreach my $observable (values %{$self->{mpcMon}{observables}}) {
-        foreach my $observer (@{$observable->{observers}}) {
-            print "$observable->{name} => $observer->{name}\n";
-        }
-    }
-}
-
-###############################################################################
 
 sub start {
     my $self = shift;
@@ -94,11 +68,10 @@ sub start {
             $self->{opts}{pollingInterval} == 1 ? "" : "s";
     }
 
-    $self->status;
-
     while (1) {
         $self->{mpcMon}->poll;
         $self->handleInput;
+        $self->{mpcMon}->settings->save;
     } continue {
         sleep $self->{opts}{pollingInterval};
     }
@@ -111,17 +84,53 @@ sub stop {
 
 ###############################################################################
 
+sub addObservers {
+    my $self = shift;
+    $self->{mpcMon}->addObserver('LogEvents');
+    $self->{mpcMon}->addObserver('CopySnapshotToMediaFileDir', 'SnapshotMonitor');
+    #~ $self->{mpcMon}->addObserver('Bookmark', 'SnapshotMonitor');
+    #~ $self->{mpcMon}->addObserver('Favorites', 'IniMonitor');
+    $self->{mpcMon}->addObserver('Categorize', 'SnapshotMonitor');
+    $self->{mpcMon}->addObserver('Positions', 'IniMonitor');
+    $self->{mpcMon}->addObserver('IniDiff', 'IniMonitor');
+    $self->{mpcMon}->addObserver('LogRecentFiles', 'IniMonitor');
+    $self->{mpcMon}->addObserver('LogFilePosition', 'IniMonitor');
+    $self->{mpcMon}->addObserver('LogPlayingStats', 'WebIfMonitor');
+    $self->{mpcMon}->addObserver('LogRecentPlaylists', 'MpcplMonitor');
+
+    #~ $self->{mpcMon}->enableObserver('LogEvents');
+    $self->{mpcMon}->enableObserver('Categorize');
+}
+
+sub listObservers {
+    my $self = shift;
+    foreach my $observable (values %{$self->{mpcMon}{observables}}) {
+        foreach my $observer (@{$observable->{observers}}) {
+            print "Observer: $observer->{name} => $observable->{name}\n";
+        }
+    }
+}
+
+###############################################################################
+
 sub handleInput {
     my $self = shift;
     while ($self->{console}->getEvents) {
         my @event = $self->{console}->input;
         next if !@event or $event[0] != 1 or !$event[1];
-        print "@event\n" if $self->{opts}{debug};
         if ($event[5]) {                                    # ASCII
-            $self->quit() if $event[5] == 27;               # Esc
+            if ($event[5] == 13) {                          # Enter
+                $self->{actions}{'enter'}();
+                next;
+            }
+            if ($event[5] == 9) {                           # Tab
+                $self->{actions}{'tab'}();
+                next;
+            }
+            $self->{actions}{escape}() if $event[5] == 27;
             my $key = chr $event[5];
             if ($self->{actions}{$key}) {
-                $self->{actions}{$key}->();
+                $self->{actions}{$key}();
             } elsif ($key =~ /^\w$/) {
                 print "Not an action key: $key\n" unless $self->{opts}{quiet};
             }
@@ -140,17 +149,17 @@ sub quit {
 
 sub status {
     my $self = shift;
+
+    $self->listObservers;
+
     print "Categories: @{$self->{opts}{categories}}\n";
-    for ('Snapshot monitor','Auto complete','Open mode') {
-        print "$_: ", $self->{opts}{$_} ? "on" : "off", "\n";
-    }
+
     if (my $status = $self->utils->getPlayerStatus) {
-        return $status->{filepath};
-        my $path = $self->getOpenFilePath();
-        print "Open: $path\n";
+        print "Open: $status->{filepath}\n";
     } else {
         print "No MPC status\n";
     }
+    print "\n";
 }
 
 1;
