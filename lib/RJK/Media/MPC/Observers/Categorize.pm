@@ -7,7 +7,8 @@ use warnings;
 sub handleSnapshotCreatedEvent {
     my ($self, $snapshot, $monitor) = @_;
 
-    $monitor->utils->category->switch($snapshot->{mediaFilename});
+    $monitor->utils->getMediaFilePath($snapshot);
+    $monitor->utils->category->switch($snapshot->{mediaFile});
 }
 
 1;

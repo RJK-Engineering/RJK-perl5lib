@@ -7,7 +7,7 @@ use warnings;
 sub handleSnapshotCreatedEvent {
     my ($self, $snapshot, $monitor) = @_;
 
-    my $mediaFile = $monitor->getMediaFile($snapshot);
+    $monitor->utils->getMediaFilePath($snapshot);
 
     use Data::Dump;
     dd $mediaFile;

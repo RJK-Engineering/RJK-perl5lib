@@ -4,14 +4,15 @@ use parent 'RJK::Media::MPC::Observer';
 sub handleSnapshotCreatedEvent {
     my ($self, $snapshot, $monitor) = @_;
 
-    my $mediaFile = $monitor->getMediaFile($snapshot);
+    $monitor->utils->getMediaFilePath($snapshot);
+    my $dir = $snapshot->{mediaFile}{dir};
 
-    if ($mediaFile->{dir}) {
+    if ($dir) {
         my $file = "$monitor->{snapshotDir}\\$snapshot->{filename}";
-        if (File::Copy::copy($file, $mediaFile->{dir})) {
-            print "Copied $mediaFile->{name}\n";
+        if (File::Copy::copy($file, $dir)) {
+            print "Copied $file -> $dir\n";
         } else {
-            print "$!: $file -> $mediaFile->{dir}\n";
+            print "$!: $file -> $dir\n";
         }
     } else {
         print "Media file directory not found.\n";
