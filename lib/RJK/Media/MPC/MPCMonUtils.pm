@@ -8,8 +8,8 @@ use RJK::Win32::ProcessList;
 
 sub new {
     my $self = bless {}, shift;
-    $self->{mpcMon} = shift;
-    $self->{category} = new RJK::Media::MPC::Utils::Category($self->{mpcMon});
+    $self->{controller} = shift;
+    $self->{category} = new RJK::Media::MPC::Utils::Category($self->{controller});
     return $self;
 }
 
@@ -23,7 +23,7 @@ sub nowPlaying {
 
 sub getPlayerStatus {
     my $self = shift;
-    return $self->{mpcMon}{observables}{WebIFMonitor}->getStatus();
+    return $self->{controller}->mpcMon->getStatus();
 }
 
 sub getStatus {
