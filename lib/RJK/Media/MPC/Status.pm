@@ -40,14 +40,12 @@ use constant {
     PAUSED => 1,
     PLAYING => 2,
     STOPPED => 0,
-    NA => -1,
-    OFFLINE => -2,
 };
 
 our @ISA = qw( Exporter );
 use Exporter ();
-our @EXPORT_OK = qw(PAUSED PLAYING STOPPED NA OFFLINE);
-our %EXPORT_TAGS = (constants => [qw(PAUSED PLAYING STOPPED NA OFFLINE)]);
+our @EXPORT_OK = qw(PAUSED PLAYING STOPPED);
+our %EXPORT_TAGS = (constants => [qw(PAUSED PLAYING STOPPED)]);
 
 our @fields;
 
@@ -61,11 +59,11 @@ BEGIN {
 }
 
 use Class::AccessorMaker {
-    map { $_ => $_ eq 'state' ? OFFLINE : "" } @fields,
+    map { $_ => "" } @fields,
 };
 
 sub online {
-    shift->state != OFFLINE;
+    shift->state ne "";
 }
 
 sub TO_JSON {
