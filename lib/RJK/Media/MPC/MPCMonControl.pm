@@ -11,23 +11,41 @@ use Win32::Clipboard;
 use RJK::Interactive qw(Ask ReadLine Confirm);
 RJK::Interactive::SetClass('Term::ReadKey');
 use RJK::Media::MPC::MPCMon;
+use RJK::Media::MPC::MPCMonUtils;
+use RJK::Media::MPC::MPCMonSettings;
 use RJK::Win32::Console;
 
 sub new {
     my $self = bless {}, shift;
     $self->{opts} = shift;
+    $self->{utils} = new RJK::Media::MPC::MPCMonUtils($self);
     return $self;
 }
 
+sub mpcMon {
+    $_[0]{mpcMon};
+}
+
+sub settings {
+    $_[0]{settings};
+}
+
 sub utils {
-    $_[0]{mpcMon}{utils};
+    $_[0]{utils};
 }
 
 sub init {
     my $self = shift;
 
-    $self->{mpcMon} = new RJK::Media::MPC::MPCMon();
-    $self->{mpcMon}->init($self->{opts});
+    if ($self->{opts}{settingsFile}) {
+        $self->{settings} = new RJK::Media::MPC::MPCMonSettings($self->{opts}{settingsFile});
+    }
+
+    $self->{opts}{afterPoll} = sub {
+        $self->{settings}->save();
+    };
+    $self->{mpcMon} = new RJK::Media::MPC::MPCMon($self->{opts});
+    $self->{mpcMon}->init();
 
     return if $self->{opts}{status};
 
@@ -36,15 +54,15 @@ sub init {
     $self->{console} = new RJK::Win32::Console();
     $self->{clipboard} = Win32::Clipboard();
     $self->{actions} = {
-        escape => sub { $self->quit },
-        tab => sub { $self->{mpcMon}->settings->list },
-        l => sub { $self->{mpcMon}->settings->list },
         enter => sub { $self->listObservers },
+        escape => sub { $self->quit },
+        tab => sub { $self->settings->list },
+        l => sub { $self->settings->list },
         #~ '?' => help,
         1 => sub { $self->status },
         q => sub { $self->quit },
-        s => sub { $self->{mpcMon}->observerSwitch("CopySnapshotToMediaFileDir") },
-        u => sub { $self->{mpcMon}->settings->undo },
+        s => sub { $self->mpcMon->observerSwitch("CopySnapshotToMediaFileDir") },
+        u => sub { $self->settings->undo },
         d => sub { $self->utils->category->delete },
         m => sub { $self->utils->category->move },
     };
@@ -69,9 +87,9 @@ sub start {
     }
 
     while (1) {
-        $self->{mpcMon}->poll;
+        $self->mpcMon->poll;
         $self->handleInput;
-        $self->{mpcMon}->settings->save;
+        $self->settings->save;
     } continue {
         sleep $self->{opts}{pollingInterval};
     }
@@ -79,34 +97,34 @@ sub start {
 
 sub stop {
     my $self = shift;
-    $self->{mpcMon}->finish if $self->{mpcMon};
+    $self->mpcMon->finish if $self->mpcMon;
 }
 
 ###############################################################################
 
 sub addObservers {
     my $self = shift;
-    $self->{mpcMon}->addObserver('LogEvents');
-    $self->{mpcMon}->addObserver('CopySnapshotToMediaFileDir', 'SnapshotMonitor');
-    #~ $self->{mpcMon}->addObserver('Bookmark', 'SnapshotMonitor');
-    #~ $self->{mpcMon}->addObserver('Favorites', 'IniMonitor');
-    $self->{mpcMon}->addObserver('Categorize', 'SnapshotMonitor');
-    $self->{mpcMon}->addObserver('Positions', 'IniMonitor');
-    $self->{mpcMon}->addObserver('IniDiff', 'IniMonitor');
-    $self->{mpcMon}->addObserver('LogRecentFiles', 'IniMonitor');
-    $self->{mpcMon}->addObserver('LogFilePosition', 'IniMonitor');
-    $self->{mpcMon}->addObserver('LogPlayingStats', 'WebIfMonitor');
-    $self->{mpcMon}->addObserver('LogRecentPlaylists', 'MpcplMonitor');
+    $self->mpcMon->addObserver('LogEvents');
+    $self->mpcMon->addObserver('CopySnapshotToMediaFileDir', 'SnapshotMonitor');
+    #~ $self->mpcMon->addObserver('Bookmark', 'SnapshotMonitor');
+    #~ $self->mpcMon->addObserver('Favorites', 'IniMonitor');
+    $self->mpcMon->addObserver('Categorize', 'SnapshotMonitor');
+    $self->mpcMon->addObserver('Positions', 'IniMonitor');
+    $self->mpcMon->addObserver('IniDiff', 'IniMonitor');
+    $self->mpcMon->addObserver('LogRecentFiles', 'IniMonitor');
+    $self->mpcMon->addObserver('LogFilePosition', 'IniMonitor');
+    $self->mpcMon->addObserver('LogPlayingStats', 'WebIfMonitor');
+    $self->mpcMon->addObserver('LogRecentPlaylists', 'MpcplMonitor');
 
-    #~ $self->{mpcMon}->enableObserver('LogEvents');
-    $self->{mpcMon}->enableObserver('Categorize');
+    #~ $self->mpcMon->enableObserver('LogEvents');
+    $self->mpcMon->enableObserver('Categorize');
 }
 
 sub listObservers {
     my $self = shift;
-    foreach my $observable (values %{$self->{mpcMon}{observables}}) {
-        foreach my $observer (@{$observable->{observers}}) {
-            print "Observer: $observer->{name} => $observable->{name}\n";
+    foreach my $monitor (values %{$self->mpcMon->{observables}}) {
+        foreach my $observer (@{$monitor->{observers}}) {
+            print "Observer: $observer->{name} => $monitor->{name}\n";
         }
     }
 }
@@ -154,7 +172,8 @@ sub status {
 
     print "Categories: @{$self->{opts}{categories}}\n";
 
-    if (my $status = $self->utils->getPlayerStatus) {
+    my $status = $self->mpcMon->getStatus;
+    if ($status->online) {
         print "Open: $status->{filepath}\n";
     } else {
         print "No MPC status\n";

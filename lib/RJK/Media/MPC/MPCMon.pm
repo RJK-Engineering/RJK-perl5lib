@@ -10,28 +10,17 @@ use RJK::Media::MPC::IniMonitor;
 use RJK::Media::MPC::SnapshotMonitor;
 use RJK::Media::MPC::WebIFMonitor;
 
-use RJK::Media::MPC::MPCMonUtils;
-use RJK::Media::MPC::MPCMonSettings;
-
 use RJK::Util::LockFile;
 
 sub new {
     my $self = bless {}, shift;
-    $self->{utils} = new RJK::Media::MPC::MPCMonUtils($self);
+    $self->{opts} = shift;
+    $self->{opts}{afterPoll} //= sub {};
     return $self;
-}
-
-sub utils {
-    $_[0]{utils};
-}
-
-sub settings {
-    $_[0]{settings};
 }
 
 sub init {
     my $self = shift;
-    $self->{opts} = shift;
 
     my $lockFile = $self->{opts}{lockFile} || die "No lock file configured";
     my $lockFileDir = $lockFile =~ s/[\\\/]+[^\\\/]+$//r;
@@ -40,10 +29,6 @@ sub init {
     RJK::Util::LockFile::createLock($lockFile);
 
     $self->checkDir($self->{opts}{snapshotBinDir});
-
-    if ($self->{opts}{settingsFile}) {
-        $self->{settings} = new RJK::Media::MPC::MPCMonSettings($self->{opts}{settingsFile});
-    }
 
     $self->setupMonitors();
 }
@@ -81,7 +66,7 @@ sub setupMonitors {
 
 sub poll {
     $_->poll() for @{$_[0]{monitors}};
-    $_[0]{settings}->save();
+    $_[0]{opts}{afterPoll}();
 }
 
 ###############################################################################
@@ -170,6 +155,11 @@ sub getObservers {
 }
 
 ###############################################################################
+
+sub getStatus {
+    my $self = shift;
+    return $self->{observables}{WebIFMonitor}->getStatus();
+}
 
 sub checkDir {
     my ($self, $dir) = @_;
