@@ -21,6 +21,14 @@ sub new {
     return $self;
 }
 
+sub utils {
+    $_[0]{utils};
+}
+
+sub settings {
+    $_[0]{settings};
+}
+
 sub init {
     my $self = shift;
     $self->{opts} = shift;
@@ -91,13 +99,8 @@ sub addObserver {
     my $observer = $class->new($name);
     my @mons = ref $mon ? @$mon : $mon ? ($mon) : keys %{$self->{observables}};
 
-    foreach $mon (@mons) {
-        $self->{observers}{$mon}{$name} = $observer;
-        if ($self->{observables}{$mon}) {
-            $self->{observables}{$mon}->addObserver($observer);
-        } else {
-            print "WARN Invalid monitor: $mon\n";
-        }
+    foreach (@mons) {
+        $self->{observers}{$_}{$name} = $observer;
     }
 }
 
@@ -105,7 +108,7 @@ sub enableObserver {
     my ($self, $name, $mon) = @_;
     $self->getObservers($name, $mon, sub {
         my ($name, $mon, $observer) = @_;
-        print "Enable: $mon => $name\n";
+        print "Enable: $name => $mon\n";
         if ($self->{observables}{$mon}->hasObserver($observer)) {
             print "Observer already enabled: $mon => $name\n";
         } else {
