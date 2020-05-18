@@ -26,6 +26,41 @@ sub getPlayerStatus {
     return $self->{mpcMon}{observables}{WebIFMonitor}->getStatus();
 }
 
+sub getStatus {
+    my ($self, $object) = @_;
+    return $object->{mpcStatus} if $object->{mpcStatus};
+    return $object->{mpcStatus} = $self->getPlayerStatus();
+}
+
+# sets and returns $object->{mediaFile} = { dir, name => $object->{$filenameKey}, path }
+# $filenameKey default = mediaFilename
+sub getMediaFilePath {
+    my ($self, $object, $filenameKey) = @_;
+
+    return $object->{mediaFile} if $object->{mediaFile};
+
+    my $mediaFile = {};
+    my $mediaFilename = $object->{$filenameKey // "mediaFilename"};
+    my $process = $self->getProcess($mediaFilename);
+
+    if ($process) {
+        $object->{process} = $process;
+        $mediaFile->{path} = $process->{WindowTitle};
+    } else {
+        print "$mediaFilename not playing\n";
+        $mediaFile->{path} = $self->findFileInDirHistory($mediaFilename);
+    }
+
+    if ($mediaFile->{path}) {
+        $mediaFile->{dir} = $mediaFile->{path} =~ s/[\\\/]+[^\\\/]+$//r;
+        $self->addToDirHistory($mediaFile->{dir});
+    }
+
+    $mediaFile->{name} = $mediaFilename;
+
+    return $object->{mediaFile} = $mediaFile;
+}
+
 sub getProcess {
     my ($self, $windowTitle) = @_;
     my $process;
