@@ -3,7 +3,7 @@ package RJK::File::PathInfo;
 use strict;
 use warnings;
 
-use File::Spec::Functions qw();
+use File::Spec;
 
 use Exporter ();
 our @ISA = qw(Exporter);
@@ -24,21 +24,21 @@ our @EXPORT_OK = (@EXPORT, qw(
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
 sub rel2abs {
-    File::Spec::Functions::rel2abs(@_)
+    File::Spec->rel2abs(@_)
 }
 
 sub path {
-    File::Spec::Functions::path()
+    File::Spec->path()
 }
 
 # from absolute path
 
 sub directory {
-    File::Spec::Functions::catdir((File::Spec::Functions::splitpath(@_))[0,1])
+    File::Spec->catdir((File::Spec->splitpath(@_))[0,1])
 }
 
 sub splitpath {
-    File::Spec::Functions::splitpath(@_)
+    File::Spec->splitpath(@_)
 }
 
 # from absolute or relative path
@@ -66,7 +66,7 @@ sub hidden {
 # join
 
 sub catdir {
-    File::Spec::Functions::catdir(@_)
+    File::Spec->catdir(@_)
 }
 
 1;

@@ -10,13 +10,7 @@ package RJK::File::PathFinder;
 use strict;
 use warnings;
 
-use Exporter ();
-use File::Spec::Functions qw(rel2abs);
-
-our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(
-    FindPath
-);
+use File::Spec;
 
 ###############################################################################
 =pod
@@ -38,7 +32,7 @@ sub FindPath {
         $path = $_;
         last;
     }
-    $path = rel2abs $path if $path;
+    $path = File::Spec->rel2abs($path) if $path;
     return $path;
 }
 
