@@ -44,13 +44,6 @@ For special search types:
    * =extensions= - Array, taken from =patterns= in the form "*.txt"
    * =filenames= - Array, taken from =patterns= not containing wildcards "*" and "?"
 
----++ Package variable =$RJK::TotalCmd::Search::timeZone=
-
-Holds the time zone name, an offset or a =DateTime::TimeZone=
-object used for parsing dates.
-
-See: =time_zone= argument in [[http://search.cpan.org/~drolsky/DateTime-Format-Strptime-1.74/lib/DateTime/Format/Strptime.pm#DateTime::Format::Strptime-%3Enew(%args)][DateTime::Format::Strptime->new]]
-
 ---++ Field: =SearchFlags=
 <a name="SearchFlags"></a>
 
@@ -149,20 +142,7 @@ use Exception::Class (
           fields => [qw(pattern)] },
 );
 
-use DateTime::Format::Strptime;
 use Try::Tiny;
-
-our $timeZone;
-try {
-    $timeZone = DateTime::TimeZone::Local->TimeZone();
-} catch {
-    print "$_\n";
-};
-my $strptime = DateTime::Format::Strptime->new(
-    on_error => sub { throw RJK::TotalCmd::Search::Exception($_[1]) },
-    pattern => '%d%m%Y%H%M%S',
-    $timeZone ? (time_zone => $timeZone) : ()
-);
 
 our @timeUnits = qw(
     nanoseconds seconds minutes
@@ -507,10 +487,10 @@ sub GetExtensionIdent {
 ###############################################################################
 =pod
 
----+++ !ParseDate($dateTime, $endOfDay) -> $time
+---+++ !ParseDate($dateTime, $endOfDay) -> $number
    * =$dateTime= - String in format: =d-m-y h:m:s= or without time: =d-m-y=
                    (single digits allowed).
-   * =$time= - Unix (epoch) time.
+   * =$number= - A number that can be used to compare dates.
    * =$endOfDay= - Take epoch at the end of the day if no time is specified
                    (for matching a date up-to-and-including).
 
@@ -523,16 +503,9 @@ sub ParseDate {
     if ($dateTime =~ /^(\d+)-(\d+)-(\d+)(?: (\d+):(\d+):(\d+))?$/) {
         my $year = $3;
         $year += $3 < 70 ? 2000 : 1900 if $3 < 100;
-
-        $dateTime = $strptime->parse_datetime(
-            sprintf "%02u%02u%04u%02u%02u%02u",
-                $1, $2, $year, $4//0, $5//0, $6//0
-        );
-
-        # take epoch at end of the day if no time specified (used for maxdate)
-        $dateTime->add(days => 1) if $endOfDay && not defined $4;
-
-        return $dateTime->epoch;
+        $year -= 1970;
+        my $d = $endOfDay && ! defined $4 ? 1 : 0;
+        return 0 + sprintf "%02d%02u%02u%02u%02u%02u", $year, $2, $1+$d, $4//0, $5//0, $6//0;
     }
 
     throw RJK::TotalCmd::Search::Exception("Invalid date/time: $dateTime");
@@ -549,6 +522,7 @@ sub ParseDate {
 ###############################################################################
 
 sub NotOlderThanTime {
+    die "FIXME";
     my $flags = shift;
     return unless $flags->{time};
 
