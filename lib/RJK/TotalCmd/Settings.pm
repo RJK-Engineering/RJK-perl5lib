@@ -232,7 +232,7 @@ sub getCustomCommands {
 
     my @bars = $self->getButtonBars();
     foreach my $bar (@bars) {
-        push @cmds, $self->getButtons($bar);
+        push @cmds, @{$self->getButtonBar($bar)->items};
     }
 
     return wantarray ? @cmds : \@cmds;
@@ -315,56 +315,6 @@ sub getSubmenus {
 ###############################################################################
 =pod
 
----+++ Butons
-
-See also: getButtonBars()
-
----++++ getButton($barName, $nr) -> $command
-Throws =TotalCmd::NotFoundException= if bar or command not found.
-
----++++ getButtons($barName) -> @commands or \@commands
-Throws =TotalCmd::NotFoundException= if bar not found.
-
-=cut
-###############################################################################
-
-sub getButton {
-    my ($self, $barName, $nr) = @_;
-    return $self->getButtons($barName)->[$nr - 1]
-        || throw RJK::TotalCmd::NotFoundException("Unknown command: $nr");
-}
-
-sub getButtons {
-    my ($self, $barName) = @_;
-
-    my $file;
-    foreach (@barDirs) {
-        my $path = "$_\\$barName.bar";
-        if (-f $path) {
-            $file = $path;
-            last;
-        }
-    }
-    $file || throw RJK::TotalCmd::NotFoundException("Unknown bar: $barName");
-
-    my $ini = new RJK::Util::Ini($file)->read;
-    return $ini->getHashList(
-        'Buttonbar', 'number', { source => "Button:$barName" }
-    );
-}
-
-sub getAllButtons {
-    my $self = shift;
-    my @cmds;
-    foreach my $bar (@{$self->getButtonBars}) {
-        push @cmds, $self->getButtons($bar);
-    }
-    return wantarray ? @cmds : \@cmds;
-}
-
-###############################################################################
-=pod
-
 ---++ Other methods
 
 ---+++ getCommandCategories() -> @names or \@names
@@ -376,8 +326,8 @@ Get shortcut keys.
 ---+++ getKeys() -> ( $commandName => \@keys  ) or { $commandName => \@keys  }
 Get shortcut keys.
 
----+++ getButtonBar([$name]) -> $buttonBar
-Get new RJK::TotalCmd::ButtonBar, load =$name.bar= file if =$name= is specified.
+---+++ getButtonBar($name) -> $buttonBar
+Returns new or existing RJK::TotalCmd::ButtonBar.
 
 ---+++ getButtonBars() -> @names or \@names
 Get button bar names.
@@ -411,14 +361,10 @@ sub getButtonBar {
     my $bar;
     @barDirs || die "No bar directories defined";
     foreach my $dir (@barDirs) {
+        -d $dir || die "Not a directory: $dir";
         my $path = "$dir\\$name.bar";
-        next unless -e $path;
-        $bar = new RJK::TotalCmd::ButtonBar($path);
-    }
-    unless ($bar) {
-        $barDirs[0] || die "Directory name missing";
-        -d $barDirs[0] || die "Not a directory: $barDirs[0]";
-        $bar = new RJK::TotalCmd::ButtonBar("$barDirs[0]\\$name.bar");
+        next if ! -e $path;
+        $bar = new RJK::TotalCmd::ButtonBar($path)->read;
     }
     return $bar;
 }

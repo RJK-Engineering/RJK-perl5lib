@@ -17,22 +17,18 @@ use Exception::Class (
         { isa => 'Exception' },
 );
 
-use Class::AccessorMaker {
-    title => "",
-    items => [],
-};
-
 ###############################################################################
 =pod
 
 ---++ Object Creation
 
----+++ new(title => $title, items => \@items) -> RJK::TotalCmd::Menu
+---+++ RJK::TotalCmd::Menu->new(title => $title, items => \@items) -> RJK::TotalCmd::Menu
 Returns a new =RJK::TotalCmd::Menu= object.
 
 ---++ Items
 
----+++ createItem($item) -> $item
+---+++ getCommands() -> \@commands
+Returns all command items (items where {cmd} is not empty).
 
 ---+++ findItems(%opts) -> @items
 
@@ -42,13 +38,21 @@ Throws RJK::TotalCmd::Exception if multiple items found.
 
 ---+++ insertItem(item => $item, position => $position, submenu => $submenu) -> $item
 
+---+++ RJK::TotalCmd::Menu::createItem($template) -> $item
+
 =cut
 ###############################################################################
 
-sub createItem {
-    my $item = shift;
-    $item->{menu} //= $item->{cmd};
-    return $item;
+sub new {
+    my $self = bless {}, shift;
+    my %opts = @_;
+    $self->{title} = $opts{title};
+    $self->{items} = $opts{items};
+    return $self;
+}
+
+sub getCommands {
+    return [ grep { $_->{cmd} } @{$_[0]->{items}} ];
 }
 
 sub findItems {
@@ -64,7 +68,7 @@ sub findItems {
 
         if ($item->{menu} =~ /^--$/) {         # submenu end
             last if $l-- == 0;
-        } elsif ($item->{menu} =~ /^-(.*)/) {  # submenu start
+        } elsif ($item->{menu} =~ /^"?-(.*)/) {  # submenu start
             $l++;
         } else {
             foreach (keys %opts) {
@@ -113,6 +117,12 @@ sub insertItem {
     return $item;
 }
 
+sub createItem {
+    my $template = shift;
+    $template->{menu} //= $template->{cmd};
+    return $template;
+}
+
 ###############################################################################
 =pod
 
@@ -142,7 +152,7 @@ Throws RJK::TotalCmd::Exception if multiple submenus found.
 sub getSubmenu {
     my ($self, $nr) = @_;
     my $item = $self->{items}[$nr - 1];
-    return if $item->{menu} !~ /^-[^-]/;
+    return if $item->{menu} !~ /^"?-[^-]/;
     $item->{items} = $self->getSubmenuItems($item);
     return $item;
 }
@@ -156,7 +166,7 @@ sub getSubmenuItems {
         my $o = $self->{items}[$i];
         if ($o->{menu} =~ /^--$/) {         # submenu end
             last if $l-- == 0;
-        } elsif ($o->{menu} =~ /^-(.*)/) {  # submenu start
+        } elsif ($o->{menu} =~ /^"?-(.*)/) {  # submenu start
             $l++;
         }
         push @items, $o;
@@ -172,7 +182,7 @@ sub getLastItemNumber {
         my $o = $self->{items}[$i];
         if ($o->{menu} =~ /^--$/) {         # submenu end
             return $i if $l-- == 0;
-        } elsif ($o->{menu} =~ /^-(.*)/) {  # submenu start
+        } elsif ($o->{menu} =~ /^"?-(.*)/) {  # submenu start
             $l++;
         }
     }
@@ -183,7 +193,7 @@ sub findSubmenus {
     my @items;
     foreach (@{$self->{items}}) {
         my $title = $_->{menu} =~ s/&//gr; # remove access key indicator
-        next if $title !~ /^-.*$searchFor/i;
+        next if $title !~ /^"?-.*$searchFor/i;
         $_->{items} = $self->getSubmenuItems($_);
         push @items, $_;
     }

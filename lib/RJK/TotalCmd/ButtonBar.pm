@@ -11,27 +11,27 @@ use warnings;
 
 use RJK::Util::Ini;
 
+my $section = 'Buttonbar';
+
 ###############################################################################
 =pod
 
 ---++ Object creation
 
----+++ new([$file]) -> RJK::TotalCmd::ButtonBar
+---+++ new($path) -> RJK::TotalCmd::ButtonBar
 Returns a new =RJK::TotalCmd::ButtonBar= object.
-Opional path to bar =$file=.
+   * =$path= - Path to bar path.
 
 =cut
 ###############################################################################
 
 sub new {
     my $self = bless {}, shift;
-    $self->{file} = shift;
-    $self->{buttons} = [];
+    $self->{path} = shift;
+    $self->{ini} = new RJK::Util::Ini($self->{path});
+    $self->{name} = ($self->{path} =~ /([^\\\/]+)\.bar$/)[0];
+    $self->{items} = undef;
     return $self;
-}
-
-sub file {
-    $_[0]->{file};
 }
 
 ###############################################################################
@@ -41,6 +41,12 @@ sub file {
 
 ---+++ addButton($self, $command, $iconFile, $iconNr, $iconic)
 Add button.
+
+---+++ getItems() -> \@items
+Returns all items.
+
+---+++ getButtons() -> \@buttons
+Returns all button items (items where {button} is not empty).
 
 ---+++ write()
 Write bar file.
@@ -57,7 +63,7 @@ sub addButton {
         $tooltip .= $command->{menu} // "";
     }
 
-    push @{$self->{buttons}}, {
+    push @{$self->{items}}, {
         button => $command->{button} // "",
         cmd => $command->{cmd},
         param => $command->{param},
@@ -67,17 +73,31 @@ sub addButton {
     };
 }
 
-sub write {
-    my ($self, $file) = @_;
-    @{$self->{buttons}} || return;
+sub getItems {
+    return $_[0]{items} //= $_[0]{ini}->getHashList($section);
+}
 
-    my $ini = new RJK::Util::Ini($self->{file});
-    my $section = 'Buttonbar';
+sub getButtons {
+    return [ grep { $_->{button} } @{$_[0]->getItems} ];
+}
+
+sub read {
+    my $self = shift;
+    $self->{ini}->read();
+    $self->{items} = undef;
+    return $self;
+}
+
+sub write {
+    my $self = shift;
+    my $items = $self->{items} || return;
+    @$items || return;
+
     my @keys = qw(button cmd param path iconic menu);
 
-    $ini->setHashList($section, $self->{buttons}, \@keys);
-    $ini->prepend($section, 'Buttoncount', scalar @{$self->{buttons}});
-    $ini->write($file);
+    $self->{ini}->setHashList($section, $items, \@keys);
+    $self->{ini}->prepend($section, 'Buttoncount', scalar @$items);
+    $self->{ini}->write();
 }
 
 1;
