@@ -73,14 +73,14 @@ sub totalSections {
 
 sub clearSection {
     my ($self, $section) = @_;
-    my $pl = $self->getPropertyList($section) || return;
+    my $pl = $self->{properties}{$section} || return;
     $self->{keys}{$section} = [];
     $pl->clear;
 }
 
 sub newSection {
     my ($self, $section) = @_;
-    return if $self->getPropertyList($section);
+    return if $self->{properties}{$section};
     $self->_newSection($section);
 }
 
@@ -94,7 +94,7 @@ sub _newSection {
 # no deep copy!
 sub setSection {
     my ($self, $section, $ini) = @_;
-    my $pl = $self->getPropertyList($section) || $self->_newSection($section);
+    my $pl = $self->{properties}{$section} || $self->_newSection($section);
     $self->{keys}{$section} = $ini->{keys}{$section};
     $self->{properties}{$section} = $ini->{properties}{$section};
 }
@@ -103,7 +103,7 @@ sub allSections {
     my ($self, $type) = @_;
     my %all;
     foreach my $section (@{$self->{sections}}) {
-        $all{$section} = $self->getPropertyList($section)->hash;
+        $all{$section} = $self->{properties}{$section}->hash;
     }
     return wantarray ? %all : \%all;
 }
@@ -152,17 +152,17 @@ sub getPropertyNames {
 }
 
 sub getValues {
-    my $pl = $_[0]->getPropertyList($_[1]) || return;
+    my $pl = $_[0]->{properties}{$_[1]} || return;
     return wantarray ? $pl->values : [ $pl->values ];
 }
 
 sub getSection {
-    my $pl = $_[0]->getPropertyList($_[1]) || return;
+    my $pl = $_[0]->{properties}{$_[1]} || return;
     return wantarray ? %{$pl->hash} : $pl->hash;
 }
 
 sub get {
-    my $pl = $_[0]->getPropertyList($_[1]) || return;
+    my $pl = $_[0]->{properties}{$_[1]} || return;
     return $pl->get($_[2]);
 }
 
@@ -189,21 +189,21 @@ Does not check for existing property, may result in duplicates.
 
 sub set {
     my ($self, $section, $key, $value) = @_;
-    my $pl = $self->getPropertyList($section) || $self->_newSection($section);
+    my $pl = $self->{properties}{$section} || $self->_newSection($section);
     push @{$self->{keys}{$section}}, $key if ! $pl->has($key);
     $pl->set($key, $value);
 }
 
 sub prepend {
     my ($self, $section, $key, $value) = @_;
-    my $pl = $self->getPropertyList($section) || $self->_newSection($section);
+    my $pl = $self->{properties}{$section} || $self->_newSection($section);
     unshift @{$self->{keys}{$section}}, $key;
     $pl->set($key, $value);
 }
 
 sub prependAll {
     my ($self, $section, $hash) = @_;
-    my $pl = $self->getPropertyList($section) || $self->_newSection($section);
+    my $pl = $self->{properties}{$section} || $self->_newSection($section);
     while (my ($key, $value) = each %$hash) {
         unshift @{$self->{keys}{$section}}, $key;
         $pl->set($key, $value);
@@ -212,14 +212,14 @@ sub prependAll {
 
 sub append {
     my ($self, $section, $key, $value) = @_;
-    my $pl = $self->getPropertyList($section) || $self->_newSection($section);
+    my $pl = $self->{properties}{$section} || $self->_newSection($section);
     push @{$self->{keys}{$section}}, $key;
     $pl->set($key, $value);
 }
 
 sub appendAll {
     my ($self, $section, $hash) = @_;
-    my $pl = $self->getPropertyList($section) || $self->_newSection($section);
+    my $pl = $self->{properties}{$section} || $self->_newSection($section);
     while (my ($key, $value) = each %$hash) {
         push @{$self->{keys}{$section}}, $key;
         $pl->set($key, $value);
@@ -297,7 +297,7 @@ sub write {
                          : @{$self->{sections}};
 
     foreach my $section (@sections) {
-        my $pl = $self->getPropertyList($section) || return;
+        my $pl = $self->{properties}{$section} || return;
         print $fh "[$section]\n" or return;
         foreach my $name (@{$self->{keys}{$section}}) {
             printf $fh "%s=%s\n", $name, $pl->get($name) or return;
@@ -384,11 +384,11 @@ sub parse {
     my $defaultKey = $opts->{defaultKey} // '_default';
     my $name = $opts->{name} // '.*?';
 
-    my $pl = $self->getPropertyList($section) || return;
-    my @keys = $self->getPropertyNames($section);
+    my $pl = $self->{properties}{$section} || return;
+    my $keys = $self->{keys}{$section};
     my $data;
 
-    foreach (@keys) {
+    foreach (@$keys) {
         my $value = $pl->get($_);
         # lists
         if (/^ (?<name>$name) (?<index>\d+) $self->{delimiter}? (?<key>.*) $/x) {
@@ -547,7 +547,7 @@ sub getHashesLHS {
 
 sub setList {
     my ($self, $section, $array, $name) = @_;
-    my $pl = $self->getPropertyList($section) || $self->_newSection($section);
+    my $pl = $self->{properties}{$section} || $self->_newSection($section);
 
     my @keys = $name ? map { "$name$_" } 0 .. @$array-1
                      :                   0 .. @$array-1;
@@ -562,7 +562,7 @@ sub setList {
 
 sub setHashList {
     my ($self, $section, $array, $keys) = @_;
-    my $pl = $self->getPropertyList($section) || $self->_newSection($section);
+    my $pl = $self->{properties}{$section} || $self->_newSection($section);
     $pl->clear;
     my @propertyKeys;
     for (my $i=1; $i<=@$array; $i++) {
@@ -579,7 +579,7 @@ sub setHashList {
 
 sub setHashListRHS {
     my ($self, $section, $array, $opts) = @_;
-    my $pl = $self->getPropertyList($section) || $self->_newSection($section);
+    my $pl = $self->{properties}{$section} || $self->_newSection($section);
     $pl->clear;
     return if ! @$array;
 

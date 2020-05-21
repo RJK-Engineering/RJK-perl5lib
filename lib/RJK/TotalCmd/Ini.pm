@@ -122,7 +122,6 @@ sub new {
     my $self = bless {}, shift;
     $self->{path} = shift;
     $self->{ini} = new RJK::Util::Ini($self->{path});
-    $self->{searches} = {};          # name => Search
     return $self;
 }
 
@@ -147,7 +146,7 @@ sub read {
     $file //= $self->{path};
 
     $self->{ini}->read($file) || return;
-    $self->_loadSearches();
+    $self->{searches} = {};          # name => Search
 
     return $self;
 }
@@ -190,8 +189,7 @@ sub getStartMenu {
     return new RJK::TotalCmd::Menu(
         title => "StartMenu",
         items => scalar $self->{ini}->getHashList(
-            'user', 'number',
-            { source => 'StartMenu' }
+            'user', { key => 'number' }
         )
     );
 }
@@ -203,9 +201,11 @@ sub setStartMenu {
 
 sub getDirMenu {
     my ($self) = @_;
-    return $self->{ini}->getHashList(
-        'DirMenu', 'number',
-        { source => 'DirMenu' }
+    return new RJK::TotalCmd::Menu(
+        title => "DirMenu",
+        items => scalar $self->{ini}->getHashList(
+            'DirMenu', { key => 'number' }
+        )
     );
 }
 
@@ -219,8 +219,7 @@ sub getMenuItems {
     my ($self, $menu, $submenuNr) = @_;
     $submenuNr = $submenuNr->{number} if ref $submenuNr;
     my @items = $self->{ini}->getHashList(
-        $menu, 'number',
-        { source => $menu eq 'user' ? 'StartMenu' : $menu }
+        $menu, { key => 'number' }
     );
     if (defined $submenuNr) {
         @items = $self->_getSubmenu(\@items, $submenuNr);
@@ -296,6 +295,15 @@ sub getShortcuts {
     return wantarray ? %$shortcuts : $shortcuts;
 }
 
+sub getKeys {
+    my ($self) = @_;
+    my %keys;
+    while (my ($keys, $command) = each %{$self->getShortcuts}) {
+        push @{$keys{$command}}, $keys;
+    }
+    return wantarray ? %keys : \%keys;
+}
+
 sub getColors {
     my ($self) = @_;
     return $self->{ini}->getHashListRHS("Colors", {
@@ -343,15 +351,8 @@ sub setColors {
 
 ---+++ history($section) -> @history or \@history
 ---+++ addToHistory($section, $text) -> ProperyList
----+++ searches() -> %searches or \%searches
----+++ nonSpecialSearches() -> @searches
-List of non special searches sorted by name.
+---+++ getSearches() -> %searches or \%searches
 ---+++ getSearch($name) -> RJK::TotalCmd::Search
----+++ fileTypes() -> $types or @types
----+++ getFileTypes($filename) -> $types or @types
----+++ matchFileType($type, $filename) -> $boolean
----+++ inCategory($filename, $category) -> $boolean
----+++ _loadSearches()
 ---+++ report()
 
 =cut
@@ -371,62 +372,26 @@ sub addToHistory {
     $self->{ini}->setList($section, $h);
 }
 
-sub searches {
+sub getSearches {
     my $self = shift;
-    return wantarray ?
-        values %{$self->{searches}} : $self->{searches};
-}
-
-sub searchNames {
-    my $self = shift;
-    return keys %{$self->{searches}};
-}
-
-sub nonSpecialSearches {
-    my $self = shift;
-    return
-        map { $self->{searches}{$_} }
-        sort { fc $a cmp fc $b }
-        grep { ! /^(?:attr|category|dirs|type):/ }
-        keys %{$self->{searches}};
+    my $s = $self->_getSearches();
+    return wantarray ? values %$s : $s;
 }
 
 sub getSearch {
     my ($self, $name) = @_;
-    return $self->{searches}{$name};
+    my $s = $self->_getSearches();
+    return $s->{$name};
 }
 
-sub fileTypes {
+sub _getSearches {
     my $self = shift;
-    return @RJK::TotalCmd::Search::fileTypes;
-}
-
-sub getFileTypes {
-    my ($self, $filename) = @_;
-    return RJK::TotalCmd::Search::GetFileTypes($filename);
-}
-
-sub matchFileType {
-    my ($self, $type, $filename) = @_;
-    my $types = $self->getFileTypes($filename);
-    return grep { $_ eq $type } @$types;
-}
-
-sub inCategory {
-    my ($self, $filename, $category) = @_;
-    my $types = $self->getFileTypes($filename);
-    foreach (@$types) {
-        return 1 if $self->{categoryIdx}{$category}{$_};
+    if (! $self->{searches}) {
+        foreach (values %{$self->{ini}->getHashes('searches', { key => 'name' })}) {
+            $self->{searches}{$_->{name}} = new RJK::TotalCmd::Search(%$_);
+        }
     }
-    return 0;
-}
-
-sub _loadSearches {
-    my $self = shift;
-    my %s = $self->{ini}->getHashes('searches', { key => 'name' });
-    foreach (values %s) {
-        $self->{searches}{$_->{name}} = new RJK::TotalCmd::Search(%$_);
-    }
+    return $self->{searches};
 }
 
 sub report {
