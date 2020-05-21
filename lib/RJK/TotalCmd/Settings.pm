@@ -19,7 +19,7 @@ use Exception::Class (
 
 use Try::Tiny;
 
-use RJK::File::PathFinder qw(FindPath);
+use RJK::File::PathFinder;
 use RJK::TotalCmd::ButtonBar;
 use RJK::TotalCmd::Inc;
 use RJK::TotalCmd::Ini;
@@ -63,14 +63,8 @@ Returns a new =RJK::TotalCmd::Settings= object.
 =cut
 ###############################################################################
 
-# TODO do not load in constructor, use accessors that load settings when needed
 sub init {
     my $self = shift;
-
-    $self->{_tcmdinc} = GetTotalCmdInc($self->{tcmdinc});
-    $self->{_tcmdini} = GetTotalCmdIni($self->{tcmdini});
-    $self->{_usercmd} = GetUsercmdIni($self->{usercmd});
-
     SetBarDirs($ENV{COMMANDER_INI});
 }
 
@@ -90,18 +84,19 @@ Loads =totalcmd.inc=, throws a =TotalCmd::Exception= on failure.
 =cut
 ###############################################################################
 
-sub GetTotalCmdInc {
-    my $path = shift;
-    $path = FindPath(
-        $path // (),
+sub getTotalCmdInc {
+    return $_[0]{_tcmdinc} || $_[0]->loadTotalCmdInc();
+}
+
+sub loadTotalCmdInc {
+    my $path = $_[0]{tcmdinc} || RJK::File::PathFinder::FindPath(
         "%COMMANDER_PATH%/TOTALCMD.INC",
         "%APPDATA%/GHISLER/TOTALCMD.INC",
         "%LOCALAPPDATA%/TOTALCMD.INC",
         "%LOCALAPPDATA%/TotalCommander/TOTALCMD.INC",
-    ) || return;
+    ) || throw RJK::TotalCmd::Exception("Could not find totalcmd.inc");
 
-    my $tcmdinc = RJK::TotalCmd::Inc->new($path);
-    $tcmdinc->read()
+    return RJK::TotalCmd::Inc->new($path)->read()
         || throw RJK::TotalCmd::Exception("Error loading totalcmd.inc");
 }
 
@@ -117,20 +112,21 @@ Loads =totalcmd.ini=, throws a =TotalCmd::Exception= on failure.
 =cut
 ###############################################################################
 
-sub GetTotalCmdIni {
-    my $path = shift;
-    $path = FindPath(
-        $path // (),
+sub getTotalCmdIni {
+    return $_[0]{_tcmdini} || $_[0]->loadTotalCmdIni();
+}
+
+sub loadTotalCmdIni {
+    my $path = $_[0]{tcmdini} || RJK::File::PathFinder::FindPath(
         "%COMMANDER_INI%",
         "%APPDATA%/GHISLER/wincmd.ini",
         "%LOCALAPPDATA%/wincmd.ini",
         "%LOCALAPPDATA%/totalcmd.ini",
         "%LOCALAPPDATA%/TotalCommander/wincmd.ini",
         "%LOCALAPPDATA%/TotalCommander/totalcmd.ini",
-    ) || return;
+    ) || throw RJK::TotalCmd::Exception("Could not find totalcmd.ini");
 
-    my $tcmdini = RJK::TotalCmd::Ini->new($path);
-    $tcmdini->read()
+    return RJK::TotalCmd::Ini->new($path)->read()
         || throw RJK::TotalCmd::Exception("Error loading totalcmd.ini");
 }
 
@@ -146,18 +142,19 @@ Loads =usercmd.ini=, throws a =TotalCmd::Exception= on failure.
 =cut
 ###############################################################################
 
-sub GetUsercmdIni {
-    my $path = shift;
-    $path = FindPath(
-        $path // (),
+sub getUsercmdIni {
+    return $_[0]{_usercmd} || $_[0]->loadUsercmdIni();
+}
+
+sub loadUsercmdIni {
+    my $path = $_[0]{usercmd} || RJK::File::PathFinder::FindPath(
         "%COMMANDER_PATH%/usercmd.ini",
         "%APPDATA%/GHISLER/usercmd.ini",
         "%LOCALAPPDATA%/usercmd.ini",
         "%LOCALAPPDATA%/TotalCommander/usercmd.ini",
-    ) || return;
+    ) || throw RJK::TotalCmd::Exception("Could not find usercmd.ini");
 
-    my $usercmdini = RJK::TotalCmd::UsercmdIni->new($path);
-    $usercmdini->read()
+    return RJK::TotalCmd::UsercmdIni->new($path)->read()
         || throw RJK::TotalCmd::Exception("Error loading usercmd.ini");
 }
 
@@ -220,8 +217,8 @@ sub getCommand {
     my ($self, $name) = @_;
     my $cmd;
     if ($name =~ /^((?:(em)|(cm))_.*)/) {
-        $cmd = $self->{_usercmd}->getCommandByName($1) if $2;
-        $cmd = $self->{_tcmdinc}->getCommandByName($1) if $3;
+        $cmd = $self->getUsercmdIni->getCommandByName($1) if $2;
+        $cmd = $self->getTotalCmdInc->getCommandByName($1) if $3;
     }
     return $cmd || throw RJK::TotalCmd::NotFoundException("Unknown command: $name");
 }
@@ -267,12 +264,12 @@ Get user commands.
 
 sub getUserCommand {
     my ($self, $nr) = @_;
-    $self->{_usercmd}->getCommand($nr)
+    $self->getUsercmdIni->getCommand($nr)
         || throw RJK::TotalCmd::NotFoundException("Unknown command: $nr");
 }
 
 sub getUserCommands {
-    shift->{_usercmd}->getCommands();
+    shift->getUsercmdIni->getCommands();
 }
 
 ###############################################################################
@@ -301,18 +298,18 @@ Get submenus.
 
 sub getMenuItem {
     my ($self, $menu, $number) = @_;
-    $self->{_tcmdini}->getMenuItem($menu, $number)
+    $self->getTotalCmdIni->getMenuItem($menu, $number)
         || throw RJK::TotalCmd::NotFoundException("Unknown command: $number");
 }
 
 sub getMenuItems {
     my ($self, $menu, $submenuNr) = @_;
-    $self->{_tcmdini}->getMenuItems($menu, $submenuNr);
+    $self->getTotalCmdIni->getMenuItems($menu, $submenuNr);
 }
 
 sub getSubmenus {
     my ($self, $menu) = @_;
-    $self->{_tcmdini}->getSubmenus($menu);
+    $self->getTotalCmdIni->getSubmenus($menu);
 }
 
 ###############################################################################
@@ -374,10 +371,10 @@ sub getAllButtons {
 Get command category names.
 
 ---+++ getShortcuts() -> ( $key => $commandName ) or { $key => $commandName }
-Get shortcuts.
+Get shortcut keys.
 
----+++ getCommandKeys() -> ( $commandName => \@keys  ) or { $commandName => \@keys  }
-Get shortcuts.
+---+++ getKeys() -> ( $commandName => \@keys  ) or { $commandName => \@keys  }
+Get shortcut keys.
 
 ---+++ getButtonBar([$name]) -> $buttonBar
 Get new RJK::TotalCmd::ButtonBar, load =$name.bar= file if =$name= is specified.
@@ -388,21 +385,24 @@ Get button bar names.
 =cut
 ###############################################################################
 
+sub getDirMenu {
+    shift->getTotalCmdIni->getDirMenu();
+}
+
+sub getStartMenu {
+    shift->getTotalCmdIni->getStartMenu();
+}
+
 sub getCommandCategories {
-    shift->{_tcmdinc}->categories();
+    shift->getTotalCmdInc->categories();
 }
 
 sub getShortcuts {
-    shift->{_tcmdini}->getShortcuts();
+    shift->getTotalCmdIni->getShortcuts();
 }
 
-sub getCommandKeys {
-    my ($self) = @_;
-    my %shortcuts;
-    while (my ($shortcut, $name) = each %{$self->getShortcuts}) {
-        push @{$shortcuts{$name}}, $shortcut;
-    }
-    wantarray ? %shortcuts : \%shortcuts;
+sub getKeys {
+    shift->getTotalCmdIni->getKeys();
 }
 
 sub getButtonBar {
@@ -459,20 +459,20 @@ Throws =TotalCmd::NotFoundException= if category not found.
 
 sub getInternalCommand {
     my ($self, $nr) = @_;
-    $self->{_tcmdinc}->getCommand($nr)
+    $self->getTotalCmdInc->getCommand($nr)
         || throw RJK::TotalCmd::NotFoundException("Unknown command: $nr");
 }
 
 sub getCategoryName {
     my ($self, $categoryNr) = @_;
-    my @cats = $self->{_tcmdinc}->categories();
+    my @cats = $self->getTotalCmdInc->categories();
     return $cats[$categoryNr-1]
         // throw RJK::TotalCmd::NotFoundException("Unknown category: $categoryNr");
 }
 
 sub getInternalCommands {
     my ($self, $categoryNr) = @_;
-    my $c = $self->{_tcmdinc}->getCommands($categoryNr)
+    my $c = $self->getTotalCmdInc->getCommands($categoryNr)
         // throw RJK::TotalCmd::NotFoundException("Unknown category: $categoryNr");
     return wantarray ? @$c : $c;
 }
