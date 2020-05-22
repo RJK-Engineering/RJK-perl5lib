@@ -41,7 +41,7 @@ Submenus start with =menu[i]=-[name]= and end with =menu[i]=--=.
 <verbatim>
 [user] start menu
     menu[i], cmd[i], param[i], path[i], key[i]
-[DirMenu] directory hotlist
+[DirMenu] directory menu
     menu[i], cmd[i]
 </verbatim>
 
@@ -149,26 +149,8 @@ sub write {
 ###############################################################################
 =pod
 
----++ Menu items
-
-Two menus are available, "user" for the start menu,
-"DirMenu" for the directory menu.
-
----+++ getMenuItem($nr) -> $command
-Get menu item by item number.
-
----+++ getMenuItems([$submenuNr]) -> @commands or \@commands
-Get menu items.
-Get all items if =$submenuNr= is undefined.
-Get root items if =$submenuNr= is =0=.
-
----+++ getSubmenus($menu) -> @commands or \@commands
-Get submenus.
-
----+++ _getSubmenu($items, $itemNr) -> @commands or \@commands
-Get submenu items.
-Get root items if =$item= is =0=.
-Throws =RJK::TotalCmd::Settings::Exception= if =$itemNr= is not a submenu.
+---++ Menus
+Total Commander start and directory menus.
 
 =cut
 ###############################################################################
@@ -202,57 +184,6 @@ sub getDirMenu {
             }
         )
     );
-}
-
-sub getMenuItem {
-    my ($self, $menu, $number) = @_;
-    my $items = $self->getMenuItems($menu);
-    return $items->[$number-1];
-}
-
-sub getMenuItems {
-    my ($self, $menu, $submenuNr) = @_;
-    $submenuNr = $submenuNr->{number} if ref $submenuNr;
-    my @items = $self->{ini}->getHashList(
-        $menu, { key => 'number' }
-    );
-    if (defined $submenuNr) {
-        @items = $self->_getSubmenu(\@items, $submenuNr);
-    }
-    return wantarray ? @items : \@items;
-}
-
-sub getSubmenus {
-    my ($self, $menu) = @_;
-    my @items;
-    foreach (@{$self->getMenuItems($menu)}) {
-        push @items, $_ if $_->{menu} =~ /^-[^-]/;
-    }
-    return wantarray ? @items : \@items;
-}
-
-sub _getSubmenu {
-    my ($self, $items, $itemNr) = @_;
-    if ($itemNr) {
-        $items->[$itemNr-1] &&
-            $items->[$itemNr-1]->{menu} =~ /^-[^-]/
-            || throw RJK::TotalCmd::Settings::Exception("Not a submenu");
-
-        $items = [ @$items[$itemNr..@$items-1] ];
-    }
-
-    my @items;
-    while (my $o = shift @$items) {
-        if ($o->{menu} =~ /^--$/) {         # submenu end
-            last;
-        } elsif ($o->{menu} =~ /^-(.*)/) {  # submenu start
-            push @items, $o;
-            $self->_getSubmenu($items);
-        } else {
-            push @items, $o;
-        }
-    }
-    return @items;
 }
 
 sub setMenu {
