@@ -23,7 +23,7 @@ Title = '--'.
 ###############################################################################
 
 package RJK::TotalCmd::Item::MenuItem;
-use parent 'RJK::TotalCmd::Item::Item';
+use parent 'RJK::TotalCmd::Item::Command';
 
 use strict;
 use warnings;
