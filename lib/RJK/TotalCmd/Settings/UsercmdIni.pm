@@ -85,7 +85,6 @@ sub read {
         try {
             my $cmd = new RJK::TotalCmd::Item::UserCmd(
                 ($self->{ini}->getSection($name)),
-                source => 'UserCommand',
                 name => $name,
                 number => $i++,
             );
