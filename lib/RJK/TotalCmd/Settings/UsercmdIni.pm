@@ -1,7 +1,7 @@
 =begin TML
 
----+ package RJK::TotalCmd::UsercmdIni
-Total Commander =usercmd.ini= file functionality.
+---+ package RJK::TotalCmd::Settings::UsercmdIni
+Total Commander =USERCMD.INI= file.
 
 ---++ =usercmd.ini= format
 
@@ -23,18 +23,21 @@ menu=
 
 =cut
 
-package RJK::TotalCmd::UsercmdIni;
+package RJK::TotalCmd::Settings::UsercmdIni;
+
+use strict;
+use warnings;
 
 use Try::Tiny;
 
 use RJK::Util::Ini;
-use RJK::TotalCmd::Command;
+use RJK::TotalCmd::Item::Command;
 
 use Exception::Class (
     'Exception',
     'TotalCmd::Exception' =>
         { isa => 'Exception' },
-    'RJK::TotalCmd::UsercmdIni::Exception' =>
+    'RJK::TotalCmd::Settings::UsercmdIni::Exception' =>
         { isa => 'TotalCmd::Exception' },
 );
 
@@ -43,8 +46,8 @@ use Exception::Class (
 
 ---++ Object creation
 
----+++ new([$path]) -> RJK::TotalCmd::UsercmdIni
-Returns a new =RJK::TotalCmd::UsercmdIni= object.
+---+++ new([$path]) -> RJK::TotalCmd::Settings::UsercmdIni
+Returns a new =RJK::TotalCmd::Settings::UsercmdIni= object.
 
 =cut
 ###############################################################################
@@ -60,10 +63,10 @@ sub new {
 
 ---++ INI File
 
----+++ read([$path]) -> RJK::TotalCmd::UsercmdIni
+---+++ read([$path]) -> RJK::TotalCmd::Settings::UsercmdIni
 Read data from file. Returns false on failure, callee on success.
 
----+++ write([$path]) -> RJK::TotalCmd::UsercmdIni
+---+++ write([$path]) -> RJK::TotalCmd::Settings::UsercmdIni
 Write data to file. Returns false on failure, callee on succes.
 
 =cut
@@ -80,7 +83,7 @@ sub read {
     my $i = 1;
     foreach my $name ($self->{ini}->sections) {
         try {
-            my $cmd = new RJK::TotalCmd::Command(
+            my $cmd = new RJK::TotalCmd::Item::Command(
                 ($self->{ini}->getSection($name)),
                 source => 'UserCommand',
                 name => $name,
@@ -89,7 +92,7 @@ sub read {
             push @{$self->{commands}}, $cmd;
             $self->{byName}{$name} = $cmd;
         } catch {
-            throw RJK::TotalCmd::UsercmdIni::Exception("Error creating RJK::TotalCmd::Command object: $_");
+            throw RJK::TotalCmd::Settings::UsercmdIni::Exception("Error creating RJK::TotalCmd::Item::Command object: $_");
         }
     }
 

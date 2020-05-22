@@ -1,19 +1,19 @@
 =begin TML
 
----+ package RJK::TotalCmd::Inc
-Total Commander =totalcmd.inc= file functionality.
+---+ package RJK::TotalCmd::Settings::Inc
+Total Commander =TOTALCMD.INC= file.
 
 =cut
 
-package RJK::TotalCmd::Inc;
+package RJK::TotalCmd::Settings::Inc;
 
-use RJK::TotalCmd::Command;
+use RJK::TotalCmd::Item::Item;
 
 use Exception::Class (
     'Exception',
     'RJK::TotalCmd::Exception' =>
         { isa => 'Exception' },
-    'RJK::TotalCmd::Inc::Exception' =>
+    'RJK::TotalCmd::Settings::Inc::Exception' =>
         { isa => 'RJK::TotalCmd::Exception' },
 );
 
@@ -22,8 +22,8 @@ use Exception::Class (
 
 ---++ Object Creation
 
----+++ new([$path]) -> RJK::TotalCmd::Inc
-Returns a new =RJK::TotalCmd::Inc= object.
+---+++ new([$path]) -> RJK::TotalCmd::Settings::Inc
+Returns a new =RJK::TotalCmd::Settings::Inc= object.
 
 =cut
 ###############################################################################
@@ -61,7 +61,7 @@ sub read {
             $category = $1;
             push @{$self->{categories}}, $1;
         } elsif (/^(.+)=(-?\d+);\s*(.*)\s*$/) {
-            my $cmd = new RJK::TotalCmd::Command(
+            my $cmd = new RJK::TotalCmd::Item::Item(
                 source => 'TotalCmdInc',
                 name => $1,
                 number => $2,

@@ -1,7 +1,7 @@
 =begin TML
 
----+ package RJK::TotalCmd::Ini
-Total Commander INI file functionality.
+---+ package RJK::TotalCmd::Settings::Ini
+Total Commander =WINCMD.INI= file.
 
 ---++ INI sections
 
@@ -85,13 +85,12 @@ Submenus start with =menu[i]=-[name]= and end with =menu[i]=--=.
 
 =cut
 
-package RJK::TotalCmd::Ini;
+package RJK::TotalCmd::Settings::Ini;
 
-use v5.16; # enables fc feature
 use strict;
 use warnings;
 
-use RJK::TotalCmd::Menu;
+use RJK::TotalCmd::Item::Menu;
 use RJK::TotalCmd::Search;
 use RJK::Util::Ini;
 
@@ -99,10 +98,8 @@ use Exception::Class (
     'Exception',
     'TotalCmd::Exception' =>
         { isa => 'Exception' },
-    'RJK::TotalCmd::Ini::Exception' =>
-        { isa => 'TotalCmd::Exception' },
-    'RJK::TotalCmd::Ini::SubmenuException' =>
-        { isa => 'RJK::TotalCmd::Ini::Exception' },
+    'RJK::TotalCmd::Settings::Exception' =>
+        { isa => 'TotalCmd::Exception' }
 );
 
 my $UserMenuNumberStart = 700;
@@ -112,8 +109,8 @@ my $UserMenuNumberStart = 700;
 
 ---++ Object Creation
 
----+++ new($path) -> RJK::TotalCmd::Ini
-Returns a new =RJK::TotalCmd::Ini= object.
+---+++ new($path) -> RJK::TotalCmd::Settings::Ini
+Returns a new =RJK::TotalCmd::Settings::Ini= object.
 
 =cut
 ###############################################################################
@@ -132,10 +129,10 @@ sub filepath { $_[0]{path} }
 
 ---++ INI file
 
----+++ read([$path]) -> RJK::TotalCmd::Ini
+---+++ read([$path]) -> RJK::TotalCmd::Settings::Ini
 Read data from file. Returns nothing on failure, callee on success.
 
----+++ write([$path]) -> RJK::TotalCmd::Ini
+---+++ write([$path]) -> RJK::TotalCmd::Settings::Ini
 Write data to file. Returns nothing on failure, callee on success.
 
 =cut
@@ -179,14 +176,14 @@ Get submenus.
 ---+++ _getSubmenu($items, $itemNr) -> @commands or \@commands
 Get submenu items.
 Get root items if =$item= is =0=.
-Throws =RJK::TotalCmd::Ini::SubmenuException= if =$itemNr= is not a submenu.
+Throws =RJK::TotalCmd::Settings::Exception= if =$itemNr= is not a submenu.
 
 =cut
 ###############################################################################
 
 sub getStartMenu {
     my ($self) = @_;
-    return new RJK::TotalCmd::Menu(
+    return new RJK::TotalCmd::Item::Menu(
         title => "StartMenu",
         items => scalar $self->{ini}->getHashList(
             'user', { key => 'number' }
@@ -201,7 +198,7 @@ sub setStartMenu {
 
 sub getDirMenu {
     my ($self) = @_;
-    return new RJK::TotalCmd::Menu(
+    return new RJK::TotalCmd::Item::Menu(
         title => "DirMenu",
         items => scalar $self->{ini}->getHashList(
             'DirMenu', { key => 'number' }
@@ -241,7 +238,7 @@ sub _getSubmenu {
     if ($itemNr) {
         $items->[$itemNr-1] &&
             $items->[$itemNr-1]->{menu} =~ /^-[^-]/
-            || throw RJK::TotalCmd::Ini::SubmenuException("Not a submenu");
+            || throw RJK::TotalCmd::Settings::Exception("Not a submenu");
 
         $items = [ @$items[$itemNr..@$items-1] ];
     }

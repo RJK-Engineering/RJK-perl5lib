@@ -21,10 +21,9 @@ use Try::Tiny;
 
 use RJK::File::PathFinder;
 use RJK::TotalCmd::Item::ButtonBar;
-use RJK::TotalCmd::Inc;
-use RJK::TotalCmd::Ini;
-use RJK::TotalCmd::UsercmdIni;
-use RJK::Util::Ini;
+use RJK::TotalCmd::Settings::Inc;
+use RJK::TotalCmd::Settings::Ini;
+use RJK::TotalCmd::Settings::UsercmdIni;
 
 ###############################################################################
 =pod
@@ -75,7 +74,7 @@ sub user { $_[0]{_usercmd} }
 ###############################################################################
 =pod
 
----+++ GetTotalCmdInc([$path]) -> RJK::TotalCmd::Inc
+---+++ GetTotalCmdInc([$path]) -> RJK::TotalCmd::Settings::Inc
 Returns a =TotalCmd::Inc= object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
 Returns nothing if file is not found.
@@ -96,14 +95,14 @@ sub loadTotalCmdInc {
         "%LOCALAPPDATA%/TotalCommander/TOTALCMD.INC",
     ) || throw RJK::TotalCmd::Exception("Could not find totalcmd.inc");
 
-    return RJK::TotalCmd::Inc->new($path)->read()
+    return RJK::TotalCmd::Settings::Inc->new($path)->read()
         || throw RJK::TotalCmd::Exception("Error loading totalcmd.inc");
 }
 
 ###############################################################################
 =pod
 
----+++ GetTotalCmdIni([$path]) -> RJK::TotalCmd::Ini
+---+++ GetTotalCmdIni([$path]) -> RJK::TotalCmd::Settings::Ini
 Returns a =TotalCmd::Ini object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
 Returns nothing if file is not found.
@@ -126,14 +125,14 @@ sub loadTotalCmdIni {
         "%LOCALAPPDATA%/TotalCommander/totalcmd.ini",
     ) || throw RJK::TotalCmd::Exception("Could not find totalcmd.ini");
 
-    return RJK::TotalCmd::Ini->new($path)->read()
+    return RJK::TotalCmd::Settings::Ini->new($path)->read()
         || throw RJK::TotalCmd::Exception("Error loading totalcmd.ini");
 }
 
 ###############################################################################
 =pod
 
----+++ GetUsercmdIni([$path]) -> RJK::TotalCmd::UsercmdIni
+---+++ GetUsercmdIni([$path]) -> RJK::TotalCmd::Settings::UsercmdIni
 Returns a =TotalCmd::UsercmdIni object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
 Returns nothing if file is not found.
@@ -154,7 +153,7 @@ sub loadUsercmdIni {
         "%LOCALAPPDATA%/TotalCommander/usercmd.ini",
     ) || throw RJK::TotalCmd::Exception("Could not find usercmd.ini");
 
-    return RJK::TotalCmd::UsercmdIni->new($path)->read()
+    return RJK::TotalCmd::Settings::UsercmdIni->new($path)->read()
         || throw RJK::TotalCmd::Exception("Error loading usercmd.ini");
 }
 

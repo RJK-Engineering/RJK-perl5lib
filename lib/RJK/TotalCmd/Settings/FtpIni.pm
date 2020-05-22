@@ -1,10 +1,10 @@
 =begin TML
 
----+ package RJK::TotalCmd::FtpIni
+---+ package RJK::TotalCmd::Settings::FtpIni
 
 =cut
 
-package RJK::TotalCmd::FtpIni;
+package RJK::TotalCmd::Settings::FtpIni;
 
 use strict;
 use warnings;
@@ -18,8 +18,8 @@ use RJK::Util::Ini;
 
 ---++ Object creation
 
----+++ new(%attrs) -> RJK::TotalCmd::FtpIni
-Returns a new =RJK::TotalCmd::FtpIni= object.
+---+++ new(%attrs) -> RJK::TotalCmd::Settings::FtpIni
+Returns a new =RJK::TotalCmd::Settings::FtpIni= object.
 
 =cut
 ###############################################################################
@@ -36,10 +36,10 @@ sub new {
 
 ---++ File access
 
----+++ read([$path]) -> RJK::TotalCmd::FtpIni
+---+++ read([$path]) -> RJK::TotalCmd::Settings::FtpIni
 Read data from file. Returns false on failure, callee on success.
 
----+++ write([$path]) -> RJK::TotalCmd::FtpIni
+---+++ write([$path]) -> RJK::TotalCmd::Settings::FtpIni
 Write data to file. Returns false on failure, callee on succes.
 
 =cut
