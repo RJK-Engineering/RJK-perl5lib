@@ -35,6 +35,12 @@ Internal or user command from cmd (cm_*, em_*).
 ---+++ isCommand() -> $boolean
 ==cmd= is not empty.
 
+---+++ isInternal() -> $boolean
+==cmd= contains an internal command name (cm_*)
+
+---+++ isUser() -> $boolean
+==cmd= contains a user command name (em_*)
+
 =cut
 ###############################################################################
 
@@ -54,11 +60,19 @@ use Class::AccessorMaker {
 };
 
 sub getCommandName {
-    return ($_[0]{cmd} =~ /^([ce]m_.*)/)[0];
+    ($_[0]{cmd} =~ /^([ce]m_.*)/)[0];
 }
 
 sub isCommand {
     !! $_[0]{cmd};
+}
+
+sub isInternal {
+    $_[0]{cmd} =~ /^cm_/;
+}
+
+sub isUser {
+    $_[0]{cmd} =~ /^em_/;
 }
 
 1;
