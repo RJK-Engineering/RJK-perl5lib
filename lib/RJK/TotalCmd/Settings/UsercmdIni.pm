@@ -2,6 +2,7 @@
 
 ---+ package RJK::TotalCmd::Settings::UsercmdIni
 Total Commander =USERCMD.INI= file.
+An =RJK::TotalCmd::ItemList::ItemList= of =RJK::TotalCmd::Item::UserCmd= objects.
 
 ---++ =usercmd.ini= format
 
