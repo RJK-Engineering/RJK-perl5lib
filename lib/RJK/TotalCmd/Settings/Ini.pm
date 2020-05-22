@@ -90,6 +90,7 @@ package RJK::TotalCmd::Settings::Ini;
 use strict;
 use warnings;
 
+use RJK::TotalCmd::Item::MenuItem;
 use RJK::TotalCmd::ItemList::Menu;
 use RJK::TotalCmd::Search;
 use RJK::Util::Ini;
