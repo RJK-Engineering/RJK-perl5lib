@@ -1,10 +1,10 @@
 =begin TML
 
----+ package RJK::TotalCmd::ButtonBar
+---+ package RJK::TotalCmd::Item::ButtonBar
 
 =cut
 
-package RJK::TotalCmd::ButtonBar;
+package RJK::TotalCmd::Item::ButtonBar;
 
 use strict;
 use warnings;
@@ -18,8 +18,8 @@ my $section = 'Buttonbar';
 
 ---++ Object creation
 
----+++ new($path) -> RJK::TotalCmd::ButtonBar
-Returns a new =RJK::TotalCmd::ButtonBar= object.
+---+++ new($path) -> RJK::TotalCmd::Item::ButtonBar
+Returns a new =RJK::TotalCmd::Item::ButtonBar= object.
    * =$path= - Path to bar path.
 
 =cut

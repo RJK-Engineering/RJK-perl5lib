@@ -1,12 +1,12 @@
 =begin TML
 
----+ package RJK::TotalCmd::Menu
+---+ package RJK::TotalCmd::Item::Menu
 
 A Total Commander menu contains a list of menu items which describe commands or submenus.
 
 =cut
 
-package RJK::TotalCmd::Menu;
+package RJK::TotalCmd::Item::Menu;
 
 use strict;
 use warnings;
@@ -22,8 +22,8 @@ use Exception::Class (
 
 ---++ Object Creation
 
----+++ RJK::TotalCmd::Menu->new(title => $title, items => \@items) -> RJK::TotalCmd::Menu
-Returns a new =RJK::TotalCmd::Menu= object.
+---+++ RJK::TotalCmd::Item::Menu->new(title => $title, items => \@items) -> RJK::TotalCmd::Item::Menu
+Returns a new =RJK::TotalCmd::Item::Menu= object.
 
 ---++ Items
 
@@ -38,7 +38,7 @@ Throws RJK::TotalCmd::Exception if multiple items found.
 
 ---+++ insertItem(item => $item, position => $position, submenu => $submenu) -> $item
 
----+++ RJK::TotalCmd::Menu::createItem($template) -> $item
+---+++ RJK::TotalCmd::Item::Menu::createItem($template) -> $item
 
 =cut
 ###############################################################################

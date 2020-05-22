@@ -1,73 +1,31 @@
 =begin TML
 
----+ package RJK::TotalCmd::Command
-A Total Commander command.
+---+ package RJK::TotalCmd::Item::Item
+A Total Commander menu item, button bar item, user command item or internal command item.
 
 ---++ Object creation
 
----+++ new(%attrs) -> RJK::TotalCmd::Command
+---+++ new(%attrs) -> RJK::TotalCmd::Item::Item
 
 ---++ Object attributes
 
-Return object attribute value if called without arguments, set object
-attribute value and return the same value otherwise.
-
----+++ name($name) -> $name
-
-Name (=cm_*=, =em_*=).
-
----+++ number($number) -> $number
-
-Number (=totalcmd.inc=).
-
----+++ button([$button]) -> $button
-Icon resource string.
-Format:
-First icon  = "filename",
-second icon = "filename,1"
-(icon numbers start at 0)
-
----+++ cmd([$cmd]) -> $cmd
-Command string.
-
----+++ param([$param]) -> $param
-Parameter string.
-
----+++ path([$path]) -> $path
-Start path.
-
----+++ iconic([$iconic]) -> $iconic
-Window size: 1 = minimize, -1 = maximize.
+---+++ number([$number]) -> $number
+Number.
 
 ---+++ menu([$menu]) -> $menu
 Description/tooltip/title.
 
----+++ key([$key]) -> $key
-Shortcut key defined with a command.
-
----+++ shortcuts([\@shortcuts]) -> \@shortcuts
-Shortcut keys defined in Options > Misc.
-
 =cut
 ###############################################################################
 
-package RJK::TotalCmd::Command;
+package RJK::TotalCmd::Item::Item;
+
+use strict;
+use warnings;
 
 use Class::AccessorMaker {
-    source => undef,    # Inc/StartMenu/DirMenu/User/Button
-    name => undef,      # name (cm_*, em*)
-    number => undef,    # number (totalcmd.inc)
-    button => undef,    # icon
-                        # first icon  = "filename"
-                        # second icon = "filename,1"
-                        # (icon numbers start at 0)
-    cmd => undef,       # command
-    param => undef,     # parameters
-    path => undef,      # start path
-    iconic => undef,    # 1 = minimize, -1 = maximize
+    number => undef,    # number
     menu => undef,      # description/tooltip/title
-    key => undef,       # shortcut key (command config)
-    shortcuts => [],    # shortcut keys (Options > Misc)
 };
 
 1;
