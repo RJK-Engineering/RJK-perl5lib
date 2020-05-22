@@ -200,7 +200,7 @@ sub setMenu {
 ---+++ getSection($section) -> $hash or %hash
 
 ---+++ getShortcuts() -> %shortcuts or \%shortcuts
-Get =$keyCombo => $commandName= hash.
+Returns =$keyCombo => $commandName= hash.
 
 ---++++ getColors() -> \@colors
    * =@colors= - List of { Color => $color, Search => $search }

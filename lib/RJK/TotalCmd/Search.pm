@@ -471,7 +471,7 @@ sub GetFileTypes {
 =pod
 
 ---+++ !GetExtensionIdent($filename) -> $ident
-Get extension identity e.g.
+Returns extension identity e.g.
 =GetExtensionIdent("filename.ext")= equals
 =GetExtensionIdent("FILENAME.EXT")=.
 

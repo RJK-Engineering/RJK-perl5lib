@@ -163,7 +163,7 @@ sub execute {
 =pod
 
 ---+++ getParams($selection) -> \%params
-Get parameter values.
+Returns parameter values.
 
 Throws:%BR%
 (additional =[[https://metacpan.org/pod/Exception::Class][Exception::Class]]= fields between parenthesis)

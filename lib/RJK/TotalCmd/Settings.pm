@@ -196,17 +196,17 @@ sub SetBarDirs {
 All methods return a single or an array of =TotalCmd::Command= objects.
 
 ---+++ getCommand($name) -> $command
-Get command by name.
+Returns command by name.
 Throws =TotalCmd::NotFoundException= if command not found.
 
 ---+++ getNamedCommands() -> @commands or \@commands
-Get UserCommands and Internal commands.
+Returns UserCommands and Internal commands.
 
 ---+++ getCustomCommands() -> @commands or \@commands
-Get StartMenuItems, DirMenuItems, UserCommands and Buttons.
+Returns StartMenuItems, DirMenuItems, UserCommands and Buttons.
 
 ---+++ getAllCommands() -> @commands or \@commands
-Get StartMenuItems, DirMenuItems, UserCommands, Buttons and
+Returns StartMenuItems, DirMenuItems, UserCommands, Buttons and
 internal commands.
 
 =cut
@@ -252,11 +252,11 @@ sub getAllCommands {
 ---+++ User commands
 
 ---++++ getUserCommand($nr) -> $command
-Get user command.
+Returns user command.
 Throws =TotalCmd::NotFoundException= if command not found.
 
 ---++++ getUserCommands() -> @commands or \@commands
-Get user commands.
+Returns user commands.
 
 =cut
 ###############################################################################
@@ -280,17 +280,17 @@ Two menus are available, "user" for the start menu,
 "DirMenu" for the directory menu.
 
 ---++++ getMenuItem($menu, $nr) -> $command
-Get menu item by item number.
+Returns menu item by item number.
 Throws =TotalCmd::NotFoundException= if item not found.
 
 ---++++ getMenuItems($menu, [$submenuNr]) -> @commands or \@commands
-Get menu items.
-Get all items if =$item= is undefined.
-Get root items if =$item= is =0=.
+Returns menu items.
+Returns all items if =$item= is undefined.
+Returns root items if =$item= is =0=.
 Throws =RJK::TotalCmd::Exception= if =$itemNr= is not a submenu.
 
 ---++++ getSubmenus($menu) -> @commands or \@commands
-Get submenus.
+Returns submenus.
 
 =cut
 ###############################################################################
@@ -317,19 +317,19 @@ sub getSubmenus {
 ---++ Other methods
 
 ---+++ getCommandCategories() -> @names or \@names
-Get command category names.
+Returns command category names.
 
 ---+++ getShortcuts() -> ( $key => $commandName ) or { $key => $commandName }
-Get shortcut keys.
+Returns shortcut keys.
 
 ---+++ getKeys() -> ( $commandName => \@keys  ) or { $commandName => \@keys  }
-Get shortcut keys.
+Returns shortcut keys.
 
 ---+++ getButtonBar($name) -> $buttonBar
 Returns new or existing =RJK::TotalCmd::ItemList::ButtonBar=.
 
 ---+++ getButtonBars() -> @names or \@names
-Get button bar names.
+Returns button bar names.
 
 =cut
 ###############################################################################
