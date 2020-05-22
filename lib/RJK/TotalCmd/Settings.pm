@@ -20,7 +20,7 @@ use Exception::Class (
 use Try::Tiny;
 
 use RJK::File::PathFinder;
-use RJK::TotalCmd::Item::ButtonBar;
+use RJK::TotalCmd::ItemList::ButtonBar;
 use RJK::TotalCmd::Settings::Inc;
 use RJK::TotalCmd::Settings::Ini;
 use RJK::TotalCmd::Settings::UsercmdIni;
@@ -268,7 +268,7 @@ sub getUserCommand {
 }
 
 sub getUserCommands {
-    shift->getUsercmdIni->getCommands();
+    shift->getUsercmdIni();
 }
 
 ###############################################################################
@@ -326,7 +326,7 @@ Get shortcut keys.
 Get shortcut keys.
 
 ---+++ getButtonBar($name) -> $buttonBar
-Returns new or existing RJK::TotalCmd::Item::ButtonBar.
+Returns new or existing RJK::TotalCmd::ItemList::ButtonBar.
 
 ---+++ getButtonBars() -> @names or \@names
 Get button bar names.
@@ -356,14 +356,14 @@ sub getKeys {
 
 sub getButtonBar {
     my ($self, $name) = @_;
-    $name || return new RJK::TotalCmd::Item::ButtonBar();
+    $name || return new RJK::TotalCmd::ItemList::ButtonBar();
     my $bar;
     @barDirs || die "No bar directories defined";
     foreach my $dir (@barDirs) {
         -d $dir || die "Not a directory: $dir";
         my $path = "$dir\\$name.bar";
         next if ! -e $path;
-        $bar = new RJK::TotalCmd::Item::ButtonBar($path)->read;
+        $bar = new RJK::TotalCmd::ItemList::ButtonBar($path)->read;
     }
     return $bar;
 }

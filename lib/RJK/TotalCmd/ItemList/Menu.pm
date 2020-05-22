@@ -1,12 +1,13 @@
 =begin TML
 
----+ package RJK::TotalCmd::Item::Menu
+---+ package RJK::TotalCmd::ItemList::Menu
 
 A Total Commander menu contains a list of menu items which describe commands or submenus.
 
 =cut
 
-package RJK::TotalCmd::Item::Menu;
+package RJK::TotalCmd::ItemList::Menu;
+use parent RJK::TotalCmd::ItemList::ItemList;
 
 use strict;
 use warnings;
@@ -22,23 +23,14 @@ use Exception::Class (
 
 ---++ Object Creation
 
----+++ RJK::TotalCmd::Item::Menu->new(title => $title, items => \@items) -> RJK::TotalCmd::Item::Menu
-Returns a new =RJK::TotalCmd::Item::Menu= object.
+---+++ RJK::TotalCmd::ItemList::Menu->new(title => $title, items => \@items) -> RJK::TotalCmd::ItemList::Menu
+Returns a new =RJK::TotalCmd::ItemList::Menu= object.
 
 ---++ Items
 
----+++ getCommands() -> \@commands
-Returns all command items (items where {cmd} is not empty).
-
----+++ findItems(%opts) -> @items
-
----+++ findItem(%opts) -> $item
-Returns nothing if no items found.
-Throws RJK::TotalCmd::Exception if multiple items found.
-
 ---+++ insertItem(item => $item, position => $position, submenu => $submenu) -> $item
 
----+++ RJK::TotalCmd::Item::Menu::createItem($template) -> $item
+---+++ createItem($template) -> $item
 
 =cut
 ###############################################################################
@@ -49,52 +41,6 @@ sub new {
     $self->{title} = $opts{title};
     $self->{items} = $opts{items};
     return $self;
-}
-
-sub getCommands {
-    return [ grep { $_->{cmd} } @{$_[0]->{items}} ];
-}
-
-sub findItems {
-    my ($self, %opts) = @_;
-    my $submenu = delete $opts{submenu};
-    my @items;
-
-    my $start = $submenu ? $submenu->{number} : 0;
-    my $l = 0;
-
-    for (my $i=$start; $i<@{$self->{items}}; $i++) {
-        my $item = $self->{items}[$i];
-
-        if ($item->{menu} =~ /^--$/) {         # submenu end
-            last if $l-- == 0;
-        } elsif ($item->{menu} =~ /^"?-(.*)/) {  # submenu start
-            $l++;
-        } else {
-            foreach (keys %opts) {
-                next if not exists $item->{$_};
-                if ($_ eq 'menu') {
-                    my $title = $item->{menu} =~ s/&//gr; # remove access key indicator
-                    if ($title =~ /\Q$opts{menu}\E/i) {
-                        push @items, $item;
-                        last;
-                    }
-                } elsif ($item->{$_} =~ /\Q$opts{$_}\E/i) {
-                    push @items, $item;
-                    last;
-                }
-            }
-        }
-    }
-    return wantarray ? @items : \@items;
-}
-
-sub findItem {
-    my ($self, %opts) = @_;
-    my @items = $self->findItems(%opts);
-    return if ! @items;
-    throw RJK::TotalCmd::Exception("Found " . scalar @items . " items") if @items > 1;
-    return $items[0];
 }
 
 sub insertItem {
@@ -110,7 +56,7 @@ sub insertItem {
         $opts{position} += $self->getLastItemNumber($submenu) if $submenu;
     }
 
-    my $item = createItem($opts{item});
+    my $item = $self->createItem($opts{item});
     splice(@{$self->{items}}, $opts{position}-1, 0, $item);
     $self->renumber();
 
@@ -118,7 +64,7 @@ sub insertItem {
 }
 
 sub createItem {
-    my $template = shift;
+    my ($self, $template) = @_;
     $template->{menu} //= $template->{cmd};
     return $template;
 }
@@ -229,13 +175,6 @@ sub replaceSubmenu {
         @items[$self->getLastItemNumber($submenu) .. $#items]
     ];
     $self->renumber();
-}
-
-###############################################
-
-sub renumber {
-    my $i;
-    map { $_->{number} = ++$i } @{$_[0]{items}};
 }
 
 1;

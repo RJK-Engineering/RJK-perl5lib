@@ -1,10 +1,11 @@
 =begin TML
 
----+ package RJK::TotalCmd::Item::ButtonBar
+---+ package RJK::TotalCmd::ItemList::ButtonBar
 
 =cut
 
-package RJK::TotalCmd::Item::ButtonBar;
+package RJK::TotalCmd::ItemList::ButtonBar;
+use parent RJK::TotalCmd::ItemList::ItemList;
 
 use strict;
 use warnings;
@@ -18,8 +19,8 @@ my $section = 'Buttonbar';
 
 ---++ Object creation
 
----+++ new($path) -> RJK::TotalCmd::Item::ButtonBar
-Returns a new =RJK::TotalCmd::Item::ButtonBar= object.
+---+++ new($path) -> RJK::TotalCmd::ItemList::ButtonBar
+Returns a new =RJK::TotalCmd::ItemList::ButtonBar= object.
    * =$path= - Path to bar path.
 
 =cut
@@ -42,11 +43,8 @@ sub new {
 ---+++ addButton($self, $command, $iconFile, $iconNr, $iconic)
 Add button.
 
----+++ getItems() -> \@items
-Returns all items.
-
----+++ getButtons() -> \@buttons
-Returns all button items (items where {button} is not empty).
+---+++ read()
+Read bar file.
 
 ---+++ write()
 Write bar file.
@@ -73,18 +71,15 @@ sub addButton {
     };
 }
 
-sub getItems {
-    return $_[0]{items} //= $_[0]{ini}->getHashList($section);
-}
-
-sub getButtons {
-    return [ grep { $_->{button} } @{$_[0]->getItems} ];
-}
-
 sub read {
     my $self = shift;
     $self->{ini}->read();
-    $self->{items} = undef;
+    $self->{items} = scalar $self->{ini}->getHashList(
+        $section, {
+            key => 'number',
+            class => 'RJK::TotalCmd::Item::Button'
+        }
+    );
     return $self;
 }
 

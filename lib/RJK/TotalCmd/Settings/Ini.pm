@@ -90,7 +90,7 @@ package RJK::TotalCmd::Settings::Ini;
 use strict;
 use warnings;
 
-use RJK::TotalCmd::Item::Menu;
+use RJK::TotalCmd::ItemList::Menu;
 use RJK::TotalCmd::Search;
 use RJK::Util::Ini;
 
@@ -175,10 +175,13 @@ Throws =RJK::TotalCmd::Settings::Exception= if =$itemNr= is not a submenu.
 
 sub getStartMenu {
     my ($self) = @_;
-    return new RJK::TotalCmd::Item::Menu(
+    return new RJK::TotalCmd::ItemList::Menu(
         title => "StartMenu",
         items => scalar $self->{ini}->getHashList(
-            'user', { key => 'number' }
+            'user', {
+                key => 'number',
+                class => 'RJK::TotalCmd::Item::MenuItem'
+            }
         )
     );
 }
@@ -190,10 +193,13 @@ sub setStartMenu {
 
 sub getDirMenu {
     my ($self) = @_;
-    return new RJK::TotalCmd::Item::Menu(
+    return new RJK::TotalCmd::ItemList::Menu(
         title => "DirMenu",
         items => scalar $self->{ini}->getHashList(
-            'DirMenu', { key => 'number' }
+            'DirMenu', {
+                key => 'number',
+                class => 'RJK::TotalCmd::Item::MenuItem'
+            }
         )
     );
 }

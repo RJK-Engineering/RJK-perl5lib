@@ -24,6 +24,7 @@ menu=
 =cut
 
 package RJK::TotalCmd::Settings::UsercmdIni;
+use parent 'RJK::TotalCmd::ItemList::ItemList';
 
 use strict;
 use warnings;
@@ -77,7 +78,7 @@ sub read {
 
     $self->{ini}->read($file) || return;
 
-    $self->{commands} = [];
+    $self->{items} = [];
     $self->{byName} = {};
 
     my $i = 1;
@@ -88,7 +89,7 @@ sub read {
                 name => $name,
                 number => $i++,
             );
-            push @{$self->{commands}}, $cmd;
+            push @{$self->{items}}, $cmd;
             $self->{byName}{$name} = $cmd;
         } catch {
             throw RJK::TotalCmd::Settings::Exception("Error creating RJK::TotalCmd::Item::UserCmd object: $_");
@@ -104,38 +105,6 @@ sub write {
     $self->{ini}->write($file) || return;
 
     return $self;
-}
-
-###############################################################################
-=pod
-
----++ Other object methods.
-
----+++ getCommands() -> \@command or @command
-Get all commands.
-
----+++ getCommand($nr) -> \%cmd
-Get command.
-
----+++ getCommandByName($name) -> \%cmd
-Get command by name.
-
-=cut
-###############################################################################
-
-sub getCommands {
-    my $commands = shift->{commands};
-    return wantarray ? @$commands : $commands;
-}
-
-sub getCommand {
-    my ($self, $nr) = @_;
-    return $self->{commands}[$nr-1];
-}
-
-sub getCommandByName {
-    my ($self, $name) = @_;
-    return $self->{byName}{$name};
 }
 
 1;
