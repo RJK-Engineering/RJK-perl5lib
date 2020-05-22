@@ -31,14 +31,14 @@ use warnings;
 use Try::Tiny;
 
 use RJK::Util::Ini;
-use RJK::TotalCmd::Item::Command;
+use RJK::TotalCmd::Item::UserCmd;
 
 use Exception::Class (
     'Exception',
-    'TotalCmd::Exception' =>
+    'RJK::TotalCmd::Exception' =>
         { isa => 'Exception' },
-    'RJK::TotalCmd::Settings::UsercmdIni::Exception' =>
-        { isa => 'TotalCmd::Exception' },
+    'RJK::TotalCmd::Settings::Exception' =>
+        { isa => 'RJK::TotalCmd::Exception' },
 );
 
 ###############################################################################
@@ -83,7 +83,7 @@ sub read {
     my $i = 1;
     foreach my $name ($self->{ini}->sections) {
         try {
-            my $cmd = new RJK::TotalCmd::Item::Command(
+            my $cmd = new RJK::TotalCmd::Item::UserCmd(
                 ($self->{ini}->getSection($name)),
                 source => 'UserCommand',
                 name => $name,
@@ -92,7 +92,7 @@ sub read {
             push @{$self->{commands}}, $cmd;
             $self->{byName}{$name} = $cmd;
         } catch {
-            throw RJK::TotalCmd::Settings::UsercmdIni::Exception("Error creating RJK::TotalCmd::Item::Command object: $_");
+            throw RJK::TotalCmd::Settings::Exception("Error creating RJK::TotalCmd::Item::UserCmd object: $_");
         }
     }
 

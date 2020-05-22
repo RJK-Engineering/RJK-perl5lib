@@ -13,7 +13,7 @@ use warnings;
 
 use Exception::Class (
     'Exception',
-    'TotalCmd::Exception' =>
+    'RJK::TotalCmd::Exception' =>
         { isa => 'Exception' },
 );
 

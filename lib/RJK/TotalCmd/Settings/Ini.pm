@@ -94,14 +94,6 @@ use RJK::TotalCmd::Item::Menu;
 use RJK::TotalCmd::Search;
 use RJK::Util::Ini;
 
-use Exception::Class (
-    'Exception',
-    'TotalCmd::Exception' =>
-        { isa => 'Exception' },
-    'RJK::TotalCmd::Settings::Exception' =>
-        { isa => 'TotalCmd::Exception' }
-);
-
 my $UserMenuNumberStart = 700;
 
 ###############################################################################

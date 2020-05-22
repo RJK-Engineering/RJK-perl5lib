@@ -11,10 +11,10 @@ use warnings;
 
 use Exception::Class (
     'Exception',
-    'TotalCmd::Exception' =>
+    'RJK::TotalCmd::Exception' =>
         { isa => 'Exception' },
     'TotalCmd::NotFoundException' =>
-        { isa => 'TotalCmd::Exception' },
+        { isa => 'RJK::TotalCmd::Exception' },
 );
 
 use Try::Tiny;
@@ -78,7 +78,7 @@ sub user { $_[0]{_usercmd} }
 Returns a =TotalCmd::Inc= object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
 Returns nothing if file is not found.
-Loads =totalcmd.inc=, throws a =TotalCmd::Exception= on failure.
+Loads =totalcmd.inc=, throws a =RJK::TotalCmd::Exception= on failure.
 
 =cut
 ###############################################################################
@@ -106,7 +106,7 @@ sub loadTotalCmdInc {
 Returns a =TotalCmd::Ini object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
 Returns nothing if file is not found.
-Loads =totalcmd.ini=, throws a =TotalCmd::Exception= on failure.
+Loads =totalcmd.ini=, throws a =RJK::TotalCmd::Exception= on failure.
 
 =cut
 ###############################################################################
@@ -136,7 +136,7 @@ sub loadTotalCmdIni {
 Returns a =TotalCmd::UsercmdIni object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
 Returns nothing if file is not found.
-Loads =usercmd.ini=, throws a =TotalCmd::Exception= on failure.
+Loads =usercmd.ini=, throws a =RJK::TotalCmd::Exception= on failure.
 
 =cut
 ###############################################################################
@@ -287,7 +287,7 @@ Throws =TotalCmd::NotFoundException= if item not found.
 Get menu items.
 Get all items if =$item= is undefined.
 Get root items if =$item= is =0=.
-Throws =TotalCmd::Exception= if =$itemNr= is not a submenu.
+Throws =RJK::TotalCmd::Exception= if =$itemNr= is not a submenu.
 
 ---++++ getSubmenus($menu) -> @commands or \@commands
 Get submenus.

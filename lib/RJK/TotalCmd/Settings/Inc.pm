@@ -7,7 +7,7 @@ Total Commander =TOTALCMD.INC= file.
 
 package RJK::TotalCmd::Settings::Inc;
 
-use RJK::TotalCmd::Item::Item;
+use RJK::TotalCmd::Item::InternalCmd;
 
 use Exception::Class (
     'Exception',
@@ -61,8 +61,7 @@ sub read {
             $category = $1;
             push @{$self->{categories}}, $1;
         } elsif (/^(.+)=(-?\d+);\s*(.*)\s*$/) {
-            my $cmd = new RJK::TotalCmd::Item::Item(
-                source => 'TotalCmdInc',
+            my $cmd = new RJK::TotalCmd::Item::InternalCmd(
                 name => $1,
                 number => $2,
                 menu => $3,
