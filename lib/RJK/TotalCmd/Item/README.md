@@ -1,5 +1,4 @@
 Item
-    source              # Inc/StartMenu/DirMenu/User/Button
     number              # number (totalcmd.inc)
     menu                # description/tooltip/title
 InternalCmd (Item)
@@ -12,12 +11,13 @@ Command (Item)
     key                 # shortcut key (command config)
     shortcuts           # shortcut keys (Options > Misc) only internal and user commands can have shortcuts (start menu items can be accessed as internal commands)
     getCommandName()    # internal or user command from cmd (cm_*, em_*)
-MenuItem (Command)
-    isCommand()         # menu does not start with '-'
+    isCommand()         # cmd is not empty
+MenuItem (Item)
     isSeparator()       # menu = '-'
     isSubmenuBegin()    # menu = '-' + submenu title
     isSubmenuEnd()      # menu = '--'
 Button (Command)
+    button              # icon resource string
     isButton()          # cmd and button are not empty
     isSeparator()       # cmd or button is empty
 UserCmd (Button)
@@ -26,13 +26,8 @@ UserCmd (Button)
 -----------
 required
 
+Item:           number
 InternalCmd:    number, name
 MenuItem:       number, cmd, menu
 Button:         number
 UserCmd:        number, cmd, name
-[button bar]
-separator:      no cmd or button
-[start/dir menu]
-separator:      menu = '-'
-submenu start:  menu = '-' + submenu title
-submenu end:    menu = '--'
