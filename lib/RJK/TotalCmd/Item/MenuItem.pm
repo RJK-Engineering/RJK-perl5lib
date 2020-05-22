@@ -9,9 +9,6 @@ A Total Commander menu item.
 
 ---++ Object methods
 
----+++ isCommand() -> $boolean
-Title does not start with '-'.
-
 ---+++ isSeparator() -> $boolean
 Title = '-'.
 
@@ -30,10 +27,6 @@ use parent 'RJK::TotalCmd::Item::Item';
 
 use strict;
 use warnings;
-
-sub isCommand {
-    $_[0]{menu} !~ /^-/;
-}
 
 sub isSeparator {
     $_[0]{menu} eq '-';

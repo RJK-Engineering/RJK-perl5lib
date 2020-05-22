@@ -32,6 +32,9 @@ Shortcut keys defined in Options > Misc.
 ---+++ getCommandName() -> $name
 Internal or user command from cmd (cm_*, em_*).
 
+---+++ isCommand() -> $boolean
+==cmd= is not empty.
+
 =cut
 ###############################################################################
 
@@ -52,6 +55,10 @@ use Class::AccessorMaker {
 
 sub getCommandName {
     return ($_[0]{cmd} =~ /^([ce]m_.*)/)[0];
+}
+
+sub isCommand {
+    !! $_[0]{cmd};
 }
 
 1;
