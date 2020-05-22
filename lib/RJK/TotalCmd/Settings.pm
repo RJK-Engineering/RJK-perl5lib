@@ -326,7 +326,7 @@ Get shortcut keys.
 Get shortcut keys.
 
 ---+++ getButtonBar($name) -> $buttonBar
-Returns new or existing RJK::TotalCmd::ItemList::ButtonBar.
+Returns new or existing =RJK::TotalCmd::ItemList::ButtonBar=.
 
 ---+++ getButtonBars() -> @names or \@names
 Get button bar names.
@@ -386,40 +386,14 @@ sub getButtonBars {
 
 ---+++ Internal commands
 
----++++ getInternalCommand($nr) -> $command
-Get internal command.
-Throws =TotalCmd::NotFoundException= if command not found.
-
----++++ getCategoryName([$categoryNr]) -> $name
-Get name of category =$categoryNr=.
-Throws =TotalCmd::NotFoundException= if category not found.
-
----++++ getInternalCommands([$categoryNr]) -> @commands or \@commands
-Get commands in category =$categoryNr= if defined.
-Get all internal commands if =$categoryNr= is undefined.
-Throws =TotalCmd::NotFoundException= if category not found.
+---++++ getInternalCommands() -> $tcmdinc
+Returns =RJK::TotalCmd::Settings::Inc= object.
 
 =cut
 ###############################################################################
 
-sub getInternalCommand {
-    my ($self, $nr) = @_;
-    $self->getTotalCmdInc->getCommand($nr)
-        || throw RJK::TotalCmd::NotFoundException("Unknown command: $nr");
-}
-
-sub getCategoryName {
-    my ($self, $categoryNr) = @_;
-    my @cats = $self->getTotalCmdInc->categories();
-    return $cats[$categoryNr-1]
-        // throw RJK::TotalCmd::NotFoundException("Unknown category: $categoryNr");
-}
-
 sub getInternalCommands {
-    my ($self, $categoryNr) = @_;
-    my $c = $self->getTotalCmdInc->getCommands($categoryNr)
-        // throw RJK::TotalCmd::NotFoundException("Unknown category: $categoryNr");
-    return wantarray ? @$c : $c;
+    shift->getTotalCmdInc;
 }
 
 1;

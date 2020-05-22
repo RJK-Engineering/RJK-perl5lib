@@ -2,10 +2,12 @@
 
 ---+ package RJK::TotalCmd::Settings::Inc
 Total Commander =TOTALCMD.INC= file.
+An =RJK::TotalCmd::ItemList::ItemList= of =RJK::TotalCmd::Item::InternalCmd= objects.
 
 =cut
 
 package RJK::TotalCmd::Settings::Inc;
+use parent 'RJK::TotalCmd::ItemList::ItemList';
 
 use RJK::TotalCmd::Item::InternalCmd;
 
@@ -19,8 +21,6 @@ use Exception::Class (
 
 ###############################################################################
 =pod
-
----++ Object Creation
 
 ---+++ new([$path]) -> RJK::TotalCmd::Settings::Inc
 Returns a new =RJK::TotalCmd::Settings::Inc= object.
@@ -48,7 +48,7 @@ Write data to file. Returns false on failure, callee on succes.
 
 sub read {
     my $self = shift;
-    $self->{commands} = [];
+    $self->{items} = [];
     $self->{categories} = [];
     $self->{byCategory} = {};
     $self->{byName} = {};
@@ -66,7 +66,7 @@ sub read {
                 number => $2,
                 menu => $3,
             );
-            push @{$self->{commands}}, $cmd;
+            push @{$self->{items}}, $cmd;
             push @{$self->{byCategory}{$category}}, $cmd;
             $self->{byName}{$1} = $cmd;
             $self->{byNumber}{$2} = $cmd;
@@ -97,23 +97,11 @@ sub write {
 ###############################################################################
 =pod
 
----++ Other methods
-
 ---+++ categories() -> @names or \@names
-Get category names.
+Returns category names.
 
----++++ getCommand($nr) -> $command
-Get internal command by number.
-Returns =undef= if not found.
-
----++++ getCommandByName($name) -> $command
-Get internal command by name.
-Returns =undef= if not found.
-
----++++ getCommands([$category]) -> \@commands
-Get commands in =$category=.
-Get all internal commands if =$category= is undefined.
-Returns =undef= if not found.
+---++++ byCategory() -> \@commands
+Returns commands hashed by category.
 
 =cut
 ###############################################################################
@@ -123,23 +111,8 @@ sub categories {
     wantarray ? @$categories : $categories;
 }
 
-sub getCommand {
-    my ($self, $nr) = @_;
-    return $self->{byNumber}{$nr};
-}
-
-sub getCommandByName {
-    my ($self, $name) = @_;
-    return $self->{byName}{$name};
-}
-
-sub getCommands {
-    my ($self, $category) = @_;
-    if ($category) {
-        return $self->{byCategory}{$category};
-    } else {
-        return $self->{commands};
-    }
+sub byCategory {
+    shift->{byCategory};
 }
 
 1;
