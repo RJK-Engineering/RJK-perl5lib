@@ -319,6 +319,7 @@ sub write {
                defaultHash => default key/value pairs to add to hashes
                defaultKey => default key for values in a hash that don't have a key name in the INI
                name => name of the requested list or hash
+               class => bless hash
                otherProps => reference to a hash where extra properties in the section not
                              belonging to the requested list or hash will be stored
 
@@ -380,7 +381,7 @@ sub parse {
 
     $opts //= {};
     my $key = $opts->{key};
-    my $defaultHash = $opts->{defaultHash};
+    my $defaultHash = $opts->{defaultHash} || {};
     my $defaultKey = $opts->{defaultKey} // '_default';
     my $name = $opts->{name} // '.*?';
 
@@ -397,13 +398,15 @@ sub parse {
                 $data->{namedLists}{$+{name}}[$+{index}] = $value;
                 # 3) [ key => value ]
                 if (! $data->{hashList}[$+{index}]) {
-                    if ($defaultHash) {
-                        $data->{hashList}[$+{index}] = {%$defaultHash};
-                        $data->{hashListRHS}[$+{index}] = {%$defaultHash};
-                    }
+                    $data->{hashList}[$+{index}] = {%$defaultHash};
+                    $data->{hashListRHS}[$+{index}] = {%$defaultHash};
                     if ($key) {
                         $data->{hashList}[$+{index}]{$key} = $+{index};
                         $data->{hashListRHS}[$+{index}]{$key} = $+{index};
+                    }
+                    if ($opts->{class}) {
+                        bless $data->{hashList}[$+{index}], $opts->{class};
+                        bless $data->{hashListRHS}[$+{index}], $opts->{class};
                     }
                 }
                 $data->{hashList}[$+{index}]{$+{name}} = $value;
