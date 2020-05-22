@@ -24,11 +24,18 @@ sub new {
 ---+++ getItems() -> \@items
 Returns all items.
 
+---+++ getItem($nr) -> $item
+Returns RJK::TotalCmd::Item::Item with number =$nr=.
+
 ---+++ getButtons() -> \@buttons
 Returns button items.
 
 ---+++ getCommands() -> \@commands
 Returns command items (items where {cmd} is not empty).
+
+---+++ byName() -> \%items
+Returns items hashed by name (items where {name} is not empty,
+only internal command and user command items have a name).
 
 ---+++ findItems(%opts) -> @items
 
@@ -43,12 +50,20 @@ sub getItems {
     return $_[0]{items};
 }
 
+sub getItem {
+    return $_[0]{items}[$_[1]-1];
+}
+
 sub getButtons {
     return [ grep { $_->{button} } @{$_[0]{items}} ];
 }
 
 sub getCommands {
     return [ grep { $_->{cmd} } @{$_[0]{items}} ];
+}
+
+sub byName {
+    return { map { $_->{name} => $_ } grep { $_->{name} } @{$_[0]{items}} };
 }
 
 sub findItems {
