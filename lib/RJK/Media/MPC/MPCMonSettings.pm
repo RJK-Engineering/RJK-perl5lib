@@ -60,6 +60,7 @@ sub list {
         my $cat = $settings->{category};
         printf "%s\t%s\n", $cat ? "$cat" : "", $file;
     }
+    print "\n";
 }
 
 1;
