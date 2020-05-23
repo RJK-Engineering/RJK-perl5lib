@@ -45,6 +45,7 @@ sub init {
         $self->{settings}->save();
     };
     $self->{mpcMon} = new RJK::Media::MPC::MPCMon($self->{opts});
+    $self->{mpcMon}{utils} = $self->utils;
     $self->{mpcMon}->init();
 
     return if $self->{opts}{status};
