@@ -11,6 +11,7 @@ use strict;
 use warnings;
 
 use RJK::Util::Ini;
+use RJK::TotalCmd::Item::Button;
 
 my $section = 'Buttonbar';
 
@@ -40,7 +41,7 @@ sub new {
 
 ---++ Object methods
 
----+++ addButton($self, $command, $iconFile, $iconNr, $iconic)
+---+++ addButton($self, $command)
 Add button.
 
 ---+++ read()
@@ -61,14 +62,14 @@ sub addButton {
         $tooltip .= $command->{menu} // "";
     }
 
-    push @{$self->{items}}, {
+    push @{$self->{items}}, new RJK::TotalCmd::Item::Button(
         button => $command->{button} // "",
         cmd => $command->{cmd},
         param => $command->{param},
         path => $command->{path},
         iconic => $command->{iconic} || 0,
         menu => $command->{menu} || $tooltip,
-    };
+    );
 }
 
 sub read {
