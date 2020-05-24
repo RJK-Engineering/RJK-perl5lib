@@ -32,7 +32,7 @@ sub stats {
 
 sub traverse {
     my $self = shift;
-    my $file = &RJK::IO::RJK::File::getFile || die "Insufficient arguments";
+    my $file = &RJK::IO::File::getFile || die "Insufficient arguments";
     my $visitor = &RJK::File::Visitor::getVisitor || $self->{visitor};
     shift if @_ % 2; # options after first arg in uneven sized list
     my %opts = @_;
@@ -101,7 +101,7 @@ sub _recursive {
         if (! $file->{exists}) {
             unless (RJK::IO::AltStat::stat($file)) {
                 push @failed, $file;
-                die $file->{path};
+                die "Stat failed for: $file->{path}";
                 next;
             }
         }
@@ -166,7 +166,7 @@ sub readdir {
     opendir DIR, shift->{path} or return;
 
     my @entries = grep {
-        $_ ne $RJK::IO::RJK::File::curdir && $_ ne $RJK::IO::RJK::File::updir &&
+        $_ ne $RJK::IO::File::curdir && $_ ne $RJK::IO::File::updir &&
         !/[^\\]\\System Volume Information$/
     } CORE::readdir DIR;
     closedir DIR;
