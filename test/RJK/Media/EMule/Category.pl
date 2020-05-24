@@ -1,19 +1,19 @@
 use strict;
 use warnings;
 
-use Media::EMule::Category;
-use RJK::LocalFile;
+use RJK::Media::EMule::Category;
+use RJK::File::PathFinder;
 
 my %opts;
 $opts{categoryIni} = '';
 
 if (! $opts{categoryIni}) {
     my $file = 'eMule\config\Category.ini';
-    $opts{categoryIni} = RJK::LocalFile::GetLocalFile($file)
+    $opts{categoryIni} = RJK::File::PathFinder::FindLocalFile($file)
         or die "Category.ini not found";
 }
 
 use Data::Dump;
 
-my $c = new Media::EMule::Category($opts{categoryIni});
+my $c = new RJK::Media::EMule::Category($opts{categoryIni});
 dd $c->ini->sections;
