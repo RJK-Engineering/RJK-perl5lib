@@ -12,9 +12,7 @@ use warnings;
 use Exception::Class (
     'Exception',
     'RJK::TotalCmd::Exception' =>
-        { isa => 'Exception' },
-    'TotalCmd::NotFoundException' =>
-        { isa => 'RJK::TotalCmd::Exception' },
+        { isa => 'Exception' }
 );
 
 use Try::Tiny;
@@ -34,11 +32,11 @@ Return object attribute value if called with no arguments, set object
 attribute value and return the same value otherwise.
 
 ---+++ tcmdini([$tcmdini]) -> $tcmdini
-=TotalCmd::Ini= object.
+=RJK::TotalCmd::Settings::Ini= object.
 ---+++ tcmdinc([$tcmdinc]) -> $tcmdinc
-=TotalCmd::Inc= object.
+=RJK::TotalCmd::Settings::Inc= object.
 ---+++ usercmd([$usercmd]) -> $usercmd
-=TotalCmd::UsercmdIni= object.
+=RJK::TotalCmd::Settings::UsercmdIni= object.
 
 =cut
 ###############################################################################
@@ -67,28 +65,24 @@ sub init {
     SetBarDirs($ENV{COMMANDER_INI});
 }
 
-sub ini { $_[0]{_tcmdini} }
-sub inc { $_[0]{_tcmdinc} }
-sub user { $_[0]{_usercmd} }
-
 ###############################################################################
 =pod
 
----+++ GetTotalCmdInc([$path]) -> RJK::TotalCmd::Settings::Inc
-Returns a =TotalCmd::Inc= object for =$path=.
+---+++ loadTotalCmdInc([$path]) -> RJK::TotalCmd::Settings::Inc
+Returns a =RJK::TotalCmd::Settings::Inc= object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
-Returns nothing if file is not found.
-Loads =totalcmd.inc=, throws a =RJK::TotalCmd::Exception= on failure.
+Throws exception if file is not found.
+Loads file, throws exception on failure.
 
 =cut
 ###############################################################################
 
 sub getTotalCmdInc {
-    return $_[0]{_tcmdinc} || $_[0]->loadTotalCmdInc();
+    return $_[0]{_tcmdinc} //= loadTotalCmdInc($_[0]{tcmdinc});
 }
 
 sub loadTotalCmdInc {
-    my $path = $_[0]{tcmdinc} || RJK::File::PathFinder::FindPath(
+    my $path = shift || RJK::File::PathFinder::FindPath(
         "%COMMANDER_PATH%/TOTALCMD.INC",
         "%APPDATA%/GHISLER/TOTALCMD.INC",
         "%LOCALAPPDATA%/TOTALCMD.INC",
@@ -102,21 +96,21 @@ sub loadTotalCmdInc {
 ###############################################################################
 =pod
 
----+++ GetTotalCmdIni([$path]) -> RJK::TotalCmd::Settings::Ini
-Returns a =TotalCmd::Ini object for =$path=.
+---+++ loadTotalCmdIni([$path]) -> RJK::TotalCmd::Settings::Ini
+Returns a =RJK::TotalCmd::Settings::Ini object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
-Returns nothing if file is not found.
-Loads =totalcmd.ini=, throws a =RJK::TotalCmd::Exception= on failure.
+Throws exception if file is not found.
+Loads file, throws exception on failure.
 
 =cut
 ###############################################################################
 
 sub getTotalCmdIni {
-    return $_[0]{_tcmdini} || $_[0]->loadTotalCmdIni();
+    return $_[0]{_tcmdini} //= loadTotalCmdIni($_[0]{tcmdini});
 }
 
 sub loadTotalCmdIni {
-    my $path = $_[0]{tcmdini} || RJK::File::PathFinder::FindPath(
+    my $path = shift || RJK::File::PathFinder::FindPath(
         "%COMMANDER_INI%",
         "%APPDATA%/GHISLER/wincmd.ini",
         "%LOCALAPPDATA%/wincmd.ini",
@@ -132,21 +126,21 @@ sub loadTotalCmdIni {
 ###############################################################################
 =pod
 
----+++ GetUsercmdIni([$path]) -> RJK::TotalCmd::Settings::UsercmdIni
-Returns a =TotalCmd::UsercmdIni object for =$path=.
+---+++ loadUsercmdIni([$path]) -> RJK::TotalCmd::Settings::UsercmdIni
+Returns a =RJK::TotalCmd::Settings::UsercmdIni object for =$path=.
 Tries to find the file in common locations if =$path= is undefined.
-Returns nothing if file is not found.
-Loads =usercmd.ini=, throws a =RJK::TotalCmd::Exception= on failure.
+Throws exception if file is not found.
+Loads file, throws exception on failure.
 
 =cut
 ###############################################################################
 
 sub getUsercmdIni {
-    return $_[0]{_usercmd} || $_[0]->loadUsercmdIni();
+    return $_[0]{_usercmd} //= loadUsercmdIni($_[0]{usercmd});
 }
 
 sub loadUsercmdIni {
-    my $path = $_[0]{usercmd} || RJK::File::PathFinder::FindPath(
+    my $path = shift || RJK::File::PathFinder::FindPath(
         "%COMMANDER_PATH%/usercmd.ini",
         "%APPDATA%/GHISLER/usercmd.ini",
         "%LOCALAPPDATA%/usercmd.ini",
@@ -197,7 +191,7 @@ All methods return a single or an array of =TotalCmd::Command= objects.
 
 ---+++ getCommand($name) -> $command
 Returns command by name.
-Throws =TotalCmd::NotFoundException= if command not found.
+Throws =RJK::TotalCmd::Exception= if command not found.
 
 ---+++ getNamedCommands() -> @commands or \@commands
 Returns UserCommands and Internal commands.
@@ -219,7 +213,7 @@ sub getCommand {
         $cmd = $self->getUsercmdIni->getCommandByName($1) if $2;
         $cmd = $self->getTotalCmdInc->getCommandByName($1) if $3;
     }
-    return $cmd || throw RJK::TotalCmd::NotFoundException("Unknown command: $name");
+    return $cmd || throw RJK::TotalCmd::Exception("Unknown command: $name");
 }
 
 sub getCustomCommands {
@@ -253,7 +247,7 @@ sub getAllCommands {
 
 ---++++ getUserCommand($nr) -> $command
 Returns user command.
-Throws =TotalCmd::NotFoundException= if command not found.
+Throws =RJK::TotalCmd::Exception= if command not found.
 
 ---++++ getUserCommands() -> @commands or \@commands
 Returns user commands.
@@ -264,7 +258,7 @@ Returns user commands.
 sub getUserCommand {
     my ($self, $nr) = @_;
     $self->getUsercmdIni->getCommand($nr)
-        || throw RJK::TotalCmd::NotFoundException("Unknown command: $nr");
+        || throw RJK::TotalCmd::Exception("Unknown command: $nr");
 }
 
 sub getUserCommands {
@@ -281,7 +275,7 @@ Two menus are available, "user" for the start menu,
 
 ---++++ getMenuItem($menu, $nr) -> $command
 Returns menu item by item number.
-Throws =TotalCmd::NotFoundException= if item not found.
+Throws =RJK::TotalCmd::Exception= if item not found.
 
 ---++++ getMenuItems($menu, [$submenuNr]) -> @commands or \@commands
 Returns menu items.
@@ -298,7 +292,7 @@ Returns submenus.
 sub getMenuItem {
     my ($self, $menu, $number) = @_;
     $self->getTotalCmdIni->getMenuItem($menu, $number)
-        || throw RJK::TotalCmd::NotFoundException("Unknown command: $number");
+        || throw RJK::TotalCmd::Exception("Unknown command: $number");
 }
 
 sub getMenuItems {
