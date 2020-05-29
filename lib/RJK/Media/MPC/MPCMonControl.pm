@@ -8,8 +8,6 @@ use Number::Bytes::Human ();
 use Try::Tiny;
 use Win32::Clipboard;
 
-use RJK::Interactive qw(Ask ReadLine Confirm);
-RJK::Interactive::SetClass('Term::ReadKey');
 use RJK::Media::MPC::MPCMon;
 use RJK::Media::MPC::MPCMonUtils;
 use RJK::Media::MPC::MPCMonSettings;
