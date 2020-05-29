@@ -55,11 +55,11 @@ See =[[http://search.cpan.org/~jdb/Win32-Console-0.10/Console.pm][Win32::Console
 =cut
 ###############################################################################
 
-sub columns   { ($_[0]->{wcStdOut}->Info)[0] }
-sub cursor    { shift->{wcStdOut}->Cursor(@_) }
-sub row       { ($_[0]->{wcStdOut}->Cursor)[1] }
-sub title     { $_[0]->{wcStdOut}->Title($_[1]) }
-sub getEvents { $_[0]->{wcStdIn}->GetEvents() }
+sub cursor    {  $_[0]->{wcStdOut}->Cursor(@_)   }
+sub columns   { ($_[0]->{wcStdOut}->Info)[0]     }
+sub row       { ($_[0]->{wcStdOut}->Cursor)[1]   }
+sub title     {  $_[0]->{wcStdOut}->Title($_[1]) }
+sub getEvents {  $_[0]->{wcStdIn}->GetEvents()   }
 
 ###############################################################################
 =pod
@@ -68,6 +68,8 @@ sub getEvents { $_[0]->{wcStdIn}->GetEvents() }
 
 ---+++ write()
 See =[[http://search.cpan.org/~jdb/Win32-Console-0.10/Console.pm][Win32::Console]]::Write=.
+---+++ input()
+See =[[http://search.cpan.org/~jdb/Win32-Console-0.10/Console.pm][Win32::Console]]::Input=.
 ---+++ flush()
 See =[[http://search.cpan.org/~jdb/Win32-Console-0.10/Console.pm][Win32::Console]]::Flush=.
 
@@ -75,6 +77,7 @@ See =[[http://search.cpan.org/~jdb/Win32-Console-0.10/Console.pm][Win32::Console
 ###############################################################################
 
 sub write     { $_[0]->{wcStdOut}->Write($_[1]) }
+sub input     { $_[0]->{wcStdIn}->Input() }
 sub flush     { $_[0]->{wcStdIn}->Flush() }
 
 ###############################################################################
@@ -104,51 +107,70 @@ Prints lists of choices and waits for choice selection.
 sub pause {
     my $self = shift;
     while (1) {
-        my @event = $self->{wcStdIn}->Input();
+        my @event = $self->input;
         last if $event[0]
-            and $event[0] == 1 # keyboard
-            and $event[1] # key pressed
-            and $event[5] > 0; # any key
+            and $event[0] == 1  # keyboard
+            and $event[1]       # key pressed
+            and $event[5] > 0;  # character key
     }
 }
 
-sub askConfirm {
-    my ($self, $question) = @_;
-    my $key = '';
-
-    $self->{wcStdOut}->Write("$question ");
+sub readKey {
+    my $self = shift;
     while (1) {
-        my @event = $self->{wcStdIn}->Input();
+        my @event = $self->input;
 
         if ($event[0]
-        and $event[0] == 1 # keyboard
-        and $event[1] # key pressed
+        and $event[0] == 1  # keyboard
+        and $event[1]       # key pressed
         ) {
-            $key = chr($event[5]); # ascii char
-            last if $event[5] > 0;
+            return $event[3];
         }
     }
-    $self->{wcStdOut}->Write("$key\n") if $self->{echo};
-    return lc $key eq 'y'
+}
+
+sub readKeyChar {
+    my $self = shift;
+    while (1) {
+        my @event = $self->input;
+
+        if ($event[0]
+        and $event[0] == 1  # keyboard
+        and $event[1]       # key pressed
+        and $event[5]       # ascii
+        ) {
+            return chr $event[5];
+        }
+    }
+}
+
+sub confirm {
+    my ($self, $question) = @_;
+
+    $self->write("$question ");
+    my $key = $self->readKeyChar();
+    $self->write("$key\n") if $self->{echo};
+
+    return lc $key eq 'y';
 }
 
 sub ask {
     my ($self, $question, $choices) = @_;
 
-    $self->{wcStdOut}->Write("$question (");
-    $self->{wcStdOut}->Write(join "/", map { $_->[1] // $_->[0] } @$choices);
-    $self->{wcStdOut}->Write(") ");
+    $self->write("$question (");
+    $self->write(join "/", map { $_->[1] // $_->[0] } @$choices);
+    $self->write(") ");
 
     my %retvals = map { $_->[0] => $_->[2] // $_->[1] // $_->[0] } @$choices;
     my $key = chr(0);
     do {
-        my @event = $self->{wcStdIn}->Input();
+        my @event = $self->input;
         if (@event && $event[0] == 1 and $event[1]) {
             $key = chr $event[5];
         }
     } while (! grep { /$key/ } keys %retvals);
 
-    $self->{wcStdOut}->Write("$key\n");
+    $self->write("$key\n");
 
     my $ret = $retvals{$key};
     return ref $ret && ref $ret eq 'CODE' ? $ret->() : $ret;
@@ -160,13 +182,13 @@ sub select {
 
     my $i = 0x31;
     foreach (@$choices) {
-        $self->{wcStdOut}->Write(chr($i) . ". $_\n");
+        $self->write(chr($i) . ". $_\n");
         die if ++$i > 0x31 + 9; # 1-9
     }
 
     my $key = 0;
     while (1) {
-        my @event = $self->{wcStdIn}->Input();
+        my @event = $self->input;
         if (@event && $event[0] == 1 and $event[1]) {
             $key = $event[5];
             if ($key >= 0x31 and $key < 0x31 + @$choices) {
@@ -199,7 +221,7 @@ sub question {
     my $key = 0;
     my $prevKey = 0;
     do {
-        my @event = $self->{wcStdIn}->Input();
+        my @event = $self->input;
         if (@event && $event[0] == 1 and $event[1]) {
             $key = $event[5];
             my @c = $c->Cursor;
@@ -298,11 +320,11 @@ sub printLine {
     $self->newline;
     my $columns = ($self->{wcStdOut}->Info)[0];
     if ($trim) {
-        $self->{wcStdOut}->Write(substr $str, 0, $columns);
+        $self->write(substr $str, 0, $columns);
     }
     # move cursor to next line if not already because it wrapped at eol at the
     # end of the string written, i.e. the string fits the screen width exactly.
-    $self->{wcStdOut}->Write("\n") if length($str) % $columns;
+    $self->write("\n") if length($str) % $columns;
 }
 
 ###############################################################################
@@ -375,18 +397,5 @@ sub lineUp {
     $c[1] -= $nrOfLines;
     $self->{wcStdOut}->Cursor(@c);
 }
-
-###############################################################################
-=pod
-
----++ Input
-
----+++ input()
-See =[[http://search.cpan.org/~jdb/Win32-Console-0.10/Console.pm][Win32::Console]]::Input=.
-
-=cut
-###############################################################################
-
-sub input     { $_[0]->{wcStdIn}->Input() }
 
 1;
