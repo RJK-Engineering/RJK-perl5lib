@@ -35,6 +35,7 @@ sub init {
     $self->{userAgent}->timeout($self->{httpTimeout});
 
     # Variables used in download thread
+    # FIXME: this is not needed because only one thread!
     share $self->{exitstatus};
     share $self->{pid};
     $self->{downloadDir} //= '.';
