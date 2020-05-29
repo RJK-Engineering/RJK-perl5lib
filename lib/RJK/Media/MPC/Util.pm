@@ -6,6 +6,10 @@ sub new {
     return $self;
 }
 
+sub console {
+    $_[0]{controller}{console};
+}
+
 sub opts {
     $_[0]{controller}{opts};
 }

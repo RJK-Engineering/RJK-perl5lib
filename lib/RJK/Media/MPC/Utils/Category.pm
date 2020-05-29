@@ -36,7 +36,7 @@ sub switch {
 sub delete {
     my $self = shift;
 
-    #~ $self->console->confirm("Delete?") || return;
+    $self->console->confirm("Delete?") || return;
 
     while (my ($file, $settings) = each %{$self->settings->{settings}}) {
         next if $settings->{category} ne "delete";
@@ -52,7 +52,7 @@ sub delete {
 sub move {
     my $self = shift;
 
-    #~ $self->console->confirm("Move?") || return;
+    $self->console->confirm("Move?") || return;
 
     while (my ($file, $settings) = each %{$self->settings->{settings}}) {
         next if ! $settings->{category};
