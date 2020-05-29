@@ -21,12 +21,14 @@ sub new {
 sub init {
     my $self = shift;
 
-    $self->{url} = $self->getStatusPageUrl();
-    $self->{UserAgent} = LWP::UserAgent->new;
-    $self->{UserAgent}->agent($self->{requestAgent});
+    $self->{userAgent} = new LWP::UserAgent;
+    $self->{userAgent}->agent($self->{requestAgent});
+    $self->{userAgent}->timeout($self->{requestTimeout});
 
-    $self->{HttpRequest} = HTTP::Request->new(GET => $self->{url});
-    $self->{UserAgent}->timeout($self->{requestTimeout});
+    my $url = "http://$self->{host}:$self->{port}/variables.html";
+    $self->{statusHttpRequest} = new HTTP::Request(GET => $url);
+
+    $self->{commandUrl} = "http://$self->{host}:$self->{port}/command.html";
 
     return $self;
 }
@@ -35,7 +37,7 @@ sub getStatus {
     my $self = shift;
     my $status = {};
 
-    my $res = $self->{UserAgent}->request($self->{HttpRequest});
+    my $res = $self->{userAgent}->request($self->{statusHttpRequest});
     $status->{timestamp} = time;
     $status->{ok} = $res->is_success;
     $status->{message} = $res->message;
@@ -54,9 +56,25 @@ sub getStatus {
     return $status;
 }
 
-sub getStatusPageUrl {
-    my $self = shift;
-    return "http://$self->{host}:$self->{port}/variables.html"
+###############################################################################
+=pod
+
+---++ sendCommand($commandId) -> $response
+   * =$commandId= - Command ID.
+   * =$response= - =HTTP::Response= object.
+
+Returns response.
+
+NOTE: some commands (like "Open File" which opens a dialog) are blocking a
+response. To do a fire-and-forget, use
+=RJK::Media::MPC::WebIF::NonBlocking->sendCommandNonBlocking()=.
+
+=cut
+###############################################################################
+
+sub sendCommand {
+    my ($self, $commandId) = @_;
+    return $self->{userAgent}->post($self->{commandUrl}, {wm_command=>$commandId});
 }
 
 1;
