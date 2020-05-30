@@ -1,83 +1,37 @@
-package RJK::Win32::Keys;
+package RJK::Win32::VirtualKeys;
 
 use strict;
 use warnings;
 
-use constant {
-    MODIFIER_KEY_ALT => 0x02,
-    MODIFIER_KEY_CONTROL => 0x08,
-    MODIFIER_KEY_SHIFT => 0x10,
-};
-
 my $data;
-my @data;
-my %value;
-my %constant;
-my %key;
+my @attrs = qw(hex vname name description code);
+my @keys;
 
 sub new {
     my $self = bless {}, shift;
-    @data = map {
-        my @a = split /\t/;
-        $a[0] = hex $a[0] if $a[0] =~ /^[\da-f]+$/i;
-        \@a;
-    } split /\n/, $data if ! @data;
+
+    foreach (split /\n/, $data) {
+        my @values = split /\t/;
+        $values[4] = hex $values[0] if $values[0] =~ /^[\da-f]+$/i;
+        my %key; @key{@attrs} = @values;
+        push @keys, \%key
+    }
+
     return $self;
 }
 
-sub get {
-    shift->_value();
-    my $v = shift->[3];
-    return wantarray ? @{$value{$v}} : $value{$v};
+sub getKeyCodes {
+    return { map { $_->{code} => $_ } grep { $_->{code} } @keys };
 }
 
-sub getConstant {
-    my ($self, $value) = @_;
-    $self->_constant();
-    return wantarray ? @{$constant{$value}} : $constant{$value};
+sub getVirtualKeyNames {
+    return { map { $_->{vname} => $_ } grep { $_->{vname} ne "" } @keys };
 }
 
-sub getKey {
-    my ($self, $value) = @_;
-    $self->_key();
-    return wantarray ? @{$key{$value}} : $key{$value};
+sub getKeyNames {
+    return { map { $_->{name} => $_ } grep { $_->{name} ne "" } @keys };
 }
 
-sub isModifierKey {
-    my $v = $_[1][3];
-    return $v == 0x10 || $v == 0x11 || $v == 0x12;
-}
-
-sub isAltPressed {
-    return $_[1][6] & MODIFIER_KEY_ALT;
-}
-
-sub isCtrlPressed {
-    return $_[1][6] & MODIFIER_KEY_CONTROL;
-}
-
-sub isShiftPressed {
-    return $_[1][6] & MODIFIER_KEY_SHIFT;
-}
-
-sub isPressed {
-    my ($self, $event, $constant) = @_;
-    return $event->[3] == $self->getConstant($constant)->[0];
-}
-
-sub _value {
-    %value = map { $_->[0] => $_ } @data if !%value;
-}
-
-sub _constant {
-    %constant = map { $_->[1] => $_ } @data if !%constant;
-}
-
-sub _key {
-    %key = map { $_->[2] => $_ } @data if !%key;
-}
-
-# value, constant, key, description (tab delimited)
 $data = <<EOF;
 01	VK_LBUTTON		Left mouse button
 02	VK_RBUTTON		Right mouse button
