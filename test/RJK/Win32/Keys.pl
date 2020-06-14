@@ -13,7 +13,7 @@ my $wcStdIn = new Win32::Console(STD_INPUT_HANDLE);
 while (1) {
     my $event = new RJK::Win32::InputEvent($wcStdIn->Input());
 
-    if ($event->keyDown) {
+    if ($event->isKeyDown) {
         exit if $event->isPressed($vkeynames->{VK_ESCAPE});
         next if $event->isModifierKey();
 
