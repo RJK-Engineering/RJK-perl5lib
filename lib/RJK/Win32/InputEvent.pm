@@ -32,7 +32,11 @@ sub keychar {
     return $_[0]{event}[5];
 }
 
-sub keyDown {
+sub modifiers {
+    return $_[0]{event}[6];
+}
+
+sub isKeyDown {
     my $event = $_[0]{event} || return;
     return $event->[0] == 1 && $event->[1];
 }
