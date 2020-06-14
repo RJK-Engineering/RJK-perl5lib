@@ -1,30 +1,24 @@
 package RJK::Filecheck::Site;
 
-use Class::AccessorMaker {
-    name => "",
-    alias => "",
-    protocol => "",
-    host => "",
-    download => "",
-    search => "",
-    hd => "",
-    latest => "",
-    playlist => undef,
-    hq => "136+140",
-    lq => "134+140",
-    timeout => 0,
-    idregex => undef,
-};
+use strict;
+use warnings;
+
+sub new {
+    my $self = bless {}, shift;
+    my $attr = shift || {};
+    $self->{$_} = $attr->{$_} for keys %$attr;
+    return $self;
+}
 
 sub downloadUrl {
     my ($self, $id) = @_;
-    my $url = sprintf "$self->{protocol}://$self->{host}/$self->{download}", $id;
+    my $url = sprintf "$self->{protocol}://$self->{host}/$self->{downloadPath}", $id;
     return $url;
 }
 
 sub searchUrl {
     my ($self, $query) = @_;
-    my $url = sprintf "$self->{protocol}://$self->{host}/$self->{search}", $query;
+    my $url = sprintf "$self->{protocol}://$self->{host}/$self->{searchPath}", $query;
     return $url;
 }
 
