@@ -86,7 +86,7 @@ sub flush     { $_[0]->{wcStdIn}->Flush() }
 ---+++ pause()
 Wait for keyboard key press.
 
----+++ askConfirm($question) -> $confirmed
+---+++ confirm($question) -> $confirmed
 Returns true if "y" or "Y" key is pressed.
 
 ---+++ ask($question, \@choices) -> $choice
@@ -396,6 +396,29 @@ sub lineUp {
     my @c = $self->{wcStdOut}->Cursor;
     $c[1] -= $nrOfLines;
     $self->{wcStdOut}->Cursor(@c);
+}
+
+###############################################################################
+=pod
+
+---++ itemFromList($list) -> $answer
+See =RJK::Interactive::ItemFromList()=.
+
+=cut
+###############################################################################
+
+sub itemFromList {
+    my ($self, $list) = @_;
+    my $i = 1;
+    foreach (@$list) {
+        $self->write($i++ . ") $_\n");
+        last if $i==9;
+    }
+    my $n = $self->readKeyChar;
+
+    if ($n =~ /^\d+$/ && $n>0 && $n<=@$list) {
+        return $list->[$n-1];
+    }
 }
 
 1;
