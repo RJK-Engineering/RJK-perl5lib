@@ -1,5 +1,5 @@
 package RJK::FileVisitor::StatsWrapper;
-use parent 'RJK::FileVisitorBase';
+use parent 'RJK::FileVisitor';
 
 use strict;
 use warnings;

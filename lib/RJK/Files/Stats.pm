@@ -9,7 +9,7 @@ use RJK::FileVisitor::StatsWrapper;
 
 sub Traverse {
     my ($path, $visitor, $opts, $stats) = @_;
-    $visitor ||= bless {}, 'RJK::FileVisitorBase';
+    $visitor ||= bless {}, 'RJK::FileVisitor';
 
     $stats ||= CreateStats();
     $visitor = new RJK::FileVisitor::StatsWrapper($visitor, $stats);

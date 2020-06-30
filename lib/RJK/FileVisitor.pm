@@ -1,4 +1,4 @@
-package RJK::FileVisitorBase;
+package RJK::FileVisitor;
 
 use strict;
 use warnings;

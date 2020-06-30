@@ -1,5 +1,5 @@
-package RJK::FileVisitor;
-use parent 'RJK::FileVisitorBase';
+package RJK::SimpleFileVisitor;
+use parent 'RJK::FileVisitor';
 
 use strict;
 use warnings;
