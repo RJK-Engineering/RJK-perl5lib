@@ -2,9 +2,9 @@ use strict;
 use warnings;
 
 use RJK::Files;
-use RJK::FileVisitor;
+use RJK::SimpleFileVisitor;
 
-my $visitor = new RJK::FileVisitor(
+my $visitor = new RJK::SimpleFileVisitor(
     visitFileFailed => sub {
         my ($file, $error) = @_;
         print "$error: $file->{path}\n";
@@ -24,6 +24,7 @@ my $visitor = new RJK::FileVisitor(
 #~ my $path = 'c:\temp';
 my $path = 'c:\temp\jdshow';
 #~ my $path = 'c:\temp\a.txt';
+#~ my $path = 'fail';
 #~ RJK::Files::Traverse($path, $visitor);
 
 
@@ -31,7 +32,7 @@ use RJK::Files::Stats;
 my $stats = RJK::Files::Stats::Traverse($path);
 
 $stats = RJK::Files::Stats::CreateStats();
-$visitor = new RJK::FileVisitor(
+$visitor = new RJK::SimpleFileVisitor(
     visitFileFailed => sub {
         my ($file, $error) = @_;
         print "$error: $file->{path}\n";
@@ -56,8 +57,8 @@ use MyVisitor; # implements FileVisitorBase
 my $visitor = new MyVisitor();
 
 # implementation in anonymous subroutines
-use RJK::FileVisitor; # implements FileVisitorBase
-my $visitor = new RJK::FileVisitor(visitFile => sub {...});
+use RJK::SimpleFileVisitor; # implements FileVisitorBase
+my $visitor = new RJK::SimpleFileVisitor(visitFile => sub {...});
 
 # RJK::Files::Traverse simple file tree traversal
 use RJK::Files;
@@ -76,4 +77,4 @@ my $visitor = new MyVisitor($stats);
 RJK::Files::Stats::Traverse($dir, $visitor, $stats);
 
 # generic visitors
-my $visitor = new RJK::FileVisitor::TotalCmdSearch($seachName);
+my $visitor = new RJK::SimpleFileVisitor::TotalCmdSearch($seachName);
