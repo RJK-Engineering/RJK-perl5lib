@@ -7,8 +7,7 @@ use warnings;
 =pod
 
 ---+++ GetOptions($filename, %defaultOptions) -> %options or \%options
-Load options from file(s) stored in local data directory =$ENV{APPDATA}= and/or
-=$ENV{LOCALAPPDATA}= where =$ENV{LOCALAPPDATA}= overrules =$ENV{APPDATA}=.
+Load options from config file(s) in local directories.
    * =$filename= - path to config file relative to local data directory
    * =%defaultOptions= - default options to return if not present in local config
    * =%options= - option key/values
@@ -20,13 +19,16 @@ sub GetOptions {
     my $filename = shift;
     my %options = @_;
 
-    # roaming conf
-    my $path = "$ENV{APPDATA}/$filename";
-    loadConf($path, \%options) if -e $path;
+    # loads all existing conf files in order, duplicate options are overwritten
+    my @paths = (
+        $ENV{APPDATA},      # roaming conf
+        $ENV{LOCALAPPDATA}, # local conf
+        "$ENV{LOCALAPPDATA}/RJK-utils"
+    );
 
-    # local conf, overrules roaming conf
-    $path = "$ENV{LOCALAPPDATA}/$filename";
-    loadConf($path, \%options) if -e $path;
+    foreach (@paths) {
+        loadConf("$_/$filename", \%options) if -e "$_/$filename";
+    }
 
     return wantarray ? %options : \%options;
 }
