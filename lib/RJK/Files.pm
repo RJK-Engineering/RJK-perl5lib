@@ -7,7 +7,7 @@ use RJK::File::Paths;
 use RJK::File::Stat;
 
 sub traverse {
-    my ($path, $visitor, $opts) = @_;
+    my ($class, $path, $visitor, $opts) = @_;
 
     $path = RJK::File::Paths::get($path);
     my $stat = RJK::File::Stat::get($path->{path});
@@ -16,7 +16,7 @@ sub traverse {
         local $_ = $path->{path};
         $visitor->visitFileFailed($path, "Stat failed");
     } elsif ($stat->{isDir}) {
-        TraverseDir($path, $visitor, $opts, $stat);
+        $class->traverseDir($path, $visitor, $opts, $stat);
     } elsif ($stat->{isFile}) {
         local $_ = $path->{path};
         $visitor->visitFile($path, $stat);
@@ -24,9 +24,9 @@ sub traverse {
 }
 
 sub traverseDir {
-    my ($dir, $visitor, $opts, $dirStat) = @_;
+    my ($class, $dir, $visitor, $opts, $dirStat) = @_;
 
-    if (my $entries = GetEntries($dir->{path})) {
+    if (my $entries = $class->getEntries($dir->{path})) {
         my (@dirs, @files);
         foreach (@$entries) {
             my $child = RJK::File::Paths::get($dir->{path}, $_);
@@ -64,7 +64,7 @@ sub traverseDir {
 
         foreach (@dirs) {
             my ($dir, $stat) = @$_;
-            TraverseDir($dir, $visitor, $opts, $stat);
+            $class->traverseDir($dir, $visitor, $opts, $stat);
         }
 
         local $_ = $dir->{path};
@@ -76,7 +76,7 @@ sub traverseDir {
 }
 
 sub getEntries {
-    my $dir = shift;
+    my ($class, $dir) = @_;
     opendir my $dh, $dir or return;
 
     my @entries = grep {
