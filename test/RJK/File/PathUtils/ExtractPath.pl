@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use File::PathUtils qw(ExtractPath);
+use RJK::File::PathUtils qw(ExtractPath);
 
 print ExtractPath('ksdjf=c:sdf'), "\n";
 print ExtractPath(' c:/sdf'), "\n";

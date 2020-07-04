@@ -1,5 +1,5 @@
-use TotalCmd::Command;
-use TotalCmd::CommandExecutor;
+use RJK::TotalCmd::Item::Command;
+use RJK::TotalCmd::CommandExecutor;
 use Try::Tiny;
 
 use Data::Dump;
