@@ -25,13 +25,13 @@ my $visitor = new RJK::SimpleFileVisitor(
 my $path = 'c:\temp\jdshow';
 #~ my $path = 'c:\temp\a.txt';
 #~ my $path = 'fail';
-#~ RJK::Files::Traverse($path, $visitor);
+#~ RJK::Files::traverse($path, $visitor);
 
 
 use RJK::File::Stats;
-my $stats = RJK::File::Stats::Traverse($path);
+my $stats = RJK::File::Stats::traverse($path);
 
-$stats = RJK::File::Stats::CreateStats();
+$stats = RJK::File::Stats::createStats();
 $visitor = new RJK::SimpleFileVisitor(
     visitFileFailed => sub {
         my ($file, $error) = @_;
@@ -45,8 +45,8 @@ $visitor = new RJK::SimpleFileVisitor(
         printf "dirs: %u, files: %u, size: %u\n", $ds->{dirs}, $ds->{files}, $ds->{size};
     }
 );
-#~ RJK::File::Stats::Traverse($path, undef, undef, $stats);
-RJK::File::Stats::Traverse($path, $visitor, undef, $stats);
+#~ RJK::File::Stats::traverse($path, undef, undef, $stats);
+RJK::File::Stats::traverse($path, $visitor, undef, $stats);
 use Data::Dump;
 dd $stats;
 
@@ -60,21 +60,21 @@ my $visitor = new MyVisitor();
 use RJK::SimpleFileVisitor; # implements FileVisitorBase
 my $visitor = new RJK::SimpleFileVisitor(visitFile => sub {...});
 
-# RJK::Files::Traverse simple file tree traversal
+# RJK::Files::traverse simple file tree traversal
 use RJK::Files;
-RJK::Files::Traverse($dir, $visitor);
+RJK::Files::traverse($dir, $visitor);
 
-# RJK::File::Stats::Traverse returns stats
+# RJK::File::Stats::traverse returns stats
 use RJK::File::Stats;
-my $stats = RJK::File::Stats::Traverse($dir, $visitor);
+my $stats = RJK::File::Stats::traverse($dir, $visitor);
 # visitor is optional
-my $stats = RJK::File::Stats::Traverse($dir);
+my $stats = RJK::File::Stats::traverse($dir);
 
-# RJK::File::Stats::Traverse updates stats, MyVisitor uses stats
+# RJK::File::Stats::traverse updates stats, MyVisitor uses stats
 use RJK::File::Stats;
-my $stats = new RJK::File::Stats::CreateStats();
+my $stats = new RJK::File::Stats::createStats();
 my $visitor = new MyVisitor($stats);
-RJK::File::Stats::Traverse($dir, $visitor, $stats);
+RJK::File::Stats::traverse($dir, $visitor, $stats);
 
 # generic visitors
 my $visitor = new RJK::SimpleFileVisitor::TotalCmdSearch($seachName);

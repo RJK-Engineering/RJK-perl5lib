@@ -6,7 +6,7 @@ use warnings;
 use RJK::File::Paths;
 use RJK::File::Stat;
 
-sub Traverse {
+sub traverse {
     my ($path, $visitor, $opts) = @_;
 
     $path = RJK::File::Paths::get($path);
@@ -23,8 +23,8 @@ sub Traverse {
     }
 }
 
-sub TraverseDir {
-    my ($dir, $visitor, $opts, $stat) = @_;
+sub traverseDir {
+    my ($dir, $visitor, $opts, $dirStat) = @_;
 
     if (my $entries = GetEntries($dir->{path})) {
         my (@dirs, @files);
@@ -47,7 +47,7 @@ sub TraverseDir {
         }
 
         local $_ = $dir->{path};
-        $visitor->preVisitDir($dir, $stat, \@files, \@dirs);
+        $visitor->preVisitDir($dir, $dirStat, \@files, \@dirs);
 
         foreach (@files) {
             my ($file, $stat) = @$_;
@@ -60,22 +60,22 @@ sub TraverseDir {
         }
 
         local $_ = $dir->{path};
-        $visitor->postVisitFiles($dir, $stat, \@files, \@dirs);
+        $visitor->postVisitFiles($dir, $dirStat, \@files, \@dirs);
 
         foreach (@dirs) {
             my ($dir, $stat) = @$_;
-            TraverseDir($dir, $visitor, $stat);
+            TraverseDir($dir, $visitor, $opts, $stat);
         }
 
         local $_ = $dir->{path};
-        $visitor->postVisitDir($dir, undef, \@files, \@dirs);
+        $visitor->postVisitDir($dir, $dirStat, \@files, \@dirs);
     } else {
         local $_ = $dir->{path};
         $visitor->visitFileFailed($dir, "Readdir failed");
     }
 }
 
-sub GetEntries {
+sub getEntries {
     my $dir = shift;
     opendir my $dh, $dir or return;
 

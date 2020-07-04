@@ -7,20 +7,20 @@ use RJK::Files;
 use RJK::File::TraverseStats;
 use RJK::FileVisitor::StatsWrapper;
 
-sub Traverse {
+sub traverse {
     my ($path, $visitor, $opts, $stats) = @_;
     $visitor ||= bless {}, 'RJK::FileVisitor';
 
-    $stats ||= CreateStats();
+    $stats ||= createStats();
     $visitor = new RJK::FileVisitor::StatsWrapper($visitor, $stats);
 
-    RJK::Files::Traverse($path, $visitor, $opts);
+    RJK::Files::traverse($path, $visitor, $opts);
 
     delete $stats->{dirStats};
     return $stats;
 }
 
-sub CreateStats {
+sub createStats {
     return new RJK::File::TraverseStats();
 }
 

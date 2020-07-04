@@ -402,7 +402,6 @@ sub lineUp {
 =pod
 
 ---++ itemFromList($list) -> $answer
-See =RJK::Interactive::ItemFromList()=.
 
 =cut
 ###############################################################################
