@@ -28,10 +28,10 @@ my $path = 'c:\temp\jdshow';
 #~ RJK::Files::Traverse($path, $visitor);
 
 
-use RJK::Files::Stats;
-my $stats = RJK::Files::Stats::Traverse($path);
+use RJK::File::Stats;
+my $stats = RJK::File::Stats::Traverse($path);
 
-$stats = RJK::Files::Stats::CreateStats();
+$stats = RJK::File::Stats::CreateStats();
 $visitor = new RJK::SimpleFileVisitor(
     visitFileFailed => sub {
         my ($file, $error) = @_;
@@ -45,8 +45,8 @@ $visitor = new RJK::SimpleFileVisitor(
         printf "dirs: %u, files: %u, size: %u\n", $ds->{dirs}, $ds->{files}, $ds->{size};
     }
 );
-#~ RJK::Files::Stats::Traverse($path, undef, undef, $stats);
-RJK::Files::Stats::Traverse($path, $visitor, undef, $stats);
+#~ RJK::File::Stats::Traverse($path, undef, undef, $stats);
+RJK::File::Stats::Traverse($path, $visitor, undef, $stats);
 use Data::Dump;
 dd $stats;
 
@@ -64,17 +64,17 @@ my $visitor = new RJK::SimpleFileVisitor(visitFile => sub {...});
 use RJK::Files;
 RJK::Files::Traverse($dir, $visitor);
 
-# RJK::Files::Stats::Traverse returns stats
-use RJK::Files::Stats;
-my $stats = RJK::Files::Stats::Traverse($dir, $visitor);
+# RJK::File::Stats::Traverse returns stats
+use RJK::File::Stats;
+my $stats = RJK::File::Stats::Traverse($dir, $visitor);
 # visitor is optional
-my $stats = RJK::Files::Stats::Traverse($dir);
+my $stats = RJK::File::Stats::Traverse($dir);
 
-# RJK::Files::Stats::Traverse updates stats, MyVisitor uses stats
-use RJK::Files::Stats;
-my $stats = new RJK::Files::Stats::CreateStats();
+# RJK::File::Stats::Traverse updates stats, MyVisitor uses stats
+use RJK::File::Stats;
+my $stats = new RJK::File::Stats::CreateStats();
 my $visitor = new MyVisitor($stats);
-RJK::Files::Stats::Traverse($dir, $visitor, $stats);
+RJK::File::Stats::Traverse($dir, $visitor, $stats);
 
 # generic visitors
 my $visitor = new RJK::SimpleFileVisitor::TotalCmdSearch($seachName);

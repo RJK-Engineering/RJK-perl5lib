@@ -1,10 +1,10 @@
-package RJK::Files::Stats;
+package RJK::File::Stats;
 
 use strict;
 use warnings;
 
 use RJK::Files;
-use RJK::Files::TraverseStats;
+use RJK::File::TraverseStats;
 use RJK::FileVisitor::StatsWrapper;
 
 sub Traverse {
@@ -21,7 +21,7 @@ sub Traverse {
 }
 
 sub CreateStats {
-    return new RJK::Files::TraverseStats();
+    return new RJK::File::TraverseStats();
 }
 
 1;

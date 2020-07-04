@@ -1,4 +1,4 @@
-package RJK::Files::TraverseStats;
+package RJK::File::TraverseStats;
 
 use strict;
 use warnings;

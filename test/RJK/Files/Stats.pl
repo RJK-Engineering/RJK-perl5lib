@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use RJK::Files::Stats;
+use RJK::File::Stats;
 use RJK::SimpleFileVisitor;
 
 #~ my $path = 'c:\temp';
@@ -9,8 +9,8 @@ my $path = 'c:\temp\jdshow';
 #~ my $path = 'c:\temp\a.txt';
 #~ my $path = 'fail';
 
-my $total = RJK::Files::Stats::Traverse($path);
-my $stats = RJK::Files::Stats::CreateStats();
+my $total = RJK::File::Stats::Traverse($path);
+my $stats = RJK::File::Stats::CreateStats();
 my $visitor = new RJK::SimpleFileVisitor(
     visitFileFailed => sub {
         my ($file, $error) = @_;
@@ -21,7 +21,7 @@ my $visitor = new RJK::SimpleFileVisitor(
     }
 );
 
-RJK::Files::Stats::Traverse($path, $visitor, undef, $stats);
+RJK::File::Stats::Traverse($path, $visitor, undef, $stats);
 displayStats();
 
 sub displayStats {
