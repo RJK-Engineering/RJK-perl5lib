@@ -14,7 +14,7 @@ sub get {
 
     return {
         path => $path,
-        dir => catpath($volume, $directories, ''),
+        dir => $file eq '' ? '' : catpath($volume, $directories, ''),
         name => $file,
         volume => $volume,
         directories => $directories,
