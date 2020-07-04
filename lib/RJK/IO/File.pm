@@ -20,7 +20,7 @@ sub new {
 }
 
 sub path { $_[0]{path} }
-sub parent { $_[0]{dir} }
+sub parent { $_[0]->toPath->{dir} }
 sub canExecute { -x $_[0]{path} }
 sub canRead { -r $_[0]{path} }
 sub canWrite { -r $_[0]{path} }
@@ -72,7 +72,7 @@ sub files {
 
 sub getParentFile {
     my $dir = $_[0]->toPath->{dir};
-    return $dir ? __PACKAGE__->new($dir) : undef;
+    $dir ? __PACKAGE__->new($dir) : undef;
 }
 
 sub stat {
