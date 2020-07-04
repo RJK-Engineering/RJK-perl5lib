@@ -8,9 +8,6 @@ sub handleSnapshotCreatedEvent {
     my ($self, $snapshot, $monitor) = @_;
 
     $monitor->utils->getMediaFilePath($snapshot);
-
-    use Data::Dump;
-    dd $mediaFile;
 }
 
 sub handleFileChangedEvent {
