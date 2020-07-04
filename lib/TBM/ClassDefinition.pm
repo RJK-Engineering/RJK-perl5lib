@@ -1,5 +1,5 @@
 package TBM::ClassDefinition;
-use parent 'TBM::StoredObject';
+#~ use parent 'TBM::StoredObject';
 
 use strict;
 use warnings;
