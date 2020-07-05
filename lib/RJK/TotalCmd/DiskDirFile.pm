@@ -11,8 +11,7 @@ use v5.16; # enables fc feature
 use strict;
 use warnings;
 
-use File::Spec::Functions qw(catdir catfile splitdir splitpath);
-use TreeVisitResult;
+use Date::Parse ();
 
 ###############################################################################
 =pod
@@ -224,113 +223,6 @@ sub traverse {
     }
 }
 
-# stateless sub for one-time traversal
-sub traverseFile {
-    my ($self, %opts) = @_;
-    $opts{error} //= sub {};
-
-    open(my $fh, '<', $opts{path}) or $opts{error}->("$!");
-
-    my $root = <$fh>;
-    chomp $root;
-    $root =~ s/\\$//;
-
-    my ($volume, $directories, $file) = splitpath($root);
-    my @root = grep {$_} ($volume, splitdir($directories));
-    my $depth = @root - 1;
-    my $dirpath = catdir(@root);
-    my $dirname = $root[-1];
-
-    if ($opts{preVisitDir}) {
-        my $result = $opts{preVisitDir}->(
-            $dirname, $dirpath, { depth => $depth } );
-        if ($result == TreeVisitResult::TERMINATE
-         || $result == TreeVisitResult::SKIP_SIBLINGS
-         || $result == TreeVisitResult::SKIP_SUBTREE) {
-            return;
-        } elsif (not TreeVisitResult::IsValidResult($result)) {
-            warn "Invalid TreeVisitResult";
-        }
-    }
-
-    my ($skip, $dir, $parent, $modified);
-    while (<$fh>) {
-        chomp;
-        my $file = [ split /\t/ ];
-
-        if ($file->[0] =~ s/\\$//) {
-            if (defined $skip) {
-                next if $file->[0] =~ /^$skip/;
-                $skip = undef;
-            }
-            if ($opts{postVisitDir}) {
-                my $result = $opts{postVisitDir}->(
-                    $dirname, $dirpath, {
-                        depth => $depth,
-                        modified => $modified,
-                    }, $parent );
-                if ($result == TreeVisitResult::TERMINATE) {
-                    last;
-                } elsif ($result == TreeVisitResult::SKIP_SIBLINGS) {
-                    $skip = quotemeta $parent;
-                } elsif (not TreeVisitResult::IsValidResult($result)) {
-                    warn "Invalid TreeVisitResult";
-                }
-            }
-
-            $dir = $file;
-            my @dir = grep {$_} splitdir($dir->[0]);
-            $depth = @root + @dir - 1;
-            unless ($opts{quick}) {
-                $modified = parse_datetime("$dir->[2] $dir->[3]");
-            }
-
-            $dirpath = catdir(@root, @dir);
-            $dirname = pop @dir;
-            $parent = catdir(@dir);
-
-            if ($opts{preVisitDir}) {
-                my $result = $opts{preVisitDir}->(
-                    $dirname, $dirpath, {
-                        depth => $depth,
-                        modified => $modified,
-                    }, $parent );
-                if ($result == TreeVisitResult::TERMINATE) {
-                    last;
-                } elsif ($result == TreeVisitResult::SKIP_SUBTREE) {
-                    $skip = quotemeta $dir->[0];
-                } elsif ($result == TreeVisitResult::SKIP_SIBLINGS) {
-                    $skip = quotemeta $parent;
-                } elsif (not TreeVisitResult::IsValidResult($result)) {
-                    warn "Invalid TreeVisitResult";
-                }
-            }
-        } else {
-            next if defined $skip || ! $opts{visitFile};
-
-            my $result = $opts{visitFile}->(
-                $file->[0], catfile($dirpath, $file->[0]), {
-                    depth => $depth,
-                    size => $file->[1],
-                    modified => ! $opts{quick} && parse_datetime("$file->[2] $file->[3]"),
-                }, $dirpath );
-            if ($result == TreeVisitResult::TERMINATE) {
-                last;
-            } elsif ($result == TreeVisitResult::SKIP_SIBLINGS) {
-                $skip = quotemeta $dirpath;
-            } elsif (not TreeVisitResult::IsValidResult($result)) {
-                warn "Invalid TreeVisitResult";
-            }
-        }
-    }
-    #~ warn "$skip $dirpath";
-    #~ if ($opts{postVisitDir} && not defined $skip) {
-    if ($opts{postVisitDir}) {
-        my $result = $opts{postVisitDir}->($dirname, $dirpath, { depth => $depth });
-        warn "Invalid TreeVisitResult" unless TreeVisitResult::IsValidResult($result);
-    }
-}
-
 sub search {
     my ($self, $search) = @_;
 
@@ -451,35 +343,13 @@ sub _splitPath {
     return ($dirpath, $filename);
 }
 
-use DateTime::Format::Strptime;
-
-my $time_zone = 'Europe/Amsterdam';
-my $dtParser = setParser();
-
-sub setParser {
-    $dtParser = DateTime::Format::Strptime->new(
-        pattern => '%Y.%m.%d %H:%M.%S',
-        on_error => sub {die},
-        time_zone => $time_zone
-    );
-}
-
-sub time_zone {
-    if ($_[0]) {
-        $time_zone = $_[0];
-        setParser();
-    }
-    return $time_zone;
-}
-
 sub parse_datetime {
-    # this package sucks, again failure, dies despite of on_error = 'undef', so eval..
-    my $dt = eval { $dtParser->parse_datetime($_[0]) };
-    return $dt && $dt->epoch;
+    my @t = split /[:\. ]/, shift;
+    die if @t != 6;
+    return Date::Parse::str2time(sprintf "%u:%02u:%02uT%02u:%02u:%02u", @t);
 }
 
 sub format_datetime {
-    #~ $dtParser->format_datetime(DateTime->from_epoch(epoch => shift));
     my @t = localtime shift;
     return (sprintf("%s.%s.%s", $t[5]+1900, $t[4]+1, $t[3]),
             sprintf("%s:%s.%s", $t[2], $t[1], $t[0]));
