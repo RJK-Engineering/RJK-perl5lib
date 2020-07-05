@@ -41,11 +41,11 @@ sub delete {
     while (my ($file, $settings) = each %{$self->settings->{settings}}) {
         next if $settings->{category} ne "delete";
 
-        #~ if (unlink $file) {
+        if (unlink $file) {
             print "Deleted $file\n";
-        #~ } else {
-        #~     print "$!: $file";
-        #~ }
+        } else {
+            print "$!: $file\n";
+        }
     }
 }
 
@@ -62,11 +62,11 @@ sub move {
         $dir .= "\\$settings->{category}\\";
         mkdir $dir;
 
-        #~ if (File::Copy::move $file, $dir) {
+        if (File::Copy::move $file, $dir) {
             print "Moved $file -> $dir\n";
-        #~ } else {
-        #~     print "$!: $file";
-        #~ }
+        } else {
+            print "$!: $file\n";
+        }
     }
 }
 
