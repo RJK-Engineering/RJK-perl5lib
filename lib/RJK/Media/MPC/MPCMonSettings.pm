@@ -13,6 +13,10 @@ sub new {
     return $self;
 }
 
+sub files {
+    return $_[0]{settings};
+}
+
 sub get {
     my ($self, $file, $prop) = @_;
     $file = $self->{settings}{$file};
@@ -32,6 +36,12 @@ sub set {
 
     $settings->{$prop} = $value;
 
+    $self->{dirty} = 1;
+}
+
+sub delete {
+    my ($self, $file) = @_;
+    delete $self->{settings}{$file};
     $self->{dirty} = 1;
 }
 
