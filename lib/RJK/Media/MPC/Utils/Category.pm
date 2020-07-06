@@ -56,7 +56,7 @@ sub move {
 
     $self->console->confirm("Move?") || return;
 
-    while (my ($file, $settings) = each %{$self->settings->{settings}}) {
+    while (my ($file, $settings) = each %{$self->settings->files}) {
         next if ! $settings->{category};
         next if $settings->{category} eq "delete";
 
