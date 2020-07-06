@@ -39,9 +39,6 @@ sub init {
         $self->{settings} = new RJK::Media::MPC::MPCMonSettings($self->{opts}{settingsFile});
     }
 
-    $self->{opts}{afterPoll} = sub {
-        $self->{settings}->save();
-    };
     $self->{mpcMon} = new RJK::Media::MPC::MPCMon($self->{opts});
     $self->{mpcMon}{utils} = $self->utils;
     $self->{mpcMon}->init();
@@ -115,8 +112,13 @@ sub addObservers {
     $self->mpcMon->addObserver('LogPlayingStats', 'WebIfMonitor');
     $self->mpcMon->addObserver('LogRecentPlaylists', 'MpcplMonitor');
 
+    # TODO from config
+    #~ print join("\n", split(/\s*,\s*/, $opts{observers})),"\n";
+
+    # TODO store enabled observers in status file
     #~ $self->mpcMon->enableObserver('LogEvents');
     $self->mpcMon->enableObserver('Categorize');
+    #~ $self->mpcMon->enableObserver('CopySnapshotToMediaFileDir');
 }
 
 sub listObservers {
@@ -160,7 +162,7 @@ sub handleInput {
 
 sub quit {
     my $self = shift;
-    print "Bye\n" unless $self->{opts}{quiet};
+    print "Bye.\n" unless $self->{opts}{quiet};
     exit;
 }
 

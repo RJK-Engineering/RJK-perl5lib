@@ -15,7 +15,6 @@ use RJK::Util::LockFile;
 sub new {
     my $self = bless {}, shift;
     $self->{opts} = shift;
-    $self->{opts}{afterPoll} //= sub {};
     return $self;
 }
 
@@ -66,7 +65,6 @@ sub setupMonitors {
 
 sub poll {
     $_->poll() for @{$_[0]{monitors}};
-    $_[0]{opts}{afterPoll}();
 }
 
 ###############################################################################
