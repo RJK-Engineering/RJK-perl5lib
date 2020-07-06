@@ -38,15 +38,17 @@ sub delete {
 
     $self->console->confirm("Delete?") || return;
 
-    while (my ($file, $settings) = each %{$self->settings->{settings}}) {
+    while (my ($file, $settings) = each %{$self->settings->files}) {
         next if $settings->{category} ne "delete";
 
         if (unlink $file) {
+            $self->settings->delete($file);
             print "Deleted $file\n";
         } else {
-            print "$!: $file\n";
+            print "$!: $file\n" if $self->opts->{verbose};
         }
     }
+    print "Done.\n";
 }
 
 sub move {
