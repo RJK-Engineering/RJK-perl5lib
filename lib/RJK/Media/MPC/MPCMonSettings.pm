@@ -14,19 +14,29 @@ sub new {
 }
 
 sub files {
-    return $_[0]{settings};
+    return $_[0]{settings}{files};
+}
+
+sub observers {
+    return $_[0]{settings}{observers} //= {};
+}
+
+sub setObserverEnabled {
+    my ($self, $observer, $enabled) = @_;
+    $self->{settings}{observers}{$observer}{enabled} = $enabled;
+    $self->{dirty} = 1;
 }
 
 sub get {
     my ($self, $file, $prop) = @_;
-    $file = $self->{settings}{$file};
+    $file = $self->{settings}{files}{$file};
     return $file && $file->{$prop};
 }
 
 sub set {
     my ($self, $file, $prop, $value) = @_;
 
-    my $settings = $self->{settings}{$file} //= {};
+    my $settings = $self->{settings}{files}{$file} //= {};
 
     $self->{previous} = {
         file => $file,
@@ -41,7 +51,7 @@ sub set {
 
 sub delete {
     my ($self, $file) = @_;
-    delete $self->{settings}{$file};
+    delete $self->{settings}{files}{$file};
     $self->{dirty} = 1;
 }
 
@@ -56,7 +66,7 @@ sub undo {
     my $self = shift;
     my $p = $self->{previous};
     if ($p) {
-        delete $self->{settings}{ $p->{file} }{ $p->{prop} };
+        delete $self->{settings}{files}{ $p->{file} }{ $p->{prop} };
         print "Undo: $p->{file} ($p->{prop})\n";
         $self->{dirty} = 1;
     } else {
@@ -66,7 +76,7 @@ sub undo {
 
 sub list {
     my $self = shift;
-    while (my ($file, $settings) = each %{$self->{settings}}) {
+    while (my ($file, $settings) = each %{$self->{settings}{files}}) {
         my $cat = $settings->{category};
         printf "%s\t%s\n", $cat ? "$cat" : "", $file;
     }

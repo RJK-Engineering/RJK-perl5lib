@@ -113,25 +113,28 @@ sub disableObserver {
 
 sub observerSwitch {
     my ($self, $name, $mon) = @_;
-    $self->getObservers($name, $mon, sub {
+    return $self->getObservers($name, $mon, sub {
         my ($name, $mon, $observer) = @_;
         if ($self->{observables}{$mon}->hasObserver($observer)) {
-            print "Disabled $name for $mon\n";
+            print "Disable: $mon => $name\n";
             $self->{observables}{$mon}->removeObserver($observer);
+            return 0;
         } else {
-            print "Enabled $name for $mon\n";
+            print "Enable: $mon => $name\n";
             $self->{observables}{$mon}->addObserver($observer);
+            return 1;
         }
     });
 }
 
 sub getObservers {
     my ($self, $name, $mon, $callback) = @_;
+    my $retval;
 
     if ($mon) {
         if ($self->{observables}{$mon}) {
             if (my $observer = $self->{observers}{$mon}{$name}) {
-                $callback->($name, $mon, $observer);
+                $retval = $callback->($name, $mon, $observer);
             } else {
                 print "WARN Invalid Observer: $name\n";
             }
@@ -139,17 +142,18 @@ sub getObservers {
             print "WARN Invalid Monitor: $mon\n";
         }
     } else {
-        my $found = 0;
+        my $observer;
         foreach $mon (keys %{$self->{observables}}) {
-            if (my $observer = $self->{observers}{$mon}{$name}) {
-                $callback->($name, $mon, $observer);
-                $found = 1;
+            if ($observer = $self->{observers}{$mon}{$name}) {
+                $retval = $callback->($name, $mon, $observer);
+                last;
             }
         }
-        if (! $found) {
+        if (! $observer) {
             print "WARN Invalid Observer: $name\n";
         }
     }
+    return $retval;
 }
 
 ###############################################################################
