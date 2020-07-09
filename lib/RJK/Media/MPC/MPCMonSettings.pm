@@ -7,36 +7,39 @@ use RJK::Util::JSON;
 
 sub new {
     my $self = bless {}, shift;
-    my $file = shift;
-    $self->{settingsFile} = new RJK::Util::JSON($file)->read;
-    $self->{settings} = $self->{settingsFile}->data;
+    $self->{file} = shift;
+
+    my $data = RJK::Util::JSON->read($self->{file});
+    $self->{files} = $data->{files};
+    $self->{observers} = $data->{observers};
+
     return $self;
 }
 
 sub files {
-    return $_[0]{settings}{files};
+    return $_[0]{files};
 }
 
 sub observers {
-    return $_[0]{settings}{observers} //= {};
+    return $_[0]{observers} //= {};
 }
 
 sub setObserverEnabled {
     my ($self, $observer, $enabled) = @_;
-    $self->{settings}{observers}{$observer}{enabled} = $enabled;
+    $self->{observers}{$observer}{enabled} = $enabled;
     $self->{dirty} = 1;
 }
 
 sub get {
     my ($self, $file, $prop) = @_;
-    $file = $self->{settings}{files}{$file};
+    $file = $self->{files}{$file};
     return $file && $file->{$prop};
 }
 
 sub set {
     my ($self, $file, $prop, $value) = @_;
 
-    my $settings = $self->{settings}{files}{$file} //= {};
+    my $settings = $self->{files}{$file} //= {};
 
     $self->{previous} = {
         file => $file,
@@ -51,14 +54,19 @@ sub set {
 
 sub delete {
     my ($self, $file) = @_;
-    delete $self->{settings}{files}{$file};
+    delete $self->{files}{$file};
     $self->{dirty} = 1;
 }
 
 sub save {
     my $self = shift;
     return if ! $self->{dirty};
-    $self->{settingsFile}->write;
+
+    RJK::Util::JSON->write($self->{file}, {
+        files => $self->{files},
+        observers => $self->{observers},
+    });
+
     $self->{dirty} = 0;
 }
 
@@ -66,7 +74,7 @@ sub undo {
     my $self = shift;
     my $p = $self->{previous};
     if ($p) {
-        delete $self->{settings}{files}{ $p->{file} }{ $p->{prop} };
+        delete $self->{files}{ $p->{file} }{ $p->{prop} };
         print "Undo: $p->{file} ($p->{prop})\n";
         $self->{dirty} = 1;
     } else {
@@ -76,7 +84,7 @@ sub undo {
 
 sub list {
     my $self = shift;
-    while (my ($file, $settings) = each %{$self->{settings}{files}}) {
+    while (my ($file, $settings) = each %{$self->{files}}) {
         my $cat = $settings->{category};
         printf "%s\t%s\n", $cat ? "$cat" : "", $file;
     }
