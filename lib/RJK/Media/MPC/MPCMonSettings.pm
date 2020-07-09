@@ -8,12 +8,27 @@ use RJK::Util::JSON;
 sub new {
     my $self = bless {}, shift;
     $self->{file} = shift;
+    $self->load;
+    return $self;
+}
 
+sub load {
+    my $self = shift;
     my $data = RJK::Util::JSON->read($self->{file});
     $self->{files} = $data->{files};
     $self->{observers} = $data->{observers};
+}
 
-    return $self;
+sub save {
+    my $self = shift;
+    return if ! $self->{dirty};
+
+    RJK::Util::JSON->write($self->{file}, {
+        files => $self->{files},
+        observers => $self->{observers},
+    });
+
+    $self->{dirty} = 0;
 }
 
 sub files {
@@ -56,18 +71,6 @@ sub delete {
     my ($self, $file) = @_;
     delete $self->{files}{$file};
     $self->{dirty} = 1;
-}
-
-sub save {
-    my $self = shift;
-    return if ! $self->{dirty};
-
-    RJK::Util::JSON->write($self->{file}, {
-        files => $self->{files},
-        observers => $self->{observers},
-    });
-
-    $self->{dirty} = 0;
 }
 
 sub undo {
