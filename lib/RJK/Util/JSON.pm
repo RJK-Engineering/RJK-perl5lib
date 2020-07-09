@@ -1,5 +1,4 @@
 package RJK::Util::JSON;
-use parent 'RJK::Util::DataFile';
 
 use strict;
 use warnings;
@@ -7,67 +6,44 @@ use warnings;
 use JSON;
 use Try::Tiny;
 
-use Exception::Class (
-    'Exception',
-    'RJK::Util::JSON::Exception' =>
-        { isa => 'Exception' },
-);
-
-my $json = JSON->new
-    ->allow_nonref      # Convert a non-reference into its corresponding string,
-                        # number or null JSON value
-    ->convert_blessed   # Upon encountering a blessed object, will check for the
-                        # availability of the TO_JSON method on the object's class.
-                        # If found, it will be called in scalar context and the
-                        # resulting scalar will be encoded instead of the object.
-    ->canonical         # Output JSON objects by sorting their keys. This is adding
-                        # a comparatively high overhead.
-    ->pretty;           # Generate the most readable (or most compact) form possible.
+use RJK::File::Exceptions;
 
 sub read {
-    my ($self, $file) = @_;
-    $file //= $self->{file};
+    my ($class, $file) = @_;
 
-    $self->{data} = {};
-
-    return $self unless -e $file;
-    throw RJK::Util::JSON::Exception("Not a file: $file") unless -f $file;
-    return $self if -z $file;
+    throw RJK::File::NoFileException(file => $file) if ! -f $file;
+    throw RJK::File::EmptyFileException(file => $file) if -z $file;
 
     local $/; # slurp entire file
     open my $fh, '<', $file
-        or throw RJK::Util::JSON::Exception("$!: $file");
+        or throw RJK::File::OpenFileException(file => $file, error => "$!");
 
+    my $data;
     try {
-        $self->{data} = $json->decode(<$fh>);
+        $data = JSON->new->decode(<$fh>);
     } catch {
-        throw RJK::Util::JSON::Exception(shift);
+        throw Exception(shift);
+    } finally {
+        close $fh;
     };
 
-    close $fh;
-
-    return $self;
+    return $data;
 }
 
 sub write {
-    my ($self, $file) = @_;
-    $file //= $self->{file};
-
-    throw RJK::Util::JSON::Exception("Not a file: $file")
-        unless !-e $file || -f $file;
+    my ($class, $file, $data) = @_;
 
     open my $fh, '>', $file
-        or throw RJK::Util::JSON::Exception("$!: $file");
+        or throw RJK::File::OpenFileException(file => $file, error => "$!");
 
     try {
-        print $fh $json->encode($self->{data});
+        #~ print $fh JSON->new->allow_nonref->convert_blessed->canonical->pretty->encode($data);
+        print $fh JSON->new->canonical->pretty->encode($data);
     } catch {
-        throw RJK::Util::JSON::Exception(shift);
+        throw Exception(shift);
+    } finally {
+        close $fh;
     };
-
-    close $fh;
-
-    return $self;
 }
 
 1;
