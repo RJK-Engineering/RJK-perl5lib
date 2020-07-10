@@ -16,7 +16,8 @@ use Exception::Class (
         isa => 'RJK::File::Exception'
     },
     'RJK::File::OpenFileException' => {
-        isa => 'RJK::File::Exception'
+        isa => 'RJK::File::Exception',
+        fields => ['mode']
     }
 );
 
