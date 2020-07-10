@@ -56,8 +56,8 @@ sub setRoot {
 }
 
 sub getFiles {
-    my ($self, $dirpath) = @_;
-    my @files = values %{$self->{files}{$dirpath}};
+    my ($self, $path) = @_;
+    my @files = values %{$self->{files}{$path}};
     return wantarray ? @files : \@files;
 }
 
@@ -96,12 +96,13 @@ sub hasDir {
 }
 
 sub setFile {
-    my ($self, $path) = @_;
+    my ($self, $path, $stat) = @_;
     my ($dir, $file) = $self->_splitPath($path);
     $self->_dirExists($dir)
         || throw Exception(error => "Directory not available in archive: $dir");
 
-    my $stat = new RJK::IO::File($path)->stat;
+    $stat //= new RJK::IO::File($path)->stat;
+
     my @file = (
         $file, $stat->{size},
         format_datetime($stat->{modified}),
@@ -122,13 +123,13 @@ sub setFile {
 }
 
 sub setDir {
-    my ($self, $dirpath) = @_;
-    my $file = new RJK::IO::File($dirpath);
-    my $path = $file->{path};
+    my ($self, $path, $stat) = @_;
+    my $dir = new RJK::IO::File($path);
+    $path = $dir->{path};
     return 1 if $path =~ /^\Q$self->{root}\E\\?$/i;
     return 0 if $path !~ s/^\Q$self->{root}\E\\(.+)/$1/i;
 
-    my $stat = $file->stat;
+    $stat //= $dir->stat;
 
     # dir exists
     if ($self->{files}{$path}) {
@@ -137,9 +138,9 @@ sub setDir {
             # update stat
             ($_->[2], $_->[3]) = format_datetime($stat->{modified});
             # optional id
-            #~ if (exists $file->{id}) {
+            #~ if (exists $dir->{id}) {
             #~     $_->[4] = ""; # dir has no crc
-            #~     $_->[5] = $file->{id};
+            #~     $_->[5] = $dir->{id};
             #~ }
             last;
         }
@@ -147,15 +148,15 @@ sub setDir {
     }
 
     # check for and add parent directories recursively
-    $dirpath = $file->parent;
-    if (! $self->{files}{$dirpath}) {
-        $self->setDir($dirpath) or return 0;
+    my $parent = $dir->parent;
+    if (! $self->{files}{$parent}) {
+        $self->setDir($parent) or return 0;
     }
 
     # add dir
     push @{$self->{directories}}, [
         $path, 0, format_datetime($stat->{modified}),
-        #~ "", exists $file->{id} ? $file->{id} : ()
+        #~ "", exists $dir->{id} ? $dir->{id} : ()
     ];
     $self->{files}{$path} = {};
 
