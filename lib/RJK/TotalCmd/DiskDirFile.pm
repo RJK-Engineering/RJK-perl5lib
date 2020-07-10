@@ -98,54 +98,47 @@ sub hasDir {
 sub setFile {
     my ($self, $path, $stat) = @_;
     my ($dir, $file) = $self->_splitPath($path);
-    $self->_dirExists($dir)
-        || throw Exception(error => "Directory not available in archive: $dir");
 
-    $stat //= new RJK::IO::File($path)->stat;
+    my $f = new RJK::IO::File($path);
+    if (! $self->_dirExists($dir)) {
+        $self->setDir($f->parent);
+    }
+    $stat //= $f->stat;
 
-    my @file = (
+    $self->{files}{$dir}{$file} = [
         $file, $stat->{size},
-        format_datetime($stat->{modified}),
-    );
-
-    $self->{files}{$dir}{$file} = \@file;
-
-    return 1;
+        format_datetime($stat->{modified})
+    ];
 }
 
 sub setDir {
     my ($self, $path, $stat) = @_;
-    my $dir = new RJK::IO::File($path);
-    $path = $dir->{path};
-    return 1 if $path =~ /^\Q$self->{root}\E\\?$/i;
-    return 0 if $path !~ s/^\Q$self->{root}\E\\(.+)/$1/i;
+    my ($dir) = $self->_splitPath("$path\\file");
+    $dir || throw Exception("Path not in root: $path, root: $self->{root}");
+    return if $dir eq $rootDirpath;
 
-    $stat //= $dir->stat;
+    my $f = new RJK::IO::File($path);
+    $stat //= $f->stat;
 
-    # dir exists
-    if ($self->{files}{$path}) {
+    if ($self->_dirExists($dir)) {
         foreach (@{$self->{directories}}) {
-            next if $_->[0] ne $path;
+            next if $_->[0] ne $dir;
             # update stat
             ($_->[2], $_->[3]) = format_datetime($stat->{modified});
             last;
         }
-        return 1;
+    } else {
+        my $parent = $f->parent;
+        if (! $self->{files}{$parent}) {
+            # add parent directories recursively
+            $self->setDir($parent);
+        }
+
+        push @{$self->{directories}}, [
+            $dir, 0, format_datetime($stat->{modified})
+        ];
+        $self->{files}{$dir} = {};
     }
-
-    # check for and add parent directories recursively
-    my $parent = $dir->parent;
-    if (! $self->{files}{$parent}) {
-        $self->setDir($parent) or return 0;
-    }
-
-    # add dir
-    push @{$self->{directories}}, [
-        $path, 0, format_datetime($stat->{modified})
-    ];
-    $self->{files}{$path} = {};
-
-    return 1;
 }
 
 sub deleteFile {
