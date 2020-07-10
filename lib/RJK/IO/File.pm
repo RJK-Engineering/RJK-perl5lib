@@ -3,6 +3,7 @@ package RJK::IO::File;
 use strict;
 use warnings;
 
+use RJK::File::Exceptions;
 use RJK::File::Paths;
 use RJK::File::Stat;
 
@@ -10,8 +11,12 @@ sub new {
     my $self = bless {}, shift;
     my ($parent, $child) = @_;
 
-    if (ref $parent && defined $child) {
-        $self->{path} = RJK::File::Paths::get($parent->{path}, $child)->{path};
+    if (ref $parent) {
+        if (defined $child) {
+            $self->{path} = RJK::File::Paths::get($parent->{path}, $child)->{path};
+        } else {
+            $self->{path} = $parent->{path};
+        }
     } else {
         $self->{path} = RJK::File::Paths::get(@_)->{path};
     }
@@ -19,6 +24,7 @@ sub new {
     return $self;
 }
 
+sub name { $_[0]->toPath->{name} }
 sub path { $_[0]{path} }
 sub parent { $_[0]->toPath->{dir} }
 sub canExecute { -x $_[0]{path} }
@@ -71,16 +77,25 @@ sub files {
 }
 
 sub getParentFile {
-    my $dir = $_[0]->toPath->{dir};
+    my $dir = $_[0]->parent;
     $dir ? __PACKAGE__->new($dir) : undef;
 }
 
 sub stat {
-    RJK::File::Stat::get($_[0]{path});
+    RJK::File::Stat::get($_[0]{path})
+        || throw RJK::File::Exception(error => "Stat failed", file => $_[0]{path});
 }
 
 sub toPath {
     RJK::File::Paths::get($_[0]{path});
+}
+
+sub open {
+    my ($self, $mode) = @_;
+    $mode ||= '<';
+    CORE::open my $fh, $mode, $self->{path}
+        or throw RJK::File::OpenFileException(error => "$!", file => $self->{path}, mode => $mode);
+    return $fh;
 }
 
 sub toString {
