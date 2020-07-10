@@ -107,15 +107,6 @@ sub setFile {
         $file, $stat->{size},
         format_datetime($stat->{modified}),
     );
-    #~ # optional fields crc and id
-    #~ if (exists $file->{crc}) {
-    #~     push @file, $file->{crc};
-    #~ } elsif (exists $file->{id}) {
-    #~     push @file, "";
-    #~ }
-    #~ if (exists $file->{id}) {
-    #~     push @file, $file->{id};
-    #~ }
 
     $self->{files}{$dir}{$file} = \@file;
 
@@ -137,11 +128,6 @@ sub setDir {
             next if $_->[0] ne $path;
             # update stat
             ($_->[2], $_->[3]) = format_datetime($stat->{modified});
-            # optional id
-            #~ if (exists $dir->{id}) {
-            #~     $_->[4] = ""; # dir has no crc
-            #~     $_->[5] = $dir->{id};
-            #~ }
             last;
         }
         return 1;
@@ -155,8 +141,7 @@ sub setDir {
 
     # add dir
     push @{$self->{directories}}, [
-        $path, 0, format_datetime($stat->{modified}),
-        #~ "", exists $dir->{id} ? $dir->{id} : ()
+        $path, 0, format_datetime($stat->{modified})
     ];
     $self->{files}{$path} = {};
 
