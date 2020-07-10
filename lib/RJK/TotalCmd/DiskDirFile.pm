@@ -52,6 +52,7 @@ sub files { $_[0]{files} }
 
 sub setRoot {
     my ($self, $path) = @_;
+    $path =~ s/\\$//;
     $self->{root} = $path;
 }
 
@@ -69,14 +70,14 @@ sub getDirectories {
 
 sub getFile {
     my ($self, $path) = @_;
-    my ($dir, $file) = $self->_splitPath($path);
+    my ($dir, $file) = $self->_splitFile($path);
     return undef if ! $self->_fileExists($dir, $file);
     return $self->{files}{$dir}{$file};
 }
 
 sub getDir {
     my ($self, $path) = @_;
-    my ($dir) = $self->_splitPath("$path\\file");
+    my $dir = $self->_splitDir($path);
     return undef if ! $self->_dirExists($dir);
     foreach (@{$self->{directories}}) {
         return $_ if $_->[0] eq $dir;
@@ -91,13 +92,13 @@ sub hasFile {
 
 sub hasDir {
     my ($self, $path) = @_;
-    my ($dir) = $self->_splitPath("$path\\file");
+    my $dir = $self->_splitDir($path);
     return $self->_dirExists($dir);
 }
 
 sub setFile {
     my ($self, $path, $stat) = @_;
-    my ($dir, $file) = $self->_splitPath($path);
+    my ($dir, $file) = $self->_splitFile($path);
 
     my $f = new RJK::IO::File($path);
     if (! $self->_dirExists($dir)) {
@@ -113,7 +114,7 @@ sub setFile {
 
 sub setDir {
     my ($self, $path, $stat) = @_;
-    my ($dir) = $self->_splitPath("$path\\file");
+    my $dir = $self->_splitDir($path);
     $dir || throw Exception("Path not in root: $path, root: $self->{root}");
     return if $dir eq $rootDirpath;
 
@@ -143,14 +144,14 @@ sub setDir {
 
 sub deleteFile {
     my ($self, $path) = @_;
-    my ($dir, $file) = $self->_splitPath($path);
+    my ($dir, $file) = $self->_splitFile($path);
     return 0 if ! $self->_fileExists($dir, $file);
     return delete $self->{files}{$dir}{$file};
 }
 
 sub deleteDir {
     my ($self, $path) = @_;
-    my ($dir) = $self->_splitPath("$path\\file");
+    my $dir = $self->_splitDir($path);
     return 0 if ! $self->_dirExists($dir);
     $self->{directories} = [ grep { $_->[0] ne $dir } @{$self->{directories}} ];
     return delete $self->{files}{$dir};
@@ -177,7 +178,6 @@ sub read {
 
     my $root = <$fh>;
     chomp $root;
-    $root =~ s/\\$//;
 
     $self->setRoot($root);
     $self->{directories} = [ [ $rootDirpath ] ];
@@ -211,10 +211,11 @@ sub write {
         my @fields = @$_;
         $path = shift @fields;
 
-        if (@fields) { # root has path only
+        if (@fields) {
             print $fh "$path\\\t";
             print $fh join("\t", @fields), "\n";
         } else {
+            # root has path only
             print $fh "$self->{root}\\\n";
         }
 
@@ -226,13 +227,17 @@ sub write {
     close $fh;
 }
 
-sub _splitPath {
+sub _splitFile {
     my ($self, $path) = @_;
     return () if $path !~ s/^\Q$self->{root}\E//i;
+    my ($dirpath, $filename) = $path =~ /\\?(.*)\\(.+)/;
+    return ($dirpath || $rootDirpath, $filename);
+}
 
-    my ($dirpath, $filename) = $path =~ /\\?(.*)\\([^\\]+)/;
-    $dirpath ||= $rootDirpath;
-    return ($dirpath, $filename);
+sub _splitDir {
+    my ($self, $path) = @_;
+    return () if $path !~ s/^\Q$self->{root}\E\\//i;
+    return $path =~ s/\\+$//r || $rootDirpath;
 }
 
 sub _fileExists {
