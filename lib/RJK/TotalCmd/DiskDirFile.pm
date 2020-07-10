@@ -5,36 +5,15 @@
 =cut
 
 package RJK::TotalCmd::DiskDirFile;
-use parent 'RJK::IO::File';
 
 use v5.16; # enables fc feature
 use strict;
 use warnings;
 
 use Date::Parse ();
+use Exception::Class 'Exception';
 
-###############################################################################
-=pod
-
----++ Object attributes
-
-Return object attribute value if called with no arguments, set object
-attribute value and return the same value otherwise.
-
----+++ root($root) -> $root
----+++ directories(\@directories) -> \@directories
----+++ files(\%files) -> \%files
----+++ isDirty($isDirty) -> $isDirty
-
-=cut
-###############################################################################
-
-use Class::AccessorMaker {
-    root => undef,     # path
-    directories => [], # [reldirpath,0,date,time,"",id]
-    files => {},       # reldirpath => filename => [filename,size,date,time,crc,id]
-    isDirty => 0,
-}, "no_new";
+use RJK::IO::File;
 
 my $rootDirpath = ".";
 
@@ -50,135 +29,133 @@ Returns a new =RJK::TotalCmd::DiskDirFile= object.
 ###############################################################################
 
 sub new {
-    my $self = shift->SUPER::new(@_);
-    $self->{directories} = [];
-    $self->{files} = {};
-    $self->{sort} = sub { fc $_[0][0] cmp fc $_[1][0] };
+    my $self = bless {}, shift;
+    $self->{root} = shift;
     return $self;
 }
+
+###############################################################################
+=pod
+
+---++ Object attributes
+
+---+++ root($root) -> $root
+---+++ directories(\@directories) -> \@directories
+---+++ files(\%files) -> \%files
+
+=cut
+###############################################################################
+
+sub root { $_[0]{root} }
+sub directories { $_[0]{directories} }
+sub files { $_[0]{files} }
 
 sub setRoot {
     my ($self, $path) = @_;
     $self->{root} = $path;
-    $self->{directories} = [ [ $rootDirpath ] ];
-    $self->{files}{$rootDirpath} = {};
 }
 
 sub getFiles {
-    values %{$_[0]{files}{$_[1]}};
-}
-
-sub hasFile {
-    my ($self, $path) = @_;
-    my ($dirpath, $filename) = $self->_splitPath($path);
-
-    return 0 if ! $dirpath
-             or ! $self->{files}{$dirpath};
-
-    return exists $self->{files}{$dirpath}{$filename};
-}
-
-sub hasDir {
     my ($self, $dirpath) = @_;
-    return 0 if $dirpath !~ s/^\Q$self->{root}\E\\?//i;
+    my @files = values %{$self->{files}{$dirpath}};
+    return wantarray ? @files : \@files;
+}
 
-    $dirpath //= $rootDirpath;
-    return exists $self->{files}{$dirpath};
+sub getDirectories {
+    my $self = shift;
+    my $dirs = $self->{directories};
+    return wantarray ? @$dirs : $dirs;
 }
 
 sub getFile {
     my ($self, $path) = @_;
-    my ($dirpath, $filename) = $self->_splitPath($path);
-
-    return if ! $dirpath
-           or ! $self->{files}{$dirpath}
-           or ! $self->{files}{$dirpath}{$filename};
-
-    return $self->_createFile(
-        $self->{files}{$dirpath}{$filename}
-    );
+    my ($dir, $file) = $self->_splitPath($path);
+    return undef if ! $self->_fileExists($dir, $file);
+    return $self->{files}{$dir}{$file};
 }
 
 sub getDir {
     my ($self, $path) = @_;
-    return if $path !~ s/^\Q$self->{root}\E\\?//i;
-
-    $path //= $rootDirpath;
-    return if ! $self->{files}{$path};
-
-    foreach my $dir (@{$self->{directories}}) {
-        if ($dir->[0] eq $path) {
-            return $self->_createDir($dir);
-        }
+    my ($dir) = $self->_splitPath("$path\\file");
+    return undef if ! $self->_dirExists($dir);
+    foreach (@{$self->{directories}}) {
+        return $_ if $_->[0] eq $dir;
     }
-    return;
+    throw Exception("Internal error");
+}
+
+sub hasFile {
+    my ($self, $path) = @_;
+    return !! $self->getFile($path);
+}
+
+sub hasDir {
+    my ($self, $path) = @_;
+    my ($dir) = $self->_splitPath("$path\\file");
+    return $self->_dirExists($dir);
 }
 
 sub setFile {
-    my ($self, $file) = @_;
-    my ($dirpath, $filename) = $self->_splitPath($file->{path});
-    return 0 if ! $dirpath;
+    my ($self, $path) = @_;
+    my ($dir, $file) = $self->_splitPath($path);
+    $self->_dirExists($dir)
+        || throw Exception(error => "Directory not available in archive: $dir");
 
-    # check for and add parent dir
-    if (! $self->{files}{$dirpath}) {
-        return 0 if ! $self->setDir($file->parent->stat);
-    }
-
-    # set file
+    my $stat = new RJK::IO::File($path)->stat;
     my @file = (
-        $filename, $file->{size},
-        format_datetime($file->{modified}),
+        $file, $stat->{size},
+        format_datetime($stat->{modified}),
     );
-    # optional fields crc and id
-    if (exists $file->{crc}) {
-        push @file, $file->{crc};
-    } elsif (exists $file->{id}) {
-        push @file, "";
-    }
-    if (exists $file->{id}) {
-        push @file, $file->{id};
-    }
+    #~ # optional fields crc and id
+    #~ if (exists $file->{crc}) {
+    #~     push @file, $file->{crc};
+    #~ } elsif (exists $file->{id}) {
+    #~     push @file, "";
+    #~ }
+    #~ if (exists $file->{id}) {
+    #~     push @file, $file->{id};
+    #~ }
 
-    $self->{isDirty} = 1;
-    $self->{files}{$dirpath}{$filename} = \@file;
+    $self->{files}{$dir}{$file} = \@file;
 
     return 1;
 }
 
 sub setDir {
-    my ($self, $file) = @_;
+    my ($self, $dirpath) = @_;
+    my $file = new RJK::IO::File($dirpath);
     my $path = $file->{path};
     return 1 if $path =~ /^\Q$self->{root}\E\\?$/i;
     return 0 if $path !~ s/^\Q$self->{root}\E\\(.+)/$1/i;
+
+    my $stat = $file->stat;
 
     # dir exists
     if ($self->{files}{$path}) {
         foreach (@{$self->{directories}}) {
             next if $_->[0] ne $path;
-            # date
-            ($_->[2], $_->[3]) = format_datetime($file->{modified});
+            # update stat
+            ($_->[2], $_->[3]) = format_datetime($stat->{modified});
             # optional id
-            if (exists $file->{id}) {
-                $_->[4] = ""; # dir has no crc
-                $_->[5] = $file->{id};
-            }
+            #~ if (exists $file->{id}) {
+            #~     $_->[4] = ""; # dir has no crc
+            #~     $_->[5] = $file->{id};
+            #~ }
             last;
         }
         return 1;
     }
 
     # check for and add parent directories recursively
-    my $parent = $file->parent();
-    if (! $self->{files}{$parent->{path}}) {
-        $self->setDir($parent->stat) or return 0;
+    $dirpath = $file->parent;
+    if (! $self->{files}{$dirpath}) {
+        $self->setDir($dirpath) or return 0;
     }
-
-    $self->{isDirty} = 1;
 
     # add dir
     push @{$self->{directories}}, [
-        $path, 0, format_datetime($file->{modified}),
-        "", exists $file->{id} ? $file->{id} : ()
+        $path, 0, format_datetime($stat->{modified}),
+        #~ "", exists $file->{id} ? $file->{id} : ()
     ];
     $self->{files}{$path} = {};
 
@@ -187,61 +164,17 @@ sub setDir {
 
 sub deleteFile {
     my ($self, $path) = @_;
-    my ($dirpath, $filename) = $self->_splitPath($path);
-    return 0 if ! $dirpath;
-
-    return 0 if ! $self->{files}{$dirpath};
-    return $self->{isDirty} = defined delete $self->{files}{$dirpath}{$filename};
+    my ($dir, $file) = $self->_splitPath($path);
+    return 0 if ! $self->_fileExists($dir, $file);
+    return delete $self->{files}{$dir}{$file};
 }
 
 sub deleteDir {
     my ($self, $path) = @_;
-    return 0 if $path !~ s/^\Q$self->{root}\E\\//i;
-
-    $self->{directories} = [ grep {
-        unless ($_->[0] !~ /^\Q$path\E/i) {
-            $self->{isDirty} = defined delete $self->{files}{$_->[0]};
-            0;
-        }
-    } @{$self->{directories}} ];
-}
-
-sub traverse {
-    my ($self, %opts) = @_;
-    return 0 if $opts{path} !~ s/^\Q$self->{root}\E\\//i;
-
-    $opts{visitFile} ||= sub {};
-    foreach my $dir (@{$self->{directories}}) {
-        my $d = $self->_createDir($dir);
-        if ($dir->[0] =~ /^\Q$opts{path}\E/i) {
-            foreach (values %{$self->{files}{$dir->[0]}}) {
-                #~ print "$_->[0]\n";
-                my $file = $self->_createFile($_);
-                $opts{visitFile}->($file);
-            }
-        }
-    }
-}
-
-sub search {
-    my ($self, $search) = @_;
-
-    my @results;
-    my @words = split /\s+/, $search;
-
-    foreach my $dir (@{$self->{directories}}) {
-        my $d = $self->_createDir($dir);
-        foreach (values %{$self->{files}{$dir->[0]}}) {
-            my $name = $_->[0];
-            my $match = 1;
-            foreach (@words) {
-                $match &&= $name =~ /$_/i;
-            }
-            push @results, $self->_createFile($_) if $match;
-        }
-    }
-
-    return @results;
+    my ($dir) = $self->_splitPath("$path\\file");
+    return 0 if ! $self->_dirExists($dir);
+    $self->{directories} = [ grep { $_->[0] ne $dir } @{$self->{directories}} ];
+    return delete $self->{files}{$dir};
 }
 
 ###############################################################################
@@ -249,25 +182,27 @@ sub search {
 
 ---++ File access
 
----+++ read([$path]) -> $diskDirFile
-Read data from file. Returns false on failure, callee on success.
+---+++ read($path)
+Read data from file.
 
----+++ write([$path]) -> $diskDirFile
-Write data to file. Returns false on failure, callee on succes.
+---+++ write($path)
+Write data to file.
 
 =cut
 ###############################################################################
 
 sub read {
-    my ($self) = @_;
-
-    open (my $fh, '<', $self->{path}) || return 0;
+    my ($self, $path) = @_;
+    my $file = new RJK::IO::File($path);
+    my $fh = $file->open;
 
     my $root = <$fh>;
     chomp $root;
     $root =~ s/\\$//;
+
     $self->setRoot($root);
-    $self->{isDirty} = 0;
+    $self->{directories} = [ [ $rootDirpath ] ];
+    $self->{files}{$rootDirpath} = {};
 
     my $dirpath = $rootDirpath;
     while (<$fh>) {
@@ -287,14 +222,15 @@ sub read {
 }
 
 sub write {
-    my ($self) = @_;
-    $self->{root} || return 0;
+    my ($self, $path) = @_;
+    $self->{root} || throw Exception("No root path set");
 
-    open (my $fh, ">", $self->{path}) || return 0;
+    my $file = new RJK::IO::File($path);
+    my $fh = $file->open('>');
 
-    foreach my $dir (@{$self->{directories}}) {
-        my @fields = @$dir;
-        my $path = shift @fields;
+    foreach (@{$self->{directories}}) {
+        my @fields = @$_;
+        $path = shift @fields;
 
         if (@fields) { # root has path only
             print $fh "$path\\\t";
@@ -304,43 +240,31 @@ sub write {
         }
 
         my $files = $self->{files}{$path};
-        foreach (sort { $self->{sort}->($a, $b) } values %$files) {
+        foreach (sort { fc $a->[0] cmp fc $b->[0] } values %$files) {
             print $fh join("\t", @$_), "\n";
         }
     }
     close $fh;
-    $self->{isDirty} = 0;
-
-    return $self;
-}
-
-sub _createFile {
-    my ($self, $file) = @_;
-    my $f = new RJK::IO::File("$self->{root}\\$file->[0]");
-    $f->{size} = $file->[1];
-    $f->{modified} = parse_datetime("$file->[2] $file->[3]");
-    $f->{crc} = $file->[4];
-    $f->{id} = $file->[5];
-    return $f;
-}
-
-sub _createDir {
-    my ($self, $dir) = @_;
-    my $f = new RJK::IO::File("$self->{root}\\$dir->[0]");
-    if ($dir->[2]) { # root does not have date/time info
-        $f->{modified} = parse_datetime("$dir->[2] $dir->[3]");
-    }
-    $f->{id} = $dir->[5];
-    return $f;
 }
 
 sub _splitPath {
     my ($self, $path) = @_;
-    return 0 if $path !~ s/^\Q$self->{root}\E//i;
+    return () if $path !~ s/^\Q$self->{root}\E//i;
 
     my ($dirpath, $filename) = $path =~ /\\?(.*)\\([^\\]+)/;
     $dirpath ||= $rootDirpath;
     return ($dirpath, $filename);
+}
+
+sub _fileExists {
+    my ($self, $dir, $file) = @_;
+    return $self->_dirExists($dir)
+        && exists $self->{files}{$dir}{$file};
+}
+
+sub _dirExists {
+    my ($self, $dir) = @_;
+    return $dir && exists $self->{files}{$dir};
 }
 
 sub parse_datetime {
