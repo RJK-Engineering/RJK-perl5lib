@@ -5,7 +5,7 @@ use warnings;
 
 sub printAndExit {
     if ( UNIVERSAL::isa($_, 'Exception') ) {
-        print $_->error, " (", ref, ")\n";
+        print STDERR ref, "\nerror = ", $_->error, "\n";
         if ($_->Fields) {
             foreach my $field ($_->Fields) {
                 print STDERR "$field = ", $_->$field//"(undef)", "\n";
@@ -20,7 +20,7 @@ sub printAndExit {
 sub verbosePrintAndExit {
     if ( UNIVERSAL::isa($_, 'Exception') ) {
         print STDERR ref, "\n\n";
-        print STDERR "Message:\n", $_->error, "\n";
+        print STDERR "Error message:\n", $_->error, "\n";
         if ($_->Fields) {
             print STDERR "\nFields:\n";
             foreach my $field ($_->Fields) {
