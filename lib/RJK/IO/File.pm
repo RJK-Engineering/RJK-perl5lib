@@ -38,22 +38,26 @@ sub lastModified { $_[0]->stat->{modified} }
 
 sub createNewFile {
     return if -e $_[0]{path};
-    open my $fh, '>', $_[0]{path} or die "$!: $_[0]{path}";
+    open my $fh, '>', $_[0]{path}
+        or throw RJK::File::OpenFileException(error => "$!", file => $_[0]{path}, mode => '>');
     close $fh;
 }
 
 sub delete {
     if ($_[0]->isFile) {
-        unlink $_[0]{path} or die "$!: $_[0]{path}";
+        unlink $_[0]{path}
+            or throw RJK::File::Exception(error => "$!", file => $_[0]{path});
     } elsif ($_[0]->isDir) {
-        rmdir $_[0]{path} or die "$!: $_[0]{path}";
+        rmdir $_[0]{path}
+            or throw RJK::File::Exception(error => "$!", file => $_[0]{path});
     }
 }
 
 sub filenames {
     my ($self, $filter) = @_;
 
-    opendir my $dh, $self->{path} or die "$!: $self->{path}";
+    opendir my $dh, $self->{path}
+        or throw RJK::File::OpenDirException(error => "$!", file => $self->{path});
     my @names = readdir $dh;
     closedir $dh;
 
