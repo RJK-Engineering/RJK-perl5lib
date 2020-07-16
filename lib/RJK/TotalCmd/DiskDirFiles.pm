@@ -11,6 +11,7 @@ use warnings;
 
 use File::Spec::Functions qw(catdir catfile splitdir splitpath);
 
+use RJK::File::Exceptions;
 use RJK::TotalCmd::DiskDirFile;
 use RJK::TreeVisitResult qw(matchesTreeVisitResult :constants);
 use RJK::File::Paths;
@@ -18,7 +19,8 @@ use RJK::File::Paths;
 sub traverse {
     my ($class, $path, $visitor, $opts) = @_;
 
-    open my $fh, '<', $path or die "$!: $path";
+    open my $fh, '<', $path
+        or throw RJK::File::OpenFileException(error => "$!", file => $path, mode => '<');
 
     my $root = <$fh>;
     chomp $root;
