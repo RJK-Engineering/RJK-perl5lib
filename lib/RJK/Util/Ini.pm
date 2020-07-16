@@ -12,6 +12,7 @@ package RJK::Util::Ini;
 use strict;
 use warnings;
 
+use RJK::File::Exceptions;
 use RJK::Util::PropertyList;
 
 ###############################################################################
@@ -253,7 +254,8 @@ sub read {
     my ($self, $file) = @_;
     $file //= $self->{file};
 
-    open (my $in, '<', $file) || return $self;
+    open my $in, '<', $file
+        or throw RJK::File::OpenFileException(error => "$!", file => $file, mode => '<');
     $self->clear();
 
     my ($pl, $keys);
@@ -290,7 +292,8 @@ sub write {
     if (ref $file && ref $file eq 'GLOB') {
         $fh = $file;
     } else {
-        open ($fh, '>', $file) || return;
+        open $fh, '>', $file
+           or throw RJK::File::OpenFileException(error => "$!", file => $file, mode => '>');
     }
 
     my @sections = $sort ? sort @{$self->{sections}}
