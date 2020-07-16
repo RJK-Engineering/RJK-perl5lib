@@ -3,7 +3,21 @@ package RJK::Exception;
 use strict;
 use warnings;
 
-sub GeneralCatch {
+sub printAndExit {
+    if ( UNIVERSAL::isa($_, 'Exception') ) {
+        print $_->error, " (", ref, ")\n";
+        if ($_->Fields) {
+            foreach my $field ($_->Fields) {
+                print STDERR "$field = ", $_->$field//"(undef)", "\n";
+            }
+        }
+    } else {
+        print STDERR "$_\n";
+    }
+    exit 1;
+}
+
+sub verbosePrintAndExit {
     if ( UNIVERSAL::isa($_, 'Exception') ) {
         print STDERR ref, "\n\n";
         print STDERR "Message:\n", $_->error, "\n";
@@ -14,11 +28,10 @@ sub GeneralCatch {
             }
         }
         print STDERR "\n", $_->trace->as_string;
-        exit 1;
     } else {
         print STDERR "$_\n", Devel::StackTrace->new->as_string;
-        exit 1;
     }
+    exit 1;
 }
 
 1;
