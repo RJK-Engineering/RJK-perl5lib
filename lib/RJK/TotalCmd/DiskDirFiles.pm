@@ -50,8 +50,6 @@ sub traverse {
                 last;
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
                 $skip = quotemeta $dir->{dir};
-            } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
-                die "Invalid TreeVisitResult: SKIP_SUBTREE";
             }
 
             $dir = RJK::File::Paths::get($root, $fields->[0]);
@@ -87,8 +85,6 @@ sub traverse {
                 last;
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
                 $skip = quotemeta $dir->{path};
-            } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
-                die "Invalid TreeVisitResult: SKIP_SUBTREE";
             }
         }
     }
