@@ -3,14 +3,6 @@ package RJK::TreeVisitResult;
 use strict;
 use warnings;
 
-use Exception::Class (
-    'Exception',
-    'RJK::File::TreeVisitResultException' => {
-        isa => 'Exception',
-        fields => ['result']
-    }
-);
-
 use constant {
     CONTINUE => bless([], 'RJK::TreeVisitResult'),
     TERMINATE => bless([], 'RJK::TreeVisitResult'),
