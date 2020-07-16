@@ -236,8 +236,7 @@ sub _splitFile {
 
 sub _splitDir {
     my ($self, $path) = @_;
-    return () if $path !~ s/^\Q$self->{root}\E\\//i;
-    return $path =~ s/\\+$//r || $rootDirpath;
+    return ($path =~ /^\Q$self->{root}\E\\(.*?)\\*$/i)[0] || $rootDirpath;
 }
 
 sub _fileExists {
