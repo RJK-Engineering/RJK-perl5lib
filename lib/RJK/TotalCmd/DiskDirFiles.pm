@@ -9,8 +9,6 @@ package RJK::TotalCmd::DiskDirFiles;
 use strict;
 use warnings;
 
-use File::Spec::Functions qw(catdir catfile splitdir splitpath);
-
 use RJK::File::Exceptions;
 use RJK::TotalCmd::DiskDirFile;
 use RJK::TreeVisitResult qw(matchesTreeVisitResult :constants);
