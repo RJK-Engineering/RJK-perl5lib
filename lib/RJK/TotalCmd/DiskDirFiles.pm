@@ -22,47 +22,43 @@ sub traverse {
     open my $fh, '<', $path
         or throw RJK::File::OpenFileException(error => "$!", file => $path, mode => '<');
 
-    my $root = <$fh>;
-    chomp $root;
-    $root =~ s/\\$//;
-
-    my $dir = RJK::File::Paths::get($root);
-    my $stat = { modified => '' };
-
-    my $result = $visitor->preVisitDir($dir, $stat);
-
-    return if matchesTreeVisitResult($result, TERMINATE, SKIP_SIBLINGS, SKIP_SUBTREE);
-
-    my $skip;
+    my ($root, $dir, $stat, $result, $skip);
     while (<$fh>) {
         chomp;
         my $fields = [ split /\t/ ];
 
         if ($fields->[0] =~ s/\\$//) {
+            if ($dir) {
+                $result = $visitor->postVisitDir($dir);
+
+                if (matchesTreeVisitResult($result, TERMINATE)) {
+                    last;
+                } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
+                    $skip = quotemeta $dir->{dir};
+                }
+            }
+
             if (defined $skip) {
                 next if $fields->[0] =~ /^$skip/;
                 $skip = undef;
             }
 
-            $result = $visitor->postVisitDir($dir);
-
-            if (matchesTreeVisitResult($result, TERMINATE)) {
-                last;
-            } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
-                $skip = quotemeta $dir->{dir};
-            }
-
-            $dir = RJK::File::Paths::get($root, $fields->[0]);
-            unless ($opts->{quick}) {
-                $stat = {
-                    modified => RJK::TotalCmd::DiskDirFile::parse_datetime("$fields->[2] $fields->[3]")
+            $stat = { modified => '' };
+            if (@$fields > 1) {
+                $dir = RJK::File::Paths::get($root, $fields->[0]);
+                if (! $opts->{nostat}) {
+                    $stat->{modified} = RJK::TotalCmd::DiskDirFile::parse_datetime("$fields->[2] $fields->[3]");
                 }
+            } else {
+                $root = $fields->[0];
+                $dir = RJK::File::Paths::get($fields->[0]);
             }
 
             $result = $visitor->preVisitDir($dir, $stat);
+            return if matchesTreeVisitResult($result, TERMINATE, SKIP_SIBLINGS, SKIP_SUBTREE);
 
             if (matchesTreeVisitResult($result, TERMINATE)) {
-                last;
+                return;
             } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
                 $skip = quotemeta $dir->{path};
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
@@ -71,25 +67,27 @@ sub traverse {
         } else {
             next if defined $skip;
 
-            my $file = RJK::File::Paths::get($root, $fields->[0]);
-            unless ($opts->{quick}) {
-                $stat = {
-                    size => $fields->[1],
-                    modified => ! $opts->{quick} && RJK::TotalCmd::DiskDirFile::parse_datetime("$fields->[2] $fields->[3]"),
-                }
+            my $dirpath = $dir ? $dir->{path} : '';
+            my $file = RJK::File::Paths::get($dirpath, $fields->[0]);
+
+            if (! $opts->{nostat}) {
+                $stat->{size} = $fields->[1];
+                $stat->{modified} = ! $opts->{nostat} && RJK::TotalCmd::DiskDirFile::parse_datetime("$fields->[2] $fields->[3]");
             }
 
             $result = $visitor->visitFile($file, $stat);
 
             if (matchesTreeVisitResult($result, TERMINATE)) {
-                last;
+                return;
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
                 $skip = quotemeta $dir->{path};
             }
         }
     }
 
-    $result = $visitor->postVisitDir($dir);
+    if ($dir) {
+        $result = $visitor->postVisitDir($dir);
+    }
 }
 
 1;
