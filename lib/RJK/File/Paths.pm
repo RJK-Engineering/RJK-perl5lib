@@ -6,7 +6,7 @@ use warnings;
 use File::Spec::Functions qw(canonpath catdir catpath splitpath);
 
 sub get {
-    my $path = catdir(@_);
+    my $path = catdir(grep {$_ ne ""} @_);
     $path = canonpath($path);
 
     my ($volume, $directories, $file) = splitpath($path);
