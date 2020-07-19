@@ -136,7 +136,6 @@ sub read {
     $file //= $self->{path};
 
     $self->{ini}->read($file) || return;
-    $self->{searches} = {};          # name => Search
 
     return $self;
 }
@@ -279,7 +278,6 @@ sub setColors {
 ---+++ history($section) -> @history or \@history
 ---+++ addToHistory($section, $text) -> ProperyList
 ---+++ getSearches() -> %searches or \%searches
----+++ getSearch($name) -> RJK::TotalCmd::Search
 ---+++ report()
 
 =cut
@@ -299,26 +297,23 @@ sub addToHistory {
     $self->{ini}->setList($section, $h);
 }
 
-sub getSearches {
-    my $self = shift;
-    my $s = $self->_getSearches();
-    return wantarray ? values %$s : $s;
-}
-
 sub getSearch {
     my ($self, $name) = @_;
-    my $s = $self->_getSearches();
-    return $s->{$name};
+    my $searches = $self->getSearches(sub {shift->{name} =~ /^\Q$name\E$/}, 1);
+    return (values %$searches)[0];
 }
 
-sub _getSearches {
-    my $self = shift;
-    if (! $self->{searches}) {
-        foreach (values %{$self->{ini}->getHashes('searches', { key => 'name' })}) {
-            $self->{searches}{$_->{name}} = new RJK::TotalCmd::Search(%$_);
-        }
+sub getSearches {
+    my ($self, $filter, $first) = @_;
+    $filter //= sub {1};
+    my %searches;
+
+    foreach (values %{$self->{ini}->getHashes('searches', { key => 'name' })}) {
+        next if ! $filter->($_);
+        $searches{$_->{name}} = new RJK::TotalCmd::Search(%$_);
+        last if $first;
     }
-    return $self->{searches};
+    return wantarray ? %searches : \%searches;
 }
 
 sub report {
