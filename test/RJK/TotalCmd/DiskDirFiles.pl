@@ -18,14 +18,15 @@ RJK::TotalCmd::DiskDirFiles->traverse($file, new RJK::SimpleFileVisitor(
         #~ return SKIP_SUBTREE; # same as CONTINUE for visitFile
         #~ return CONTINUE; # optional
     },
-    preVisitDir => sub {
-        my ($dir, $stat, $files, $dirs) = @_;
+    preVisitFiles => sub {
+        my ($dir, $stat) = @_;
         print "---> $dir->{path}\t$stat->{modified}\n";
         #~ return SKIP_SIBLINGS;
         #~ return SKIP_SUBTREE;
+        return SKIP_SUBTREE if $dir->{name} eq 'INC';
     },
-    postVisitDir => sub {
-        my ($dir, $error, $files, $dirs) = @_;
+    postVisitFiles => sub {
+        my ($dir, $error) = @_;
         print "<--- $dir->{path}\n";
         #~ return TERMINATE;
     }

@@ -7,7 +7,7 @@ use warnings;
 sub new {
     my $self = bless {}, shift;
     my %opts = @_;
-    for (qw(preVisitDir postVisitDir postVisitFiles visitFile visitFileFailed)) {
+    for (qw(preVisitDir postVisitDir preVisitFiles postVisitFiles visitFile visitFileFailed)) {
         $self->{$_} = $opts{$_} || sub {};
     }
     return $self;
@@ -21,6 +21,10 @@ sub preVisitDir {
 sub postVisitDir {
     my $self = shift;
     $self->{postVisitDir}->(@_);
+}
+sub preVisitFiles {
+    my $self = shift;
+    $self->{preVisitFiles}->(@_);
 }
 
 sub postVisitFiles {
