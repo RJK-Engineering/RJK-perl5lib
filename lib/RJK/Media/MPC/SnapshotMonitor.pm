@@ -1,3 +1,9 @@
+=begin TML
+
+---+ package RJK::Media::MPC::SnapshotMonitor
+
+=cut
+
 package RJK::Media::MPC::SnapshotMonitor;
 use parent 'RJK::Media::MPC::Monitor';
 

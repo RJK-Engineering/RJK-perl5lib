@@ -1,4 +1,3 @@
-###############################################################################
 =begin TML
 
 ---+ package RJK::Win32::VolumeInfo
@@ -13,7 +12,6 @@
 ? DRIVE_RAMDISK     A "ram disk" or memory-resident virtual file system used for high-speed access to small amounts of temporary file space.
 
 =cut
-###############################################################################
 
 package RJK::Win32::VolumeInfo;
 

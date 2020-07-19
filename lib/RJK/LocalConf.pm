@@ -1,3 +1,9 @@
+=begin TML
+
+---+ package RJK::LocalConf
+
+=cut
+
 package RJK::LocalConf;
 
 use strict;

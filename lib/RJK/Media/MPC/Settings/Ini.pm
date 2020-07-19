@@ -1,3 +1,9 @@
+=begin TML
+
+---+ package RJK::Media::MPC::Settings::Ini
+
+=cut
+
 package RJK::Media::MPC::Settings::Ini;
 use parent 'RJK::Util::Ini';
 

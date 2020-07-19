@@ -1,3 +1,9 @@
+=begin TML
+
+---+ package RJK::Media::EMule::PartMet
+
+=cut
+
 package RJK::Media::EMule::PartMet;
 
 use strict;
