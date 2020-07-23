@@ -22,39 +22,45 @@ use Exception::Class (
 use RJK::TotalCmd::Log::Entry;
 
 our @fields = qw(
-    date time operation ok
-    source sourcedir sourcefile
-    path dir file
-    destination destdir destfile
+    date time
+    sourcedir sourcefile source dir file path
+    destdir destfile destination
+    operation isFsPluginOp
+    success error skipped
+    user encoding
 );
 
 ###############################################################################
 =pod
 
----+++ traverse($file, $entryCallback, $corruptLineCallback)
-   * =$entryCallback= - Traversal is stopped if this sub returns a true value.
-   * =$corruptLineCallback= - Optional. Traversal is stopped if this sub returns a true value.
+---+++ traverse($file, %opts)
+   * =$file= - path to log file.
+   * =$opts{visitEntry}= - traversal is stopped if this sub returns a true value.
+     Subroutine arguments:
+      * =$entry= - =RJK::TotalCmd::Log::Entry= object.
+   * =$opts{visitFailed}= - Optional. Traversal is stopped if this sub returns a true value.
+     Subroutine arguments:
+      * =$line= - the corrupt line.
    * throws RJK::TotalCmd::Log::Exception
-   * throws RJK::TotalCmd::Log::CorruptLineException, unless
-     =$corruptLineCallback= is defined.
+   * throws RJK::TotalCmd::Log::CorruptLineException, unless =$visitFailed= is defined.
 
 =cut
 ###############################################################################
 
 sub traverse {
-    my ($self, $file, $entryCallback, $corruptLineCallback) = @_;
+    my ($self, %opts) = @_;
 
-    open(my $fh, '<', $file)
-        || throw RJK::TotalCmd::Log::Exception("$!");
+    open my $fh, '<', $opts{file}
+        or throw RJK::TotalCmd::Log::Exception("$!");
 
-    $entryCallback && ref $entryCallback && ref $entryCallback eq "CODE"
-        || throw RJK::TotalCmd::Log::Exception("No callback");
+    $opts{visitEntry} && ref $opts{visitEntry} && ref $opts{visitEntry} eq "CODE"
+        or throw RJK::TotalCmd::Log::Exception("No callback");
 
-    if ($corruptLineCallback) {
-        ref $corruptLineCallback && ref $corruptLineCallback eq "CODE"
+    if ($opts{visitFailed}) {
+        ref $opts{visitFailed} && ref $opts{visitFailed} eq "CODE"
             or throw RJK::TotalCmd::Log::Exception("Invalid corrupt line callback");
     } else {
-        $corruptLineCallback = sub {
+        $opts{visitFailed} = sub {
             my $line = shift;
             throw RJK::TotalCmd::Log::CorruptLineException(
                 error => "Corrupt line: $line",
@@ -67,6 +73,7 @@ sub traverse {
     while (<$fh>) {
         next unless /\S/;
         chomp;
+        my $line = $_;
 
         # first line (sometimes?) starts with weird chars
         if ($firstline) {
@@ -82,12 +89,12 @@ sub traverse {
             $entry->{date} = $1;
             $entry->{time} = $2;
         } else {
-            last if $corruptLineCallback->($_);
+            last if $opts{visitFailed}->($line);
             next;
         }
 
-        # parse entry
-        # Ok:       [op]: [params]
+        # parse operation
+        # Success:  [op]: [params]
         # Error:    [op](Error: [error]): [params]
         # Skip:     [op](Skipped): [params]
         # Startup:  Program start ([user]) [encoding]
@@ -95,12 +102,12 @@ sub traverse {
 
         # file system plugin operation
         if (s/^FS://) {
-            $entry->{fsPluginOp} = 1;
+            $entry->{isFsPluginOp} = 1;
         }
 
         if (s/^(\w+): //) {
             $entry->{operation} = $1;
-            $entry->{ok} = 1;
+            $entry->{success} = 1;
         } elsif (s/^(\w+)\(Error: (.+)\): //) {
             $entry->{operation} = $1;
             $entry->{error} = $2;
@@ -109,16 +116,16 @@ sub traverse {
             $entry->{skipped} = 1;
         } elsif (/^Program start \((.+)\)$/) {
             $entry->{operation} = "Startup";
-            $entry->{user} = $2;
+            $entry->{user} = $1;
         } elsif (/^Program start \((.+)\) (.+)$/) {
             $entry->{operation} = "Startup";
-            $entry->{user} = $2;
-            $entry->{encoding} = $3;
+            $entry->{user} = $1;
+            $entry->{encoding} = $2;
         } elsif (/^Program shutdown \((.+)\)$/) {
             $entry->{operation} = "Shutdown";
-            $entry->{user} = $2;
+            $entry->{user} = $1;
         } else {
-            $corruptLineCallback->($_);
+            last if $opts{visitFailed}->($line);
             next;
         }
 
@@ -130,9 +137,6 @@ sub traverse {
             $entry->{destination} = $4;
             $entry->{destdir} = $5;
             $entry->{destfile} = $6;
-        #~ } elsif (/^(.+) -> (.+)$/) {
-        #~     $entry->{source} = $1;
-        #~     $entry->{destination} = $2;
         } elsif (/^((.+)\\(.+))$/) {
             $entry->{source} = $1;
             $entry->{sourcedir} = $2;
@@ -141,7 +145,7 @@ sub traverse {
             $entry->{source} = $_;
         }
 
-        # aliasses
+        # aliases
         if ($entry->{sourcedir}) {
             $entry->{path} = $entry->{source};
             $entry->{dir} = $entry->{sourcedir};
@@ -149,7 +153,7 @@ sub traverse {
         }
 
         local $_ = $entry;
-        last if $entryCallback->($entry);
+        last if $opts{visitEntry}->($entry);
     }
     close $fh;
 }
@@ -163,7 +167,7 @@ Log entry format: [date and time]: [entry]
 [date and time] := [dd]-[mm]-[yyyy] [hh]:[mm]:[ss]
 
 [entry] :=
-Ok:       [op]: [params]
+Success:  [op]: [params]
 Error:    [op](Error: [error]): [params]
 Skip:     [op](Skipped): [params]
 Startup:  Program start ([user]) [encoding]
@@ -172,29 +176,29 @@ Shutdown: Program shutdown ([user])
 [op] := FS:[operation] | [operation]
 [operation] := Move | Copy | Delete |
                CreateFile | NewFolder | DeleteFolder |
-               Pack | Unpack
-[error] :=  Aborted | Write error | Failed | Not Found
+               Pack | Unpack | Shortcut
+[error] :=  Aborted | Read error | Write error | Failed | Not found
+            Invalid name | Identical | CRC error | Archive bad
 
 params for operations:
 [operation]              [params]
-Move, Copy:              [filepath] -> [filepath] *1 File might be renamed.
-Move:                    [dirpath -> dirpath]     *2 Only on same filesystem.
-Delete, CreateFile:      [filepath]               *3 A Delete also occurs after a Move to a different filesystem.
-NewFolder, DeleteFolder: [dirpath]
-
+Move, Copy:              [filepath] -> [filepath] *1) File might be renamed
+Move:                    [dirpath -> dirpath]     *2) Moving a directory on same filesystem
+Delete, CreateFile:      [filepath]               *3) A Delete also occurs after a Move to a different filesystem
+NewFolder, DeleteFolder: [dirpath]                *2) Also occurs when moving a directory to a different filesystem
 
 
 NOTES
 
-*1 A file rename is a Move or a Copy to a different filename.
+*1) A file rename is a Move or a Copy to a different filename.
 
-*2 Moving a directory to a different filesystem* is not a Move operation!:
+*2) Moving a directory to a different filesystem is not a Move operation!:
 
 NewFolder: T:\dir
 (move stuff inside)
 DeleteFolder: S:\dir
 
-*3 Moving a file to a different filesystem* results in a Delete after the Move:
+*3) Moving a file to a different filesystem results in a Delete after the Move:
 
 Move: S:\file -> T:\file
 Delete: S:\file
@@ -209,10 +213,11 @@ or
 Delete(Skipped): S:\dir
 (delete stuff inside)
 
-BUG!!!:
-A bug in a previous version causes a DeleteFolder and a NewFolder after moving a
-directory on the same filesystem*.
+NB!:
+The quickest way of moving a file or directory on the same filesystem
+is changing its address, which might not work if there is a lock on
+the file or if there are locks inside the directory!
 
-* Moving on the same filesystem technically means changing the address of the
-file or of the top level directory (which might not work if there is a lock on
-the file or if there are locks inside the directory).
+BUG!:
+A bug in a previous version causes a DeleteFolder and a NewFolder after moving a
+directory on the same filesystem.
