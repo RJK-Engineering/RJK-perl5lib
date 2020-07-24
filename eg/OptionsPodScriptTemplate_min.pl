@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Options::Pod;
+use RJK::Options::Pod;
 
 ###############################################################################
 =head1 DESCRIPTION
@@ -21,15 +21,15 @@ script.pl -h
 =cut
 ###############################################################################
 
-Options::Pod::GetOptions(
+RJK::Options::Pod::GetOptions(
     # must start with array ref containing section header!
     ['POD'],
-    Options::Pod::Options,
+    RJK::Options::Pod::Options,
     ['HELP'],
-    Options::Pod::HelpOptions
+    RJK::Options::Pod::HelpOptions
 );
 
-@ARGV || Options::Pod::pod2usage(
+@ARGV || RJK::Options::Pod::pod2usage(
     -sections => "DESCRIPTION|SYNOPSIS|DISPLAY EXTENDED HELP"
 );
 
