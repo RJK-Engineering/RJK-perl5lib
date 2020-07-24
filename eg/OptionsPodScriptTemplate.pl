@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Options::Pod;
+use RJK::Options::Pod;
 
 ###############################################################################
 =head1 DESCRIPTION
@@ -173,27 +173,26 @@ boolean, a value of 1 will be assigned when the option is used.
 ###############################################################################
 
 my %opts = ();
-Options::Pod::GetOptions(
+RJK::Options::Pod::GetOptions(
     ['HELP OPTIONS'],
-    Options::Pod::HelpOptions([
-        [ "DESCRIPTION|SYNOPSIS|HELP OPTIONS|CONFIGURATION OPTIONS", "Display this extended help." ],
-        [ "MESSAGE OPTIONS", "Display message options." ],
-        [ "POD OPTIONS", "Display POD options." ],
-        [ "", "Display complete help." ]
-    ]),
+    RJK::Options::Pod::HelpOptions(
+        ['help', "Display this extended help.", "DESCRIPTION|SYNOPSIS|HELP OPTIONS|CONFIGURATION OPTIONS"],
+        ['help-message', "Display message options.", "MESSAGE OPTIONS"],
+        ['help-pod', "Display POD options.", "POD OPTIONS"]
+    ),
 
     ['CONFIGURATION OPTIONS'],
     'f|force' => \$opts{force}, "Force.",
 
     ['MESSAGE OPTIONS'],
-    Options::Pod::MessageOptions(\%opts),
+    RJK::Options::Pod::MessageOptions(\%opts),
 
     ['POD OPTIONS'],
-    Options::Pod::Options
+    RJK::Options::Pod::Options
 );
 
 $opts{required} //
-@ARGV || Options::Pod::pod2usage(
+@ARGV || RJK::Options::Pod::pod2usage(
     -sections => "DESCRIPTION|SYNOPSIS|DISPLAY EXTENDED HELP",
 );
 
