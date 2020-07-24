@@ -111,7 +111,7 @@ my %getoptConf = (
 
 my %opts;
 my $optConf;
-my $helpLevels = [[]];
+my $helpOptions;
 
 my $optionSectionStart = '=for options start';
 my $optionSectionEnd = '=for options end';
@@ -194,25 +194,28 @@ sub Options {
 }
 
 sub HelpOptions {
-    $helpLevels = shift;
-    my $optionNames = shift || 'h|help';
+    my $defaultOption = shift;
+    my @customOptions = @_;
 
-    if (ref $helpLevels) {
-        $helpLevels = [ $helpLevels ] if ! ref $helpLevels->[0];
-    } elsif (defined $helpLevels) {
-        die "Invalid parameters to ".__PACKAGE__."::HelpOptions";
-    } else {
-        $helpLevels = [
-            [ "OPTIONS", "Display program options." ],
-            [ "HELP", "Display help options." ],
-            [ "POD", "Display POD options." ],
-            [ "", "Display complete help." ]
-        ];
+    $defaultOption->[0] ||= 'h|help|?';
+    $defaultOption->[1] ||= 'Display extended help.';
+    $defaultOption->[2] ||= 'DESCRIPTION|SYNOPSIS|OPTIONS';
+
+    $helpOptions = [
+        $defaultOption, @customOptions,
+        [ 'help-all', "Display complete help.", "" ]
+    ];
+
+    my @options;
+    foreach my $option (@$helpOptions) {
+        #~ $opts{$option->[0]} = 0;
+        push @options,
+            $option->[0],
+            \$opts{$option->[0]},
+            $conf{comments_included} ? $option->[1] : ();
     }
 
-    my $repeat = @$helpLevels > 1 ? "+" : "";
-    return
-    "$optionNames|?$repeat" => \$opts{help}, $conf{comments_included} ? "Display extended help." : ();
+    return @options;
 }
 
 sub MessageOptions {
@@ -280,26 +283,32 @@ sub HandleOptions {
     my $sections;
     my $exitstatus;
 
-    if ($opts{help}) {
-        $sections = $helpLevels ? $helpLevels->[$opts{help} - 1][0] : "";
-        $sections ||= "DESCRIPTION|SYNOPSIS|OPTIONS";
-    } elsif ($opts{generatePod}) {
-        if ($optConf) {
-            if ($opts{writePod}) {
-                WritePod();
-            } else {
-                print GeneratePod();
-            }
-        } else {
-            die "No configuration, use ".__PACKAGE__."::GetOptions(..configuration..)";
+    foreach my $option (@$helpOptions) {
+        if ($opts{$option->[0]}) {
+            $sections = $option->[2];
+            last;
         }
-        exit;
-    } elsif ($opts{writePod}) {
-        print "Option --writepod without --genpod.\n";
-        $sections = "POD";
     }
 
-    if ($sections) {
+    if (! defined $sections) {
+        if ($opts{generatePod}) {
+            if ($optConf) {
+                if ($opts{writePod}) {
+                    WritePod();
+                } else {
+                    print GeneratePod();
+                }
+            } else {
+                die "No configuration, use ".__PACKAGE__."::GetOptions(..configuration..)";
+            }
+            exit;
+        } elsif ($opts{writePod}) {
+            print "Option --writepod without --genpod.\n";
+            $sections = "POD";
+        }
+    }
+
+    if (defined $sections) {
         Pod::Usage::pod2usage(
             -verbose => 99,
             defined $exitstatus ? (-exitstatus => $exitstatus) : (),
@@ -393,19 +402,6 @@ sub GeneratePod {
             next;
         }
 
-        my $doubleDash = $conf{bundling} ? "--" : "-";
-
-        if ($optConf->[$i] eq 'h|help|?+' and $helpLevels) {
-            for (my $l=0; $l<@$helpLevels; $l++) {
-                my ($podSections, $comment) = @{$helpLevels->[$l]};
-                my $q = $l ? '"' : "";
-                $pod .= sprintf "=item B<-h%s $q${doubleDash}help%s$q -?%s>\n\n",
-                        "h" x $l, " ${doubleDash}help" x $l, "?" x $l;
-                $pod .= "$comment\n\n";
-            }
-            next;
-        }
-
         my ($optSpec, $typeSpec) = split /[!+=:]/, $optConf->[$i];
         my $comment = $conf{comments_included} ? $optConf->[$i+2] : "";
         my $opts;
@@ -420,6 +416,8 @@ sub GeneratePod {
             $typeSpec =~ s/^o/extended integer/;
             $typeSpec =~ s/^f/real number/;
         }
+
+        my $doubleDash = $conf{bundling} ? "--" : "-";
 
         $pod .= "=item B<";
         $pod .= $opts // join " ", map {
