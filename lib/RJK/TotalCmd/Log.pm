@@ -30,6 +30,19 @@ our @fields = qw(
     user encoding
 );
 
+our @operations = qw(
+    Move Copy Delete CreateFile NewFolder DeleteFolder
+    Pack Unpack Shortcut Startup Shutdown
+);
+
+our @errors = (
+    'Failed', 'Aborted', 'Not found', 'Identical', 'Read error',
+    'Write error', 'Invalid name', 'Packer not found', 'Temp file error',
+    'Delete failed', 'CRC error', 'No files', 'Too big', 'Too many files',
+    'Bad parameter(s)', 'Archive bad', 'Not supported', 'Encrypted',
+    'Module in use', 'File exists', 'Postponed'
+);
+
 ###############################################################################
 =pod
 
@@ -174,11 +187,15 @@ Startup:  Program start ([user]) [encoding]
 Shutdown: Program shutdown ([user])
 
 [op] := FS:[operation] | [operation]
-[operation] := Move | Copy | Delete |
-               CreateFile | NewFolder | DeleteFolder |
-               Pack | Unpack | Shortcut
-[error] :=  Aborted | Read error | Write error | Failed | Not found
-            Invalid name | Identical | CRC error | Archive bad
+[operation] :=
+    Move | Copy | Delete | CreateFile | NewFolder | DeleteFolder |
+    Pack | Unpack | Shortcut | Startup | Shutdown
+[error] :=
+    Failed | Aborted | Not found | Identical | Read error |
+    Write error | Invalid name | Packer not found | Temp file error |
+    Delete failed | CRC error | No files | Too big | Too many files |
+    Bad parameter(s) | Archive bad | Not supported | Encrypted |
+    Module in use | File exists | Postponed
 
 params for operations:
 [operation]              [params]
