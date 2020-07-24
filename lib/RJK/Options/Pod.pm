@@ -193,6 +193,30 @@ sub Options {
         "A backup is created." : ()
 }
 
+###############################################################################
+=pod
+
+---+++ HelpOptions($default, @custom) -> @options
+
+<verbatim>
+option list:
+default:  ['h|help|?', "Display extended help.", "DESCRIPTION|SYNOPSIS|OPTIONS"]
+custom:   @custom
+help-all: ['help-all', "Display all help.", ""]
+
+* default can be overwritten (undef value keeps default value)
+* help-all is always added and cannot be overwritten
+
+HelpOptions(['help|?'], ['help-custom', "Custom", "CUSTOM"])
+->
+['help|?',      "Display extended help.", "DESCRIPTION|SYNOPSIS|OPTIONS"],
+['help-custom', "Custom.",                "CUSTOM"],
+['help-all',    "Display all help.",      ""]
+</verbatim>
+
+=cut
+###############################################################################
+
 sub HelpOptions {
     my $defaultOption = shift;
     my @customOptions = @_;
