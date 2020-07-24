@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Options::Pod;
+use RJK::Options::Pod;
 
 ###############################################################################
 =head1 DESCRIPTION
@@ -22,7 +22,7 @@ script.pl -h
 ###############################################################################
 
 my %opts;
-Options::Pod::GetOptions(
+RJK::Options::Pod::GetOptions(
     # must start with array ref containing section header!
     ['OPTIONS'],
     'v|switch' => \$opts{verbose}, "Description",
@@ -32,12 +32,12 @@ Options::Pod::GetOptions(
     'f|realnumber=f' => \$opts{float}, "Description {real}",
 
     ['POD'],
-    Options::Pod::Options,
+    RJK::Options::Pod::Options,
     ['HELP'],
-    Options::Pod::HelpOptions("DESCRIPTION|SYNOPSIS|OPTIONS|POD|HELP")
+    RJK::Options::Pod::HelpOptions(['help'])
 );
 
-@ARGV || Options::Pod::pod2usage(
+@ARGV || RJK::Options::Pod::pod2usage(
     -sections => "DESCRIPTION|SYNOPSIS|DISPLAY EXTENDED HELP"
 );
 
