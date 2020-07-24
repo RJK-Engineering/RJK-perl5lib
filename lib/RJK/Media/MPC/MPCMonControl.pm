@@ -57,6 +57,12 @@ sub init {
         #~ '?' => help,
         1 => sub { $self->status },
         q => sub { $self->quit },
+        c => sub {
+            $self->settings->setObserverEnabled(
+                "Categorize",
+                $self->mpcMon->observerSwitch("Categorize")
+            );
+        },
         s => sub {
             $self->settings->setObserverEnabled(
                 "CopySnapshotToMediaFileDir",
@@ -122,7 +128,7 @@ sub addObservers {
 
     # TODO store enabled observers in status file
     #~ $self->mpcMon->enableObserver('LogEvents');
-    #~ $self->mpcMon->enableObserver('Categorize');
+    $self->mpcMon->enableObserver('Categorize');
     #~ $self->mpcMon->enableObserver('CopySnapshotToMediaFileDir');
 
     while (my ($observer, $settings) = each %{$self->settings->observers}) {
