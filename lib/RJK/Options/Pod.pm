@@ -195,6 +195,8 @@ sub Options {
 
 sub HelpOptions {
     $helpLevels = shift;
+    my $optionNames = shift || 'h|help';
+
     if (ref $helpLevels) {
         $helpLevels = [ $helpLevels ] if ! ref $helpLevels->[0];
     } elsif (defined $helpLevels) {
@@ -207,9 +209,10 @@ sub HelpOptions {
             [ "", "Display complete help." ]
         ];
     }
+
     my $repeat = @$helpLevels > 1 ? "+" : "";
     return
-    "h|help|?$repeat" => \$opts{help}, $conf{comments_included} ? "Display extended help." : ();
+    "$optionNames|?$repeat" => \$opts{help}, $conf{comments_included} ? "Display extended help." : ();
 }
 
 sub MessageOptions {
