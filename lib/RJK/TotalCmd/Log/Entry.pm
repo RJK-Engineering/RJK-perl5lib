@@ -6,27 +6,33 @@ use warnings;
 use Class::AccessorMaker {
     date => undef,
     time => undef,
+
+    sourcedir => undef,  dir => undef,
+    sourcefile => undef, file => undef,
+    source => undef,     path => undef,
+
+    destdir => undef,
+    destfile => undef,
+    destination => undef,
+
     operation => undef,
-    fsPluginOp => undef,
-    ok => undef,
+    isFsPluginOp => undef,
+
+    success => undef,
     error => undef,
     skipped => undef,
+
     user => undef,
     encoding => undef,
-    source => undef,
-    destination => undef,
 };
-
-sub operationOk {
-    my $self = shift;
-    return ! $self->{error}
-        && ! $self->{skipped};
-}
 
 sub getOpMsg {
     my $self = shift;
     return $self->{error}
-        || $self->{skipped} && "Skipped";
+        || $self->{skipped} && "Skipped"
+        || $self->{success} && "Success"
+        || $self->{user} && ($self->{encoding} ? "$self->{user}, $self->{encoding}" : $self->{user})
+        || "No message";
 }
 
 1;
