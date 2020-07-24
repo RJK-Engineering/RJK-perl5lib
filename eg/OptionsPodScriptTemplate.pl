@@ -97,7 +97,7 @@ RJK::Options::Pod::GetOptions(
     RJK::Options::Pod::Options,
     ['HELP'],
     RJK::Options::Pod::HelpOptions(
-        ['h|help|?', "Display extended help.", "DESCRIPTION|SYNOPSIS|HELP"],
+        ['h|help|?', "Display extended help.", "DESCRIPTION|SYNOPSIS|OPTIONS"],
         ['help-message', "Display message options.", "MESSAGE"],
         ['help-pod', "Display POD options.", "POD"]
     )
