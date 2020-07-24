@@ -174,27 +174,23 @@ boolean, a value of 1 will be assigned when the option is used.
 
 my %opts = ();
 RJK::Options::Pod::GetOptions(
-    ['HELP OPTIONS'],
-    RJK::Options::Pod::HelpOptions(
-        ['help', "Display this extended help.", "DESCRIPTION|SYNOPSIS|HELP OPTIONS|CONFIGURATION OPTIONS"],
-        ['help-message', "Display message options.", "MESSAGE OPTIONS"],
-        ['help-pod', "Display POD options.", "POD OPTIONS"]
-    ),
-
-    ['CONFIGURATION OPTIONS'],
+    ['OPTIONS'],
     'f|force' => \$opts{force}, "Force.",
 
-    ['MESSAGE OPTIONS'],
+    ['MESSAGE'],
     RJK::Options::Pod::MessageOptions(\%opts),
-
-    ['POD OPTIONS'],
-    RJK::Options::Pod::Options
+    ['POD'],
+    RJK::Options::Pod::Options,
+    ['HELP'],
+    RJK::Options::Pod::HelpOptions(
+        ['h|help|?', "Display extended help.", "DESCRIPTION|SYNOPSIS|HELP"],
+        ['help-message', "Display message options.", "MESSAGE"],
+        ['help-pod', "Display POD options.", "POD"]
+    )
 );
 
 $opts{required} //
-@ARGV || RJK::Options::Pod::pod2usage(
-    -sections => "DESCRIPTION|SYNOPSIS|DISPLAY EXTENDED HELP",
-);
+@ARGV || RJK::Options::Pod::ShortHelp;
 
 # quiet!
 $opts{verbose} = 0 if $opts{quiet};

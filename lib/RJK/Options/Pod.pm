@@ -227,7 +227,7 @@ sub HelpOptions {
 
     $helpOptions = [
         $defaultOption, @customOptions,
-        [ 'help-all', "Display complete help.", "" ]
+        [ 'help-all', "Display all help.", "" ]
     ];
 
     my @options;
@@ -342,6 +342,11 @@ sub HandleOptions {
     return;
 }
 
+sub ShortHelp {
+    my $sections = shift || "DESCRIPTION|SYNOPSIS|HELP";
+    pod2usage(-sections => $sections);
+}
+
 sub pod2usage {
     my %opts = @_;
     $opts{-verbose} //= 99;
@@ -441,7 +446,7 @@ sub GeneratePod {
             $typeSpec =~ s/^f/real number/;
         }
 
-        my $doubleDash = $conf{bundling} ? "--" : "-";
+        my $doubleDash = $getoptConf{bundling} ? "--" : "-";
 
         $pod .= "=item B<";
         $pod .= $opts // join " ", map {

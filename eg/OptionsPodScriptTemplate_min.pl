@@ -12,25 +12,18 @@ THIS IS A TEMPLATE.
 
 script.pl [options] [arguments]
 
-=head1 DISPLAY EXTENDED HELP
-
-script.pl -h
-
 =for options start
 
 =cut
 ###############################################################################
 
 RJK::Options::Pod::GetOptions(
-    # must start with array ref containing section header!
     ['POD'],
     RJK::Options::Pod::Options,
     ['HELP'],
     RJK::Options::Pod::HelpOptions
 );
 
-@ARGV || RJK::Options::Pod::pod2usage(
-    -sections => "DESCRIPTION|SYNOPSIS|DISPLAY EXTENDED HELP"
-);
+@ARGV || RJK::Options::Pod::ShortHelp;
 
 ###############################################################################
