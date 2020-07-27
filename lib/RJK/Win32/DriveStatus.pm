@@ -62,9 +62,8 @@ sub ignore {
 ---++ Other methods
 
 ---+++ update() -> $status
-Update volume information.
-Newly online volumes are set to active.
-Returns the =RJK::Win32::DriveStatus= callee object.
+Get online volumes, newly online volumes are set to active.
+Returns true if the set of online of volumes has changed, false otherwise.
 Throws =RJK::Win32::DriveStatus::NoVolumeInfoException=.
 
 =cut
@@ -78,14 +77,18 @@ sub update {
     }
 
     my $status = $self->status;
+    my $changed = 0;
 
     # set offline
     foreach my $vol (values %$status) {
         my $l = $vol->{driveLetter};
+        next if $self->{ignore}{$l};
 
-        unless ($volumes->{$l}) {
-            $vol->{online} = 0;
-        }
+        next if ! $vol->{online};
+        next if $volumes->{$l};
+
+        $vol->{online} = 0;
+        $changed = 1;
     }
 
     # set online
@@ -93,10 +96,15 @@ sub update {
         my $l = $vol->{driveLetter};
         next if $self->{ignore}{$l};
 
-        $status->{$l} //= $vol;
-        $status->{$l}->{online} = 1;
+        if ($status->{$l}) {
+            next if $status->{$l}{online};
+            $status->{$l}{online} = 1;
+            $changed = 1;
+        } else {
+            $status->{$l} = $vol;
+        }
     }
-    return $self;
+    return $changed;
 }
 
 ###############################################################################
