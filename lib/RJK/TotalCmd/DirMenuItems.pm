@@ -39,11 +39,14 @@ sub createItems {
 
 sub createSubMenu {
     my ($self, $items, $item, $path) = @_;
+    $path //= "";
     while (my ($name, $item) = each %$item) {
         if (ref $item) {
-            my $menuName = $name =~ s/^(\W+)/$1&/r;
+            my $menuName = $name =~ s/&/&&/gr;
+            $menuName =~ s/^(\W+)/$1&/;
+
             push @$items, new RJK::TotalCmd::Item::DirMenuItem(menu => "-$menuName");
-            $self->createSubMenu($items, $item, sprintf("%s%s\\", $path//"", $name));
+            $self->createSubMenu($items, $item, "$path$name\\");
             push @$items, new RJK::TotalCmd::Item::DirMenuItem(menu => "--");
         } else {
             my $menuName = $name =~ s/^(\W+)/$1&/r;
