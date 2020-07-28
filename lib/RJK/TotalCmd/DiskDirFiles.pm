@@ -26,19 +26,19 @@ sub traverse {
         my $fields = [ split /\t/ ];
 
         if ($fields->[0] =~ s/\\$//) {
+            if (defined $skip) {
+                next if "$root$fields->[0]" =~ /^$skip/;
+                $skip = undef;
+            }
+
             if ($dir) {
                 $result = $visitor->postVisitFiles($dir, $stat);
 
                 if (matchesTreeVisitResult($result, TERMINATE)) {
-                    last;
+                    return;
                 } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
-                    $skip = quotemeta $dir->{dir};
+                    $skip = quotemeta($dir->{dir} || $dir->{path});
                 }
-            }
-
-            if (defined $skip) {
-                next if "$root\\$fields->[0]" =~ /^$skip/;
-                $skip = undef;
             }
 
             $stat = { modified => '' };
@@ -59,7 +59,8 @@ sub traverse {
             } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
                 $skip = quotemeta $dir->{path};
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
-                $skip = quotemeta $dir->{dir};
+                $skip = quotemeta($dir->{dir} || $dir->{path});
+                $dir = undef; # don't postVisitFiles()
             }
         } else {
             next if defined $skip;
