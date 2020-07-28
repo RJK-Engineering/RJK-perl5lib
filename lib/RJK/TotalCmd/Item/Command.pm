@@ -1,11 +1,8 @@
 =begin TML
 
 ---+ package RJK::TotalCmd::Item::Command
+Abstract class.
 A Total Commander command.
-
----++ Object creation
-
----+++ new(%attrs) -> RJK::TotalCmd::Item::Command
 
 ---++ Object attributes
 
@@ -26,20 +23,6 @@ Shortcut key defined with a command.
 
 ---+++ shortcuts([\@shortcuts]) -> \@shortcuts
 Shortcut keys defined in Options > Misc.
-
----++ Object methods
-
----+++ getCommandName() -> $name
-Internal or user command from cmd (cm_*, em_*).
-
----+++ isCommand() -> $boolean
-==cmd= is not empty.
-
----+++ isInternal() -> $boolean
-==cmd= contains an internal command name (cm_*)
-
----+++ isUser() -> $boolean
-==cmd= contains a user command name (em_*)
 
 =cut
 ###############################################################################

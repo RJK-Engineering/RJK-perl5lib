@@ -1,11 +1,8 @@
 =begin TML
 
 ---+ package RJK::TotalCmd::Item::Item
+Abstract class.
 A Total Commander menu item, button bar item, user command item or internal command item.
-
----++ Object creation
-
----+++ new(%attrs) -> RJK::TotalCmd::Item::Item
 
 ---++ Object attributes
 

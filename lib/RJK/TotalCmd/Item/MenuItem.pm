@@ -1,23 +1,8 @@
 =begin TML
 
 ---+ package RJK::TotalCmd::Item::MenuItem
+Abstract class.
 A Total Commander menu item.
-
----++ Object creation
-
----+++ new(%attrs) -> RJK::TotalCmd::Item::MenuItem
-
----++ Object methods
-
----+++ isSeparator() -> $boolean
-Title = '-'.
-
----+++ isSubmenuBegin() -> $boolean
-Title = '-' + submenu title.
-
----+++ isSubmenuEnd() -> $boolean
-Title = '--'.
-
 
 =cut
 ###############################################################################

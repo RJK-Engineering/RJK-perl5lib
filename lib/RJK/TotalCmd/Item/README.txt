@@ -53,7 +53,7 @@ Inheritance
 
 Item (number, menu) abstract class -- required: number
     InternalCmd(name) -- required: name
-    MenuItem () abstract
+    MenuItem () abstract class
         DirMenuItem (cmd, path) -- required: menu
     Command (cmd, param, path, iconic, key, shortcuts) abstract class
         Button (button)

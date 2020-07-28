@@ -10,7 +10,6 @@ A Total Commander internal command item.
 ---++ Object attributes
 
 ---+++ name([$name]) -> $name
-
 Name (=cm_*=).
 
 =cut

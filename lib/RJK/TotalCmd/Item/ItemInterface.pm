@@ -1,3 +1,19 @@
+=begin TML
+
+---+ interface RJK::TotalCmd::Item::ItemInterface
+
+---+++ isButton() -> $boolean
+==cmd= and =button= are not empty.
+
+---+++ isCommand() -> $boolean
+==cmd= is not empty.
+
+---+++ isMenuItem() -> $boolean
+==menu= is not empty.
+
+=cut
+###############################################################################
+
 package RJK::TotalCmd::Item::ItemInterface;
 
 use strict;

@@ -16,14 +16,6 @@ First icon  = "filename",
 second icon = "filename,1"
 (icon numbers start at 0)
 
----++ Object methods
-
----+++ isButton() -> $boolean
-==cmd= and =button= are not empty.
-
----+++ isSeparator() -> $boolean
-==cmd= or =button= is empty.
-
 =cut
 ###############################################################################
 
