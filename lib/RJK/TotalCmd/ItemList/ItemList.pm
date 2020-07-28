@@ -24,6 +24,9 @@ sub new {
 ---+++ getItems() -> \@items
 Returns all items.
 
+---+++ getItemCount() -> \@items
+Returns number of items.
+
 ---+++ getItem($nr) -> $item
 Returns RJK::TotalCmd::Item::Item with number =$nr=.
 
@@ -48,6 +51,10 @@ Throws RJK::TotalCmd::Exception if multiple items found.
 
 sub getItems {
     return $_[0]{items};
+}
+
+sub getItemCount {
+    return scalar @{$_[0]{items}};
 }
 
 sub getItem {
