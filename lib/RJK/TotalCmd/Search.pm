@@ -57,11 +57,13 @@ For special search types:
 d = date/time, may be empty
 n = number, may be empty
 
-The block of flags 20-24 is empty if all the flags in it have the default value:
+The block of flags 20-24 is empty if "Attributes" checkbox is not checked:
 0|000002000020|d|d|n|n|n|n|n||0000|n
 
-All default:
+All default/no flags:
 0|000002000020|||||||||0000|
+with "Attributes" checkbox checked:
+0|000002000020||||||||22222|0000|
 </verbatim>
 
 ---+++ Encoding
@@ -232,8 +234,6 @@ sub init {
         "Error parsing SearchFlags: $self->{SearchFlags}"
     );
 
-    $self->{SearchFlags} = \@flags;
-
     # flag hash
     my %flags; @flags{@flagNames} = @flags;
     $self->{flags} = \%flags;
@@ -323,7 +323,7 @@ sub update {
 =pod
 
 ---+++ defaults()
-Set defaults for undefined parameters
+Set defaults for undefined parameters.
 
 =cut
 ###############################################################################
@@ -534,6 +534,12 @@ sub NotOlderThanTime {
     my $unit = $timeUnits[ $timeUnit + 3 ];
     return DateTime->now->
         subtract($unit => $flags->{time})->epoch;
+}
+
+sub createSearchFlagsString {
+    my $self = shift;
+    return sprintf "%u|%u%u%u%u%u%u%u%u%u%u%u%u|%s|%s|%s|%s|%s|%s|%s|%s%s%s%s%s|%u%u%u%u|%s\n",
+        map { $self->{flags}{$_}//"" } @flagNames;
 }
 
 1;
