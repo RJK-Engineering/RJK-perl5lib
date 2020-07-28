@@ -278,6 +278,8 @@ sub setColors {
 
 ---+++ history($section) -> @history or \@history
 ---+++ addToHistory($section, $text) -> ProperyList
+---+++ getSearch([$name]) -> $search
+Get stored search by name. Returns an empty search object if =$name= is undefined.
 ---+++ getSearches() -> %searches or \%searches
 ---+++ report()
 
@@ -300,8 +302,9 @@ sub addToHistory {
 
 sub getSearch {
     my ($self, $name) = @_;
+    return new RJK::TotalCmd::Search if ! defined $name;
     my $searches = $self->getSearches(sub {shift->{name} =~ /^\Q$name\E$/}, 1);
-    return (values %$searches)[0];
+    return $searches->{$name};
 }
 
 sub getSearches {
