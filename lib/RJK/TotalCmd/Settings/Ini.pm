@@ -162,7 +162,7 @@ sub getStartMenu {
         items => scalar $self->{ini}->getHashList(
             'user', {
                 key => 'number',
-                class => 'RJK::TotalCmd::Item::MenuItem'
+                class => 'RJK::TotalCmd::Item::StartMenuItem'
             }
         )
     );
@@ -170,7 +170,7 @@ sub getStartMenu {
 
 sub setStartMenu {
     my ($self, $menu) = @_;
-    $self->setMenu('user', $menu->{items});
+    $self->{ini}->setHashList('user', $menu->{items}, [qw(menu cmd param path iconic key)]);
 }
 
 sub getDirMenu {
@@ -180,15 +180,15 @@ sub getDirMenu {
         items => scalar $self->{ini}->getHashList(
             'DirMenu', {
                 key => 'number',
-                class => 'RJK::TotalCmd::Item::MenuItem'
+                class => 'RJK::TotalCmd::Item::DirMenuItem'
             }
         )
     );
 }
 
-sub setMenu {
-    my ($self, $menu, $items) = @_;
-    $self->{ini}->setHashList($menu, $items, [qw(menu cmd param path iconic key)]);
+sub setDirMenu {
+    my ($self, $menu) = @_;
+    $self->{ini}->setHashList('DirMenu', $menu->{items}, [qw(menu cmd path)]);
 }
 
 ###############################################################################
