@@ -28,6 +28,8 @@ Returns a new =RJK::TotalCmd::ItemList::Menu= object.
 
 ---++ Items
 
+---+++ appendItems($items)
+
 ---+++ insertItem(item => $item, position => $position, submenu => $submenu) -> $item
 
 ---+++ createItem($template) -> $item
@@ -43,9 +45,15 @@ sub new {
     return $self;
 }
 
+sub appendItems {
+    my ($self, $items) = @_;
+    push @{$self->{items}}, @$items;
+    $self->renumber();
+}
+
 sub insertItem {
     my ($self, %opts) = @_;
-    my $submenu = delete $opts{submenu};
+    my $submenu = $opts{submenu};
     if ($opts{position}) {
         # position within submenu
         $opts{position} += $submenu->{number} if $submenu;
