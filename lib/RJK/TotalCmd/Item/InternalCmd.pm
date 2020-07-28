@@ -18,6 +18,7 @@ Name (=cm_*=).
 
 package RJK::TotalCmd::Item::InternalCmd;
 use parent 'RJK::TotalCmd::Item::Item';
+use parent 'RJK::TotalCmd::Item::CommandInterface';
 
 use strict;
 use warnings;

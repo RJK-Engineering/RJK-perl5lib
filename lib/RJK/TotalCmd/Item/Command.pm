@@ -46,6 +46,7 @@ Internal or user command from cmd (cm_*, em_*).
 
 package RJK::TotalCmd::Item::Command;
 use parent 'RJK::TotalCmd::Item::Item';
+use parent 'RJK::TotalCmd::Item::CommandInterface';
 
 use strict;
 use warnings;
@@ -58,21 +59,5 @@ use Class::AccessorMaker {
     key => undef,       # shortcut key (command config)
     shortcuts => [],    # shortcut keys (Options > Misc)
 };
-
-sub getCommandName {
-    ($_[0]{cmd} =~ /^([ce]m_.*)/)[0];
-}
-
-sub isCommand {
-    !! $_[0]{cmd};
-}
-
-sub isInternal {
-    $_[0]{cmd} =~ /^cm_/;
-}
-
-sub isUser {
-    $_[0]{cmd} =~ /^em_/;
-}
 
 1;

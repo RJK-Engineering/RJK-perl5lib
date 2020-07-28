@@ -29,6 +29,7 @@ second icon = "filename,1"
 
 package RJK::TotalCmd::Item::Button;
 use parent 'RJK::TotalCmd::Item::Command';
+use parent 'RJK::TotalCmd::Item::ButtonInterface';
 
 use strict;
 use warnings;
@@ -36,13 +37,5 @@ use warnings;
 use Class::AccessorMaker {
     button => ""
 };
-
-sub isButton {
-    $_[0]{cmd} && $_[0]{button};
-}
-
-sub isSeparator {
-    ! $_[0]{cmd} || ! $_[0]{button};
-}
 
 1;

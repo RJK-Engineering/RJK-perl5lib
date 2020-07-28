@@ -19,6 +19,7 @@ Description/tooltip/title.
 ###############################################################################
 
 package RJK::TotalCmd::Item::Item;
+use parent RJK::TotalCmd::Item::ItemInterface;
 
 use strict;
 use warnings;

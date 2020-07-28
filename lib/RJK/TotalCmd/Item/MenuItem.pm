@@ -23,21 +23,7 @@ Title = '--'.
 ###############################################################################
 
 package RJK::TotalCmd::Item::MenuItem;
-use parent 'RJK::TotalCmd::Item::Command';
-
-use strict;
-use warnings;
-
-sub isSeparator {
-    $_[0]{menu} eq '-';
-}
-
-sub isSubmenuBegin {
-    $_[0]{menu} =~  /^-[^-]/;
-}
-
-sub isSubmenuEnd {
-    $_[0]{menu} eq '--';
-}
+use parent 'RJK::TotalCmd::Item::Item';
+use parent 'RJK::TotalCmd::Item::MenuItemInterface';
 
 1;
