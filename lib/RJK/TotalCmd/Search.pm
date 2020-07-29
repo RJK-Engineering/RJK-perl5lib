@@ -581,4 +581,27 @@ sub createSearchFlagsString {
         map { $self->{flags}{$_}//"" } @flagNames;
 }
 
+sub addRule {
+    my ($self, $plugin, $property, $op, $value) = @_;
+    push @{$self->{rules}}, {
+        plugin => $plugin,
+        property => $property,
+        op => $op,
+        value => $value,
+    };
+}
+
+sub hasRule {
+    my ($self, $plugin, $property, $op, $value) = @_;
+    $plugin || die "Invalid args";
+    foreach (@{$self->{rules}}) {
+        next if $plugin ne $_->{plugin};
+        next if $property && $property ne $_->{property};
+        next if $op && $op ne $_->{op};
+        next if $value && $value ne $_->{value};
+        return 1;
+    }
+    return 0;
+}
+
 1;
