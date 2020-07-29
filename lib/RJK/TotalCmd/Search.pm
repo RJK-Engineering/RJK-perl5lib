@@ -189,12 +189,13 @@ sub defaults {
 }
 
 sub addRule {
-    my ($self, $plugin, $property, $op, $value) = @_;
+    my ($self, $plugin, $property, $op, $value, $unit) = @_;
     push @{$self->{rules}}, {
         plugin => $plugin,
         property => $property,
         op => $op,
         value => $value,
+        unit => $unit,
     };
 }
 

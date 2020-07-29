@@ -120,12 +120,13 @@ sub create {
             =~ /(".*?"|\S+)/g;                      # match quoted strings and non-space sequences
 
         while (my ($prop, $op, $value, $combineOp) = splice @args, 0, 4) {
-            my ($plugin, $property) = split /\./, $prop;
+            my ($plugin, $property, $unit) = split /\./, $prop;
             push @{$search->{rules}}, {
                 plugin => $plugin,
                 property => $property,
                 op => $op,
                 value => $value,
+                unit => $unit,
             };
             $search->{rulesCombineOp} //= $combineOp;
         }
