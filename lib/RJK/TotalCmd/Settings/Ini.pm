@@ -91,9 +91,9 @@ use strict;
 use warnings;
 
 use RJK::Exceptions;
+use RJK::TotalCmd::Builder::Search;
 use RJK::TotalCmd::Item::MenuItem;
 use RJK::TotalCmd::ItemList::Menu;
-use RJK::TotalCmd::Search;
 use RJK::Util::Ini;
 
 my $UserMenuNumberStart = 700;
@@ -302,7 +302,7 @@ sub addToHistory {
 
 sub getSearch {
     my ($self, $name) = @_;
-    return new RJK::TotalCmd::Search if ! defined $name;
+    return RJK::TotalCmd::Builder::Search->create if ! defined $name;
     my $searches = $self->getSearches(sub {shift->{name} =~ /^\Q$name\E$/}, 1);
     return $searches->{$name};
 }
@@ -314,7 +314,7 @@ sub getSearches {
 
     foreach (values %{$self->{ini}->getHashes('searches', { key => 'name' })}) {
         next if ! $filter->($_);
-        $searches{$_->{name}} = new RJK::TotalCmd::Search(%$_);
+        $searches{$_->{name}} = RJK::TotalCmd::Builder::Search->create($_);
         last if $first;
     }
     return wantarray ? %searches : \%searches;
