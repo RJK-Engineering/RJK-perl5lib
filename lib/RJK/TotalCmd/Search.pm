@@ -116,7 +116,8 @@ media.bitrate > 123 | "media.duration (time)" <= 45
 rules := [rule] | [allRules] | [anyRules]
 allRules := [rule] & [allRules]
 anyRules := [rule] | [anyRules]
-rule := "[property]" [op] "[value]"     * property and value are only quoted if they contain spaces
+rule := "[property]" [op] "[value]"     * property and value are only quoted if they contain spaces or double-quotes,
+                                        * double-quotes are escaped with a backslash: \"
 property := [plugin].[propertyName]
 op := [numberOp] | [stringOp] | [booleanOp]
 numberOp := > < >= <= = !=
@@ -274,11 +275,10 @@ sub init {
         }
     }
 
-    # regex search
     if ($flags{regex}) {
         $self->{regex} = $self->{SearchFor};
 
-    # no regex search and SearchFor contains wildcards
+    # SearchFor contains wildcards
     } elsif ($self->{SearchFor} =~ /[?*]/) {
         my @s = split /\s*\|\s*/, $self->{SearchFor};
         $self->{search} = $s[0] // "";
@@ -297,6 +297,24 @@ sub init {
 
         $self->{patterns} = [ split /[\s;]+/, $self->{search} ];
         $self->{patternsNot} = [ split /[\s;]+/, $self->{searchNot} ];
+    }
+
+    if ($self->{plugin}) {
+        my @args =
+            map { s/^"//r =~ s/"$//r =~ s/\0/"/r }  # remove surrounding quotes, restore in-string quotes
+            $self->{plugin} =~ s/\\"/\0/gr          # replace escaped in-string quotes with null chars
+            =~ /(".*?"|\S+)/g;                      # match quoted strings and non-space sequences
+
+        while (my ($prop, $op, $value, $combineOp) = splice @args, 0, 4) {
+            my ($plugin, $property) = split /\./, $prop;
+            push @{$self->{rules}}, {
+                plugin => $plugin,
+                property => $property,
+                op => $op,
+                value => $value,
+            };
+            $self->{rulesCombineOp} //= $combineOp;
+        }
     }
 
     # special search type
