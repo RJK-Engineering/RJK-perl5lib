@@ -40,6 +40,7 @@ booleanOp := =                          * for boolean ops the rule value is eith
 </verbatim>
 
 =cut
+###############################################################################
 
 package RJK::TotalCmd::Builder::Search;
 

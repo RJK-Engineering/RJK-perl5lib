@@ -1,9 +1,10 @@
 =begin TML
 
----+ package RJK::Util::Ini
+---+ package !RJK::Util::Ini
 Read and write INI files.
 
 =cut
+###############################################################################
 
 package RJK::Util::Ini;
 
