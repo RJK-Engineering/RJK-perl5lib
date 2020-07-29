@@ -377,7 +377,66 @@ containing the interpreted data.
 =cut
 ###############################################################################
 
-sub parse {
+sub parseList {
+    my ($self, $section, $name, $otherProps, $otherPropsKeys) = @_;
+    $name //= '.*?';
+
+    my $pl = $self->{properties}{$section} || return;
+    my $keys = $self->{keys}{$section};
+    my $data;
+
+    foreach (@$keys) {
+        my $value = $pl->get($_);
+        if (/^ (?<name>$name) (?<index>\d+) $self->{delimiter}? (?<key>.*) $/x) {
+            if ($+{name} || $+{key}) {
+                # 2) name => [ values ]
+                $data->{namedLists}{$+{name}}[$+{index}] = $value;
+            } else {
+                # 1) [ values ]
+                $data->{array}[$+{index}] = $value;
+            }
+        } else {
+            $otherProps->{$_} = $value if $otherProps;
+            push @{$otherPropsKeys}, $_ if $otherPropsKeys;
+        }
+    }
+    return $data;
+}
+
+sub parseHash {
+    my ($self, $section, $opts) = @_;
+
+    $opts //= {};
+    my $key = $opts->{key};
+    my $defaultHash = $opts->{defaultHash} || {};
+
+    my $pl = $self->{properties}{$section} || return;
+    my $keys = $self->{keys}{$section};
+    my $data;
+
+    foreach (@$keys) {
+        my $value = $pl->get($_);
+        if (/^ (.+) $self->{delimiter} (.+) $/x) {
+            # 4) name => key => value
+            if (! $data->{namedHashes}{$1} && $defaultHash) {
+                $data->{namedHashes}{$1} = {%$defaultHash};
+                $data->{namedHashesLHS}{$2} = {%$defaultHash};
+            }
+            $data->{namedHashes}{$1}{$2} = $value;
+            $data->{namedHashesLHS}{$2}{$1} = $value;
+            if ($key) {
+                $data->{namedHashes}{$1}{$key} = $1;
+                $data->{namedHashesLHS}{$2}{$key} = $2;
+            }
+        } else {
+            $opts->{otherProps}{$_} = $value if $opts->{otherProps};
+            push @{$opts->{otherPropsKeys}}, $_ if $opts->{otherPropsKeys};
+        }
+    }
+    return $data;
+}
+
+sub parseHashList {
     my ($self, $section, $opts) = @_;
 
     $opts //= {};
@@ -392,11 +451,8 @@ sub parse {
 
     foreach (@$keys) {
         my $value = $pl->get($_);
-        # lists
         if (/^ (?<name>$name) (?<index>\d+) $self->{delimiter}? (?<key>.*) $/x) {
             if ($+{name} || $+{key}) {
-                # 2) name => [ values ]
-                $data->{namedLists}{$+{name}}[$+{index}] = $value;
                 # 3) [ key => value ]
                 if (! $data->{hashList}[$+{index}]) {
                     $data->{hashList}[$+{index}] = {%$defaultHash};
@@ -413,22 +469,6 @@ sub parse {
                 $data->{hashList}[$+{index}]{$+{name}} = $value;
                 my $key = $+{key} || $defaultKey;
                 $data->{hashListRHS}[$+{index}]{$key} = $value;
-            } else {
-                # 1) [ values ]
-                $data->{array}[$+{index}] = $value;
-            }
-        # hashes
-        } elsif (/^ (.+) $self->{delimiter} (.+) $/x) {
-            # 4) name => key => value
-            if (! $data->{namedHashes}{$1} && $defaultHash) {
-                $data->{namedHashes}{$1} = {%$defaultHash};
-                $data->{namedHashesLHS}{$2} = {%$defaultHash};
-            }
-            $data->{namedHashes}{$1}{$2} = $value;
-            $data->{namedHashesLHS}{$2}{$1} = $value;
-            if ($key) {
-                $data->{namedHashes}{$1}{$key} = $1;
-                $data->{namedHashesLHS}{$2}{$key} = $2;
             }
         } else {
             $opts->{otherProps}{$_} = $value if $opts->{otherProps};
@@ -486,7 +526,7 @@ Returns a =RJK::Util::PropertyList= object for the section.%BR%
 
 sub getList {
     my ($self, $section, $name) = @_;
-    my $data = $self->parse($section) || return;
+    my $data = $self->parseList($section, $name) || return;
     if ($name) {
         exists $data->{namedLists}{$name} || return;
         $data = $data->{namedLists}{$name};
@@ -498,14 +538,14 @@ sub getList {
 
 sub getLists {
     my ($self, $section) = @_;
-    my $data = $self->parse($section) || return;
+    my $data = $self->parseList($section) || return;
     $data = $data->{namedLists};
     return wantarray ? @$data : $data;
 }
 
 sub getHashList {
     my ($self, $section, $opts) = @_;
-    my $data = $self->parse($section, $opts) || return;
+    my $data = $self->parseHashList($section, $opts) || return;
     $data = $data->{hashList};
     shift @$data unless defined $data->[0]; # when list starts at 1
     return wantarray ? @$data : $data;
@@ -513,7 +553,7 @@ sub getHashList {
 
 sub getHashListRHS {
     my ($self, $section, $opts) = @_;
-    my $data = $self->parse($section, $opts) || return;
+    my $data = $self->parseHashList($section, $opts) || return;
     $data = $data->{hashListRHS};
     shift @$data unless defined $data->[0]; # when list starts at 1
     return wantarray ? @$data : $data;
@@ -521,7 +561,7 @@ sub getHashListRHS {
 
 sub getHash {
     my ($self, $section, $name) = @_;
-    my $data = $self->parse($section) || return;
+    my $data = $self->parseHash($section) || return;
     exists $data->{namedHashes}{$name} || return;
     $data = $data->{namedHashes}{$name};
     return wantarray ? %$data : $data;
@@ -529,7 +569,7 @@ sub getHash {
 
 sub getHashLHS {
     my ($self, $section, $name) = @_;
-    my $data = $self->parse($section) || return;
+    my $data = $self->parseHash($section) || return;
     exists $data->{namedHashesLHS}{$name} || return;
     $data = $data->{namedHashesLHS}{$name};
     return wantarray ? %$data : $data;
@@ -537,14 +577,14 @@ sub getHashLHS {
 
 sub getHashes {
     my ($self, $section, $opts) = @_;
-    my $data = $self->parse($section, $opts) || return;
+    my $data = $self->parseHash($section, $opts) || return;
     $data = $data->{namedHashes};
     return wantarray ? %$data : $data;
 }
 
 sub getHashesLHS {
     my ($self, $section, $opts) = @_;
-    my $data = $self->parse($section, $opts) || return;
+    my $data = $self->parseHash($section, $opts) || return;
     $data = $data->{namedHashesLHS};
     return wantarray ? %$data : $data;
 }
