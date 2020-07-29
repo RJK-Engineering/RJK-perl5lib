@@ -14,7 +14,7 @@ Package variable =@RJK::TotalCmd::Search::fields= contains an ordered list of fi
    * =SearchIn= - Directories separated by ";"
    * =SearchText= - Text to search for in files
    * =SearchFlags= - Array of flags
-   * =plugin= - Plugin arguments
+   * =plugin= - Plugin arguments (rules)
 
 ---++ Fields containing derived values
    * =paths= - Array, =SearchIn= split on ";"
@@ -38,33 +38,8 @@ For non-regex searches where =SearchFor= contains wildcards:
    * =patterns= - Array, =search= split on whitespace and ";"
    * =patternsNot= - Array, =searchNot= split on whitespace and ";"
 
-For special search types:
-   * =specialType= - "file", "dir" or "category"
-   * =specialName= - Search name without the first character indicating the type
-   * =extensions= - Array, taken from =patterns= in the form "*.txt"
-   * =filenames= - Array, taken from =patterns= not containing wildcards "*" and "?"
-
 ---++ Flags
 <a name="SearchFlags"></a>
-
----+++ Format
-
-<verbatim>
-0 1            13            20    25   29
-0|000002000020|d|d|n|n|n|n|n|22222|0000|n
-
-0/2 = flag default value
-d = date/time, may be empty
-n = number, may be empty
-
-The block of flags 20-24 is empty if "Attributes" checkbox is not checked:
-0|000002000020|d|d|n|n|n|n|n||0000|n
-
-All default/no flags:
-0|000002000020|||||||||0000|
-with "Attributes" checkbox checked:
-0|000002000020||||||||22222|0000|
-</verbatim>
 
 ---+++ Encoding
 
@@ -103,70 +78,12 @@ fields used in the =flags= hash, as listed in the second column.
 | 28 | dupeSize | Find duplicate files: Same size | 0=enabled, 1=disabled | 0 |
 | 29 | depth | Search depth | Number | |
 
----++ Plugins
-
-The =plugin= field contains the plugin arguments consisting of combined rules.
-
----+++ Rules
-
-<verbatim>
-Example plugin arguments:
-media.bitrate > 123 | "media.duration (time)" <= 45
-
-rules := [rule] | [allRules] | [anyRules]
-allRules := [rule] & [allRules]
-anyRules := [rule] | [anyRules]
-rule := "[property]" [op] "[value]"     * property and value are only quoted if they contain spaces or double-quotes,
-                                        * double-quotes are escaped with a backslash: \"
-property := [plugin].[propertyName]
-op := [numberOp] | [stringOp] | [booleanOp]
-numberOp := > < >= <= = !=
-stringOp := contains !contains cont.(case) !cont.(case) =(case) !=(case) = != regex !regex
-booleanOp := =                          * for boolean ops the rule value is either 1 for Yes or 0 for No
-</verbatim>
-
----++ Special type: File types
-   * =name= format: =.[name]=
-   * =SearchFor= contains a list of extensions and/or full filenames separated by whitespace.
-   * =SearchFor= example: =*.ext *.ext2 README .inputrc=
-
-File types will be added to the following package variables:
-   * =@RJK::TotalCmd::Search::fileTypes= - list of search names
-   * =%RJK::TotalCmd::Search::fileTypesByExt= - file extension => list of search names
-   * =%RJK::TotalCmd::Search::fileTypesByName= - file name => list of search names
-
-Use =GetFileTypes()= to look up file types.
-
----++ Special type: Directory types
-   * =name= format: =/[name]=
-   * =SearchFor= contains a list of directory names seperated by whitespace.
-   * =SearchFor= example: =conf config etc.= (Note required '.' if no wilcards used!)
-
----++ Special type: Categories
-   * =name= format: =:[name]=
-   * =SearchFor= contains a list of search names seperated by whitespace.
-   * =SearchFor= example: =.audio .video=
-
-File types will be added to the package variable =%RJK::TotalCmd::Search::categories=
-with structure: category name => search name => Search.
-
 =cut
 
 package RJK::TotalCmd::Search;
 
 use strict;
 use warnings;
-
-use Exception::Class (
-    'Exception',
-    'RJK::TotalCmd::Search::Exception' =>
-        { isa => 'Exception' },
-    'RJK::TotalCmd::Search::InvalidPatternException' =>
-        { isa => 'RJK::TotalCmd::Search::Exception',
-          fields => [qw(pattern)] },
-);
-
-use Try::Tiny;
 
 our @timeUnits = qw(
     nanoseconds seconds minutes
@@ -198,18 +115,13 @@ BEGIN {
         searchNot => undef,
         patterns => [],
         patternsNot => [],
-
-        type => undef,
-        category => undef,
-        extensions => [],
-        filenames => [],
     );
     for (my $i=0; $i<@fieldDefaults; $i+=2) {
         push @fields, $fieldDefaults[$i];
     }
 }
 
-use Class::AccessorMaker {@fieldDefaults}, "new_init";
+use Class::AccessorMaker {@fieldDefaults};
 
 our @flagNames = qw(
     archives textWord textCase textAscii textNot
@@ -231,109 +143,6 @@ my $defaults = {
         depth => 99,
     }
 };
-
-our @fileTypes;
-our %fileTypesByExt;
-our %fileTypesByName;
-our %categories;
-
-# called by Class::AccessorMaker
-sub init {
-    my $self = shift;
-    $self->{name} or return;
-
-    # SearchIn split on ";"
-    $self->{paths} = [ split /\s*;\s*/, $self->{SearchIn} ];
-
-    # flag array
-    my @flags = $self->{SearchFlags} =~
-        /^(\d)
-        \|(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)
-        \|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)
-        \|(?:(\d)(\d)(\d)(\d)(\d))?
-        \|(\d)(\d)(\d)(\d)\|?(.*)/x
-    or throw RJK::TotalCmd::Search::Exception(
-        "Error parsing SearchFlags: $self->{SearchFlags}"
-    );
-
-    # flag hash
-    my %flags; @flags{@flagNames} = @flags;
-    $self->{flags} = \%flags;
-
-    # Calculated from flags
-    $self->{mindate} = ParseDate($flags{start}) if $flags{start};
-    $self->{maxdate} = ParseDate($flags{end}, 1) if $flags{end};
-
-    if ($flags{size}) {
-        my $size = $flags{size} * 1024 ** $flags{sizeUnit};
-        if ($flags{sizeMode} == 0) {
-            $self->{size} = $size;
-        } elsif ($flags{sizeMode} == 1) {
-            $self->{minsize} = $size;
-        } elsif ($flags{sizeMode} == 2) {
-            $self->{maxsize} = $size;
-        }
-    }
-
-    if ($flags{regex}) {
-        $self->{regex} = $self->{SearchFor};
-
-    # SearchFor contains wildcards
-    } elsif ($self->{SearchFor} =~ /[?*]/) {
-        my @s = split /\s*\|\s*/, $self->{SearchFor};
-        $self->{search} = $s[0] // "";
-        $self->{searchNot} = $s[1] // "";
-        warn "Ignoring part after second \"|\": $self->{SearchFor}" if @s > 2;
-
-        for (qw(search searchNot)) {
-            my $re = $self->{$_};
-            $re =~ s/[\s;]+/|/g;    # separated by |
-            $re = quotemeta $re;
-            $re =~ s/\\\|/|/g;      # restore |
-            $re =~ s/\\\?/./g;      # restore and translate ?
-            $re =~ s/\\\*/.*/g;     # restore and translate *
-            $self->{$_."Regex"} = $re;
-        }
-
-        $self->{patterns} = [ split /[\s;]+/, $self->{search} ];
-        $self->{patternsNot} = [ split /[\s;]+/, $self->{searchNot} ];
-    }
-
-    if ($self->{plugin}) {
-        my @args =
-            map { s/^"//r =~ s/"$//r =~ s/\0/"/r }  # remove surrounding quotes, restore in-string quotes
-            $self->{plugin} =~ s/\\"/\0/gr          # replace escaped in-string quotes with null chars
-            =~ /(".*?"|\S+)/g;                      # match quoted strings and non-space sequences
-
-        while (my ($prop, $op, $value, $combineOp) = splice @args, 0, 4) {
-            my ($plugin, $property) = split /\./, $prop;
-            push @{$self->{rules}}, {
-                plugin => $plugin,
-                property => $property,
-                op => $op,
-                value => $value,
-            };
-            $self->{rulesCombineOp} //= $combineOp;
-        }
-    }
-
-    # special search type
-    if ($self->{name} =~ /^([\.:\/])(.*)/) {
-        $self->{specialName} = $2;
-        if ($1 eq '.') {
-            $self->{specialType} = 'file';
-            $self->_loadFileType($2);
-        }
-        if ($1 eq '/') {
-            $self->{specialType} = 'dir';
-            #~ TODO $self->_loadDirType($2);
-        }
-        if ($1 eq ':') {
-            $self->{specialType} = 'category';
-            $self->_loadCategory($2);
-        }
-    }
-}
 
 ###############################################################################
 =pod
@@ -377,208 +186,6 @@ sub defaults {
             $self->{$field} //= $defaults->{$field} || "";
         }
     }
-}
-
-###############################################################################
-=pod
-
----+++ match($file) -> $matched
-Returns true if matched, false if not.
-
-=cut
-###############################################################################
-
-sub match {
-    my ($self, $file) = @_;
-
-    # name
-    my $name = $file->{path};
-    $name =~ s|.*[\\/]||;
-
-    undef $self->{captured};
-    if ($self->{regex}) {
-        return 0 if $name !~ /$self->{regex}/i;
-        $self->{captured} = [ $name =~ /$self->{regex}/i ];
-    } else {
-        return 0 if $self->{searchRegex} &&
-            $name !~ /^(?:$self->{searchRegex})$/i;
-        return 0 if $self->{searchNotRegex} &&
-            $name =~ /^(?:$self->{searchNotRegex})$/i;
-    }
-
-    # size
-    if (defined $file->{size}) {
-        return 0 if $self->{size} && $file->{size} != $self->{size};
-        return 0 if $self->{minsize} && $file->{size} < $self->{minsize};
-        return 0 if $self->{maxsize} && $file->{size} > $self->{maxsize};
-    }
-
-    # date - TODO: creation/access date
-    my $date = $file->{modified};
-    if (defined $date) {
-        return 0 if $self->{mindate} && $date < $self->{mindate};
-        return 0 if $self->{maxdate} && $date > $self->{maxdate};
-        my $not = NotOlderThanTime($self->{flags});
-        return 0 if $not && $date < $not;
-    }
-
-    # text
-    if ($self->SearchText ne "") {
-        if (!-r $file->{path}) {
-            throw RJK::TotalCmd::Search::Exception("Not readable: $file->{path}");
-        }
-
-        # TODO search-binary flag
-        if (-T $file->{path}) {
-            open my $fh, '<', $file->{path}
-                or throw RJK::TotalCmd::Search::Exception("$file->{path}: $!");
-
-            my $re = $self->{textRegex} ? qr/$self->{SearchText}/ :
-                                          qr/\Q$self->{SearchText}\E/;
-            my $match;
-            while (<$fh>) {
-                next if $_ !~ $re;
-                $match = 1;
-                last;
-            }
-            close $fh;
-
-            return 0 unless $match;
-        }
-    }
-
-    return 1;
-}
-
-sub _loadFileType {
-    my ($self, $type) = @_;
-    push @fileTypes, $self->{name};
-
-    foreach my $pattern (@{$self->{patterns}}) {
-        # slashes are invalid
-        if ($pattern =~ /[\\\/]/) {
-            throw RJK::TotalCmd::Search::InvalidPatternException(
-                error => sprintf("Invalid pattern: %s for %s", $pattern, $self->{name}),
-                pattern => $pattern,
-            );
-
-        # extension
-        } elsif ($pattern =~ /^\*\.([^\.\s]+)$/) {
-            my $ext = GetExtensionIdent($pattern);
-            push @{$fileTypesByExt{$ext}}, $self->{name};
-            push @{$self->{extensions}}, $ext;
-
-        # full filename
-        } elsif ($pattern !~ /[*?]/) {
-            push @{$fileTypesByName{lc $pattern}}, $self->{name};
-            push @{$self->{filenames}}, $pattern;
-
-        }
-    }
-}
-
-sub _loadCategory {
-    my ($self, $name) = @_;
-
-    my $searchFor = $self->{SearchFor};
-    while ($searchFor =~ s/"(.+?)"|(\S+)//) {
-        $categories{$name}{$1 || $2} = $self;
-    }
-}
-
-###############################################################################
-=pod
-
----++ Class methods
-
----+++ !GetFileTypes($filename) -> $types or @types
-Lookup file types in file type specifications.
-
-=cut
-###############################################################################
-
-sub GetFileTypes {
-    my $filename = shift;
-    my $ext = GetExtensionIdent($filename);
-    my $types = $ext && $fileTypesByExt{$ext}
-        || $fileTypesByName{lc $filename}
-        || return;
-    return wantarray ? @$types : $types;
-}
-
-###############################################################################
-=pod
-
----+++ !GetExtensionIdent($filename) -> $ident
-Returns extension identity e.g.
-=GetExtensionIdent("filename.ext")= equals
-=GetExtensionIdent("FILENAME.EXT")=.
-
-=cut
-###############################################################################
-
-sub GetExtensionIdent {
-    my ($ident) = $_[0] =~ /\.([^\.\s]+)$/;
-    $ident = lc $ident if $ident;
-    return $ident;
-}
-
-###############################################################################
-=pod
-
----+++ !ParseDate($dateTime, $endOfDay) -> $number
-   * =$dateTime= - String in format: =d-m-y h:m:s= or without time: =d-m-y=
-                   (single digits allowed).
-   * =$number= - A number that can be used to compare dates.
-   * =$endOfDay= - Take epoch at the end of the day if no time is specified
-                   (for matching a date up-to-and-including).
-
-=cut
-###############################################################################
-
-sub ParseDate {
-    my ($dateTime, $endOfDay) = @_;
-
-    if ($dateTime =~ /^(\d+)-(\d+)-(\d+)(?: (\d+):(\d+):(\d+))?$/) {
-        my $year = $3;
-        $year += $3 < 70 ? 2000 : 1900 if $3 < 100;
-        $year -= 1970;
-        my $d = $endOfDay && ! defined $4 ? 1 : 0;
-        return 0 + sprintf "%02d%02u%02u%02u%02u%02u", $year, $2, $1+$d, $4//0, $5//0, $6//0;
-    }
-
-    throw RJK::TotalCmd::Search::Exception("Invalid date/time: $dateTime");
-}
-
-###############################################################################
-=pod
-
----+++ !NotOlderThanTime($flags) -> $time
-   * =$flags= - Search flag hash.
-   * =$time= - Unix (epoch) time.
-
-=cut
-###############################################################################
-
-sub NotOlderThanTime {
-    die "FIXME";
-    my $flags = shift;
-    return unless $flags->{time};
-
-    my $timeUnit = $flags->{timeUnit};
-    if ($timeUnit < -1 || $timeUnit > 4) {
-        throw RJK::TotalCmd::Search::Exception("Invalid time unit: $timeUnit");
-    }
-
-    my $unit = $timeUnits[ $timeUnit + 3 ];
-    return DateTime->now->
-        subtract($unit => $flags->{time})->epoch;
-}
-
-sub createSearchFlagsString {
-    my $self = shift;
-    return sprintf "%u|%u%u%u%u%u%u%u%u%u%u%u%u|%s|%s|%s|%s|%s|%s|%s|%s%s%s%s%s|%u%u%u%u|%s\n",
-        map { $self->{flags}{$_}//"" } @flagNames;
 }
 
 sub addRule {
