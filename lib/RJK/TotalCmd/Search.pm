@@ -44,7 +44,7 @@ For special search types:
    * =extensions= - Array, taken from =patterns= in the form "*.txt"
    * =filenames= - Array, taken from =patterns= not containing wildcards "*" and "?"
 
----++ Field: =SearchFlags=
+---++ Flags
 <a name="SearchFlags"></a>
 
 ---+++ Format
@@ -102,6 +102,27 @@ fields used in the =flags= hash, as listed in the second column.
 | 27 | dupeName | Find duplicate files: Same name | 0=enabled, 1=disabled | 0 |
 | 28 | dupeSize | Find duplicate files: Same size | 0=enabled, 1=disabled | 0 |
 | 29 | depth | Search depth | Number | |
+
+---++ Plugins
+
+The =plugin= field contains the plugin arguments consisting of combined rules.
+
+---+++ Rules
+
+<verbatim>
+Example plugin arguments:
+media.bitrate > 123 | "media.duration (time)" <= 45
+
+rules := [rule] | [allRules] | [anyRules]
+allRules := [rule] & [allRules]
+anyRules := [rule] | [anyRules]
+rule := "[property]" [op] "[value]"     * property and value are only quoted if they contain spaces
+property := [plugin].[propertyName]
+op := [numberOp] | [stringOp] | [booleanOp]
+numberOp := > < >= <= = !=
+stringOp := contains !contains cont.(case) !cont.(case) =(case) !=(case) = != regex !regex
+booleanOp := =                          * for boolean ops the rule value is either 1 for Yes or 0 for No
+</verbatim>
 
 ---++ Special type: File types
    * =name= format: =.[name]=
