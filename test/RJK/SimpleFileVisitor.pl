@@ -76,5 +76,5 @@ my $stats = new RJK::File::Stats->createStats();
 my $visitor = new MyVisitor($stats);
 RJK::File::Stats->traverse($dir, $visitor, $stats);
 
-# generic visitors
+# TODO generic visitors
 my $visitor = new RJK::SimpleFileVisitor::TotalCmdSearch($seachName);
