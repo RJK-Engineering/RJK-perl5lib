@@ -64,18 +64,9 @@ sub match {
         return $result if $not && $date < $not;
     }
 
-    # special rules not available in totalcmd
-    if ($search->hasRule("perl")) {
-        if ($search->hasRule("perl", "isText", 1)) {
-            return $result if ! -T $path->{path};
-        } elsif ($search->hasRule("perl", "isText", 0)) {
-            return $result if -T $path->{path};
-        }
-        if ($search->hasRule("perl", "isBinary", 1)) {
-            return $result if ! -B $path->{path};
-        } elsif ($search->hasRule("perl", "isBinary", 0)) {
-            return $result if -B $path->{path};
-        }
+    foreach (@{$search->{rules}}) {
+        next if $class->_matchRule($result, $_, $search, $path, $stat);
+        return $result;
     }
 
     # text
@@ -101,6 +92,31 @@ sub match {
 
     $result->{matched} = 1;
     return $result;
+}
+
+sub _matchRule {
+    my ($class, $result, $rule, $search, $path, $stat) = @_;
+    my $plugin = $rule->{plugin};
+    my $op = $rule->{op};
+    my $prop = $rule->{property};
+    my $value = $rule->{value};
+
+    if ($plugin eq "tc") {
+        if ($op eq "contains") {
+            return 0 if $path->{$prop} !~ /\Q$value\E/i;
+        }
+    }
+
+    # special rules not available in totalcmd
+    if ($plugin eq "perl") {
+        if ($op eq "text") {
+            return 0 if $value ? !-T $path->{path} : -T $path->{path};
+        }
+        if ($op eq "binary") {
+            return 0 if $value ? !-B $path->{path} : -B $path->{path};
+        }
+    }
+    return 1;
 }
 
 ###############################################################################
