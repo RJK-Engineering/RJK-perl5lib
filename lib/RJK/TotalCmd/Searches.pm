@@ -65,7 +65,7 @@ sub match {
     }
 
     foreach (@{$search->{rules}}) {
-        next if $class->_matchRule($result, $_, $search, $path, $stat);
+        next if _matchRule($result, $_, $search, $path, $stat);
         return $result;
     }
 
@@ -95,27 +95,107 @@ sub match {
 }
 
 sub _matchRule {
-    my ($class, $result, $rule, $search, $path, $stat) = @_;
+    my ($result, $rule, $search, $path, $stat) = @_;
     my $plugin = $rule->{plugin};
-    my $op = $rule->{op};
-    my $prop = $rule->{property};
-    my $value = $rule->{value};
 
     if ($plugin eq "tc") {
-        if ($op eq "contains") {
-            return 0 if $path->{$prop} !~ /\Q$value\E/i;
-        }
+        return 0 if ! _matchTcRule($result, $rule, $search, $path, $stat);
     }
 
     # special rules not available in totalcmd
     if ($plugin eq "perl") {
-        if ($op eq "text") {
-            return 0 if $value ? !-T $path->{path} : -T $path->{path};
+        my $prop = $rule->{property};
+        my $val = $rule->{value};
+
+        if ($prop eq "text") {
+            return 0 if $val ? !-T $path->{path} : -T $path->{path};
         }
-        if ($op eq "binary") {
-            return 0 if $value ? !-B $path->{path} : -B $path->{path};
+        if ($prop eq "binary") {
+            return 0 if $val ? !-B $path->{path} : -B $path->{path};
         }
     }
+    return 1;
+}
+
+sub _matchTcRule {
+    my ($result, $rule, $search, $path, $stat) = @_;
+
+    my $prop = $rule->{property};
+    my $op = $rule->{op};
+    my $rv = $rule->{value};
+    my $pv;
+    my $numeric;
+
+    if ($prop eq 'name') {
+        $pv = $path->{basename};
+    } elsif ($prop eq 'fullname') {
+        $pv = $path->{name};
+    } elsif ($prop eq 'ext') {
+        $pv = $path->{extension};
+    } elsif ($prop eq 'path') {
+        $pv = $path->{path};
+    } elsif ($prop eq 'size') {
+        $pv = $stat->{size};
+        $numeric = 1;
+    } elsif ($prop eq 'directory') {
+        $pv = $stat->{isDir} ? 1 : 0;
+        $numeric = 1;
+    } elsif ($prop eq 'creationdate') {
+        $pv = _getDate($stat->{created});
+    } elsif ($prop eq 'creationtime') {
+        $pv = _getTime($stat->{created});
+    } elsif ($prop eq 'writedate') {
+        $pv = _getDate($stat->{modified});
+    } elsif ($prop eq 'writetime') {
+        $pv = _getTime($stat->{modified});
+    } elsif ($prop eq 'accessdate') {
+        $pv = _getDate($stat->{accessed});
+    } elsif ($prop eq 'accesstime') {
+        $pv = _getTime($stat->{accessed});
+    } elsif ($prop eq 'read only') {
+        $pv = $stat->{isReadable} && ! $stat->{isWritable} ? 1 : 0;
+        $numeric = 1;
+    } else {
+        die "Unsupported property: $prop";
+    }
+
+    if ($op eq "=") {
+        return 0 if $numeric ? $pv != $rv : $pv !~ /^\Q$rv\E$/i;
+    } elsif ($op eq "!=") {
+        return 0 if $numeric ? $pv == $rv : $pv =~ /^\Q$rv\E$/i;
+    } elsif ($op eq ">") {
+        return 0 if $pv <= $rv;
+    } elsif ($op eq "<") {
+        return 0 if $pv >= $rv;
+    } elsif ($op eq ">=") {
+        return 0 if $pv < $rv;
+    } elsif ($op eq "<=") {
+        return 0 if $pv > $rv;
+    } elsif ($op eq "contains") {
+        return 0 if $pv !~ /\Q$rv\E/i;
+    } elsif ($op eq "!contains") {
+        return 0 if $pv =~ /\Q$rv\E/i;
+    } elsif ($op eq "regex") {
+        return 0 if $pv !~ /$rv/i;
+    } elsif ($op eq "!regex") {
+        return 0 if $pv =~ /$rv/i;
+    } elsif ($op eq "cont.(case)") {
+        return 0 if $pv !~ /\Q$rv\E/;
+    } elsif ($op eq "!cont.(case)") {
+        return 0 if $pv =~ /\Q$rv\E/;
+    } elsif ($op eq "=(case)") {
+        return 0 if $pv ne $rv;
+    } elsif ($op eq "!=(case)") {
+        return 0 if $pv eq $rv;
+    # these don't exist in totalcmd
+    } elsif ($op eq "re.(case)") {
+        return 0 if $pv !~ /$rv/;
+    } elsif ($op eq "!re.(case)") {
+        return 0 if $pv =~ /$rv/;
+    } else {
+        die "Unsupported operation: $op";
+    }
+
     return 1;
 }
 
