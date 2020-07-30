@@ -3,6 +3,7 @@
 ---+ package RJK::TotalCmd::DiskDirFiles
 
 =cut
+###############################################################################
 
 package RJK::TotalCmd::DiskDirFiles;
 
@@ -13,6 +14,19 @@ use RJK::File::Exceptions;
 use RJK::TotalCmd::DiskDirFile;
 use RJK::TreeVisitResult qw(matchesTreeVisitResult :constants);
 use RJK::File::Paths;
+
+###############################################################################
+=pod
+
+---+++ RJK::TotalCmd::DiskDirFiles::traverse($path, $visitor, %opts) -> $terminated
+   * =$path= - path to DiskDirFile.
+   * =$visitor= - =RJK::FileVisitor= object.
+   * =%opts= - option hash.
+      * =$nostat= - do not include size and date fields (faster).
+   * =$terminated= - true if traversal was terminated, false otherwise.
+
+=cut
+###############################################################################
 
 sub traverse {
     my ($class, $path, $visitor, $opts) = @_;
@@ -35,7 +49,7 @@ sub traverse {
                 $result = $visitor->postVisitFiles($dir, $stat);
 
                 if (matchesTreeVisitResult($result, TERMINATE)) {
-                    return;
+                    return 1;
                 } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
                     $skip = quotemeta($dir->{dir} || $dir->{path});
                 }
@@ -55,7 +69,7 @@ sub traverse {
             $result = $visitor->preVisitFiles($dir, $stat);
 
             if (matchesTreeVisitResult($result, TERMINATE)) {
-                return;
+                return 1;
             } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
                 $skip = quotemeta $dir->{path};
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
@@ -76,7 +90,7 @@ sub traverse {
             $result = $visitor->visitFile($file, $stat);
 
             if (matchesTreeVisitResult($result, TERMINATE)) {
-                return;
+                return 1;
             } elsif ($dir && matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
                 $skip = quotemeta $dir->{path};
             }
@@ -86,6 +100,7 @@ sub traverse {
     if ($dir) {
         $result = $visitor->postVisitFiles($dir, $stat);
     }
+    return matchesTreeVisitResult($result, TERMINATE);
 }
 
 1;
