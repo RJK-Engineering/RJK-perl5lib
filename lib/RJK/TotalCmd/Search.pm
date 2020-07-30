@@ -8,43 +8,40 @@ Each field has a corresponding accessor/mutator method with the same name,
 e.g. get name: =$search->name()=, set name: =$search->name("a name")=.
 Package variable =@RJK::TotalCmd::Search::fields= contains an ordered list of field names.
 
----++ Fields stored in =totalcmd.ini=
-   * =name= - Name
-   * =SearchFor= - Search mask
-   * =SearchIn= - Directories separated by ";"
-   * =SearchText= - Text to search for in files
-   * =SearchFlags= - Array of flags
-   * =plugin= - Plugin arguments (rules)
+Fields stored in =totalcmd.ini=
+   * =$name= - Name
+   * =$SearchFor= - Search mask
+   * =$SearchIn= - Directories separated by ";"
+   * =$SearchText= - Text to search for in files
+   * =$SearchFlags= - Array of flags
+   * =$plugin= - Plugin arguments (rules)
 
----++ Fields containing derived values
-   * =paths= - Array, =SearchIn= split on ";"
-   * =flags= - Hash containing named =SearchFlags=, see: [[?%QUERYSTRING%#SearchFlags][SearchFlags]]
+Derived fields
+   * =@paths= - =SearchIn= split on ";"
+   * =%flags= - Hash containing named =SearchFlags=, see: [[?%QUERYSTRING%#SearchFlags][SearchFlags]]
+   * =@rules= - List of hashes: {op, plugin, property, unit, value}
 
-Calculated from =flags=:
-   * =mindate= - Unix (epoch) time calculated from ={start}= or from ={time}= and ={timeUnit}=.
-   * =maxdate= - Unix (epoch) time calculated from ={end}=.
-   * =size= - Size in bytes calculated from ={size}= and ={sizeUnit}= if ={sizeMode}= equals =0=.
-   * =minsize= - Size in bytes calculated from ={size}= and ={sizeUnit}= if ={sizeMode}= equals =1=.
-   * =maxsize= - Size in bytes calculated from ={size}= and ={sizeUnit}= if ={sizeMode}= equals =2=.
+Calculated from flags
+   * =$mindate= - Unix (epoch) time calculated from ={start}= or from ={time}= and ={timeUnit}=
+   * =$maxdate= - Unix (epoch) time calculated from ={end}=
+   * =$size= - Size in bytes calculated from ={size}= and ={sizeUnit}= if ={sizeMode}= equals =0=
+   * =$minsize= - Size in bytes calculated from ={size}= and ={sizeUnit}= if ={sizeMode}= equals =1=
+   * =$maxsize= - Size in bytes calculated from ={size}= and ={sizeUnit}= if ={sizeMode}= equals =2=
 
-For regex searches:
-   * =regex= - Equal to =SearchFor=
+For regex searches
+   * =$regex= - Equal to =SearchFor=
 
 For non-regex searches where =SearchFor= contains wildcards:
-   * =search= - =SearchFor= part before "|"
-   * =searchNot= - =SearchFor= part after "|"
-   * =searchRegex= - =search= transformed to regex
-   * =searchNotRegex= - =searchNot= transformed to regex
-   * =patterns= - Array, =search= split on whitespace and ";"
-   * =patternsNot= - Array, =searchNot= split on whitespace and ";"
+   * =$search= - =SearchFor= part before "|"
+   * =$searchNot= - =SearchFor= part after "|"
+   * =@patterns= - =search= split on whitespace and ";"
+   * =@patternsNot= - =searchNot= split on whitespace and ";"
 
 ---++ Flags
 <a name="SearchFlags"></a>
 
----+++ Encoding
-
-Package variable =@RJK::TotalCmd::Search::flagNames= contains a sorted list of
-fields used in the =flags= hash, as listed in the second column.
+Package variable =@RJK::TotalCmd::Search::flagNames= contains an ordered list of
+field names used in the =flags= hash, these are listed in the second column.
 
 | *Position* | *Field* | *Description* | *Format* | *Default* |
 | 0 | archives | Search archives | 0=enabled, 1=disabled | 0 |
@@ -78,7 +75,43 @@ fields used in the =flags= hash, as listed in the second column.
 | 28 | dupeSize | Find duplicate files: Same size | 0=enabled, 1=disabled | 0 |
 | 29 | depth | Search depth | Number | |
 
+---++ Plugins
+
+---+++ Available properties of internal plugin tc
+
+string or number:
+fullname name ext dosname path comment size
+creationdate creationtime writedate writetime accessdate accesstime
+attributes attributestr versionstring versionnr random number
+
+flags:
+archive "read only" hidden system directory
+compressed encrypted sparse offline
+
+choice:
+"file type" = file, folder or "reparse point"
+
+---+++ Available size units
+
+Default size unit: bytes
+Other available units: kbytes, Mbytes, Gbytes
+
+---+++ Available operators
+
+numbers: > < >= <= = !=
+strings: contains !contains cont.(case) !cont.(case) =(case) !=(case) = != regex !regex
+boolean: =
+
+---+++ =addRule= examples
+
+<verbatim>
+$search->addRule($plugin, $property, $op, $value, $unit)
+$search->addRule(qw (tc name contains abc))
+$search->addRule(qw (tc size >= 123 Mbytes))
+</verbatim>
+
 =cut
+###############################################################################
 
 package RJK::TotalCmd::Search;
 
@@ -104,6 +137,8 @@ BEGIN {
 
         paths => [],
         flags => {},
+        rules => [],
+
         mindate => undef,
         maxdate => undef,
         size => undef,
@@ -188,6 +223,15 @@ sub defaults {
     }
 }
 
+###############################################################################
+=pod
+
+---+++ addRule($plugin, $property, $op, $value, $unit)
+---+++ hasRule($plugin, $property, $op, $value, $unit) -> $boolean
+
+=cut
+###############################################################################
+
 sub addRule {
     my ($self, $plugin, $property, $op, $value, $unit) = @_;
     push @{$self->{rules}}, {
@@ -195,18 +239,19 @@ sub addRule {
         property => $property,
         op => $op,
         value => $value,
-        unit => $unit,
+        unit => $unit || 'bytes'
     };
 }
 
 sub hasRule {
-    my ($self, $plugin, $property, $op, $value) = @_;
+    my ($self, $plugin, $property, $op, $value, $unit) = @_;
     $plugin || die "Invalid args";
     foreach (@{$self->{rules}}) {
         next if $plugin ne $_->{plugin};
         next if $property && $property ne $_->{property};
         next if $op && $op ne $_->{op};
-        next if $value && $value ne $_->{value};
+        next if defined $value && $value ne $_->{value};
+        next if $unit && $unit ne $_->{unit};
         return 1;
     }
     return 0;
