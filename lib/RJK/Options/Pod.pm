@@ -270,7 +270,7 @@ sub GetOptions {
         # "-option" = disable option = value 0 (getopt spec: 'option:0')
         # "+option" = enable option = value 1
         # option not specified = default value $opts{option} = 2
-        @ARGV = map { /^\+/ ? ($_, 1) : $_ } @ARGV;
+        @ARGV = map { s/^\+/-/ ? ($_, 1) : $_ } @ARGV;
     }
 
     my @getoptOptConf;
