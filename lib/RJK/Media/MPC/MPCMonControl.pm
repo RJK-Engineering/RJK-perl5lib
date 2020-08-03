@@ -123,14 +123,6 @@ sub addObservers {
     $self->mpcMon->addObserver('LogPlayingStats', 'WebIfMonitor');
     $self->mpcMon->addObserver('LogRecentPlaylists', 'MpcplMonitor');
 
-    # TODO from config
-    #~ print join("\n", split(/\s*,\s*/, $opts{observers})),"\n";
-
-    # TODO store enabled observers in status file
-    #~ $self->mpcMon->enableObserver('LogEvents');
-    $self->mpcMon->enableObserver('Categorize');
-    #~ $self->mpcMon->enableObserver('CopySnapshotToMediaFileDir');
-
     while (my ($observer, $settings) = each %{$self->settings->observers}) {
         $self->mpcMon->enableObserver($observer) if $settings->{enabled};
     }
@@ -139,8 +131,9 @@ sub addObservers {
 sub listObservers {
     my $self = shift;
     foreach my $monitor (values %{$self->mpcMon->{observables}}) {
+        print "Monitor: $monitor->{name}\n";
         foreach my $observer (@{$monitor->{observers}}) {
-            print "Observer: $observer->{name} => $monitor->{name}\n";
+            print "\tObserver: $observer->{name}\n";
         }
     }
 }
