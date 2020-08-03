@@ -14,6 +14,31 @@ use RJK::Exceptions;
 use RJK::IO::File;
 use RJK::TotalCmd::Search;
 
+my $_matchNumericRule = {
+    '=' => sub { $_[1] == $_[0] },
+    '!=' => sub { $_[1] != $_[0] },
+    '>' => sub { $_[1] > $_[0] },
+    '<' => sub { $_[1] < $_[0] },
+    '>=' => sub { $_[1] >= $_[0] },
+    '<=' => sub { $_[1] <= $_[0] },
+};
+
+my $_matchStringRule = {
+    '=' => sub { $_[1] =~ /^\Q$_[0]\E$/i },
+    '!=' => sub { $_[1] !~ /^\Q$_[0]\E$/i },
+    'contains' => sub { $_[1] =~ /\Q$_[0]\E/i },
+    '!contains' => sub { $_[1] !~ /\Q$_[0]\E/i },
+    'regex' => sub { $_[1] =~ /$_[0]/i },
+    '!regex' => sub { $_[1] !~ /$_[0]/i },
+    'cont.(case)' => sub { $_[1] =~ /\Q$_[0]\E/ },
+    '!cont.(case)' => sub { $_[1] !~ /\Q$_[0]\E/ },
+    '=(case)' => sub { $_[1] eq $_[0] },
+    '!=(case)' => sub { $_[1] ne $_[0] },
+    # these don't exist in totalcmd
+    're.(case)' => sub { $_[1] =~ /$_[0]/ },
+    '!re.(case)' => sub { $_[1] !~ /$_[0]/ },
+};
+
 ###############################################################################
 =pod
 
@@ -118,7 +143,9 @@ sub _matchRule {
             return 0 if $rule->{value} ? !-B $path->{path} : -B $path->{path};
         } elsif ($prop eq "parent") {
             return 0 if ! $path->{dir};
-            return 0 if ! _matchStringRule($rule->{op}, "$rule->{value}\\", $path->{dir});
+            my $matcher = $_matchStringRule->{$rule->{op}}
+                or die "Unsupported operation: $rule->{op}";
+            return 0 if ! $matcher->("$rule->{value}\\", $path->{dir});
         }
     }
     return 1;
@@ -164,67 +191,15 @@ sub _matchTcRule {
         die "Unsupported property: $prop";
     }
 
+    my $matcher;
     if ($numeric) {
-        return 0 if ! _matchNumericRule($rule->{op}, $rule->{value}, $matchVal);
+        $matcher = $_matchNumericRule->{$rule->{op}}
+            or die "Unsupported operation: $rule->{op}";
     } else {
-        return 0 if ! _matchStringRule($rule->{op}, $rule->{value}, $matchVal);
+        $matcher = $_matchStringRule->{$rule->{op}}
+            or die "Unsupported operation: $rule->{op}";
     }
-    return 1;
-}
-
-sub _matchNumericRule {
-    my ($op, $ruleVal, $matchVal) = @_;
-
-    if ($op eq "=") {
-        return 0 if $matchVal != $ruleVal;
-    } elsif ($op eq "!=") {
-        return 0 if $matchVal == $ruleVal;
-    } elsif ($op eq ">") {
-        return 0 if $matchVal <= $ruleVal;
-    } elsif ($op eq "<") {
-        return 0 if $matchVal >= $ruleVal;
-    } elsif ($op eq ">=") {
-        return 0 if $matchVal < $ruleVal;
-    } elsif ($op eq "<=") {
-        return 0 if $matchVal > $ruleVal;
-    } else {
-        die "Unsupported operation: $op";
-    }
-    return 1;
-}
-
-sub _matchStringRule {
-    my ($op, $ruleVal, $matchVal) = @_;
-
-    if ($op eq "=") {
-        return 0 if $matchVal !~ /^\Q$ruleVal\E$/i;
-    } elsif ($op eq "!=") {
-        return 0 if $matchVal =~ /^\Q$ruleVal\E$/i;
-    } elsif ($op eq "contains") {
-        return 0 if $matchVal !~ /\Q$ruleVal\E/i;
-    } elsif ($op eq "!contains") {
-        return 0 if $matchVal =~ /\Q$ruleVal\E/i;
-    } elsif ($op eq "regex") {
-        return 0 if $matchVal !~ /$ruleVal/i;
-    } elsif ($op eq "!regex") {
-        return 0 if $matchVal =~ /$ruleVal/i;
-    } elsif ($op eq "cont.(case)") {
-        return 0 if $matchVal !~ /\Q$ruleVal\E/;
-    } elsif ($op eq "!cont.(case)") {
-        return 0 if $matchVal =~ /\Q$ruleVal\E/;
-    } elsif ($op eq "=(case)") {
-        return 0 if $matchVal ne $ruleVal;
-    } elsif ($op eq "!=(case)") {
-        return 0 if $matchVal eq $ruleVal;
-    # these don't exist in totalcmd
-    } elsif ($op eq "re.(case)") {
-        return 0 if $matchVal !~ /$ruleVal/;
-    } elsif ($op eq "!re.(case)") {
-        return 0 if $matchVal =~ /$ruleVal/;
-    } else {
-        die "Unsupported operation: $op";
-    }
-    return 1;
+    return $matcher->($rule->{value}, $matchVal);
 }
 
 ###############################################################################
