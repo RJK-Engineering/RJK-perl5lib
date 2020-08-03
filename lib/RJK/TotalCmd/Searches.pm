@@ -115,9 +115,24 @@ sub _matchRule {
 
         if ($prop eq "text") {
             return 0 if $val ? !-T $path->{path} : -T $path->{path};
-        }
-        if ($prop eq "binary") {
+        } elsif ($prop eq "binary") {
             return 0 if $val ? !-B $path->{path} : -B $path->{path};
+        } elsif ($prop eq "parent") {
+            return 0 if ! $path->{dir};
+            my $op = $rule->{op};
+            if ($op eq '=') {
+                return 0 if $path->{dir} !~ /^\Q$val\E\\$/i;
+            } elsif ($op eq '=(case)') {
+                return 0 if $path->{dir} ne "$val\\";
+            } elsif ($op eq 'regex') {
+                return 0 if $path->{dir} !~ /$val/i;
+            } elsif ($op eq 're.(case)') {
+                return 0 if $path->{dir} !~ /$val/;
+            } elsif ($op eq 'contains') {
+                return 0 if $path->{dir} !~ /\Q$val\E/i;
+            } elsif ($op eq 'cont.(case)') {
+                return 0 if $path->{dir} !~ /\Q$val\E/;
+            }
         }
     }
     return 1;
