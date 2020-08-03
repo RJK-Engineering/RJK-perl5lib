@@ -111,28 +111,14 @@ sub _matchRule {
     # special rules not available in totalcmd
     if ($plugin eq "perl") {
         my $prop = $rule->{property};
-        my $val = $rule->{value};
 
         if ($prop eq "text") {
-            return 0 if $val ? !-T $path->{path} : -T $path->{path};
+            return 0 if $rule->{value} ? !-T $path->{path} : -T $path->{path};
         } elsif ($prop eq "binary") {
-            return 0 if $val ? !-B $path->{path} : -B $path->{path};
+            return 0 if $rule->{value} ? !-B $path->{path} : -B $path->{path};
         } elsif ($prop eq "parent") {
             return 0 if ! $path->{dir};
-            my $op = $rule->{op};
-            if ($op eq '=') {
-                return 0 if $path->{dir} !~ /^\Q$val\E\\$/i;
-            } elsif ($op eq '=(case)') {
-                return 0 if $path->{dir} ne "$val\\";
-            } elsif ($op eq 'regex') {
-                return 0 if $path->{dir} !~ /$val/i;
-            } elsif ($op eq 're.(case)') {
-                return 0 if $path->{dir} !~ /$val/;
-            } elsif ($op eq 'contains') {
-                return 0 if $path->{dir} !~ /\Q$val\E/i;
-            } elsif ($op eq 'cont.(case)') {
-                return 0 if $path->{dir} !~ /\Q$val\E/;
-            }
+            return 0 if ! _matchStringRule($rule->{op}, "$rule->{value}\\", $path->{dir});
         }
     }
     return 1;
@@ -142,81 +128,102 @@ sub _matchTcRule {
     my ($result, $rule, $search, $path, $stat) = @_;
 
     my $prop = $rule->{property};
-    my $op = $rule->{op};
-    my $rv = $rule->{value};
-    my $pv;
+    my $matchVal;
     my $numeric;
 
     if ($prop eq 'name') {
-        $pv = $path->{basename};
+        $matchVal = $path->{basename};
     } elsif ($prop eq 'fullname') {
-        $pv = $path->{name};
+        $matchVal = $path->{name};
     } elsif ($prop eq 'ext') {
-        $pv = $path->{extension};
+        $matchVal = $path->{extension};
     } elsif ($prop eq 'path') {
-        $pv = $path->{path};
+        $matchVal = $path->{path};
     } elsif ($prop eq 'size') {
-        $pv = $stat->{size};
+        $matchVal = $stat->{size};
         $numeric = 1;
     } elsif ($prop eq 'directory') {
-        $pv = $stat->{isDir} ? 1 : 0;
+        $matchVal = $stat->{isDir} ? 1 : 0;
         $numeric = 1;
     } elsif ($prop eq 'creationdate') {
-        $pv = _getDate($stat->{created});
+        $matchVal = _getDate($stat->{created});
     } elsif ($prop eq 'creationtime') {
-        $pv = _getTime($stat->{created});
+        $matchVal = _getTime($stat->{created});
     } elsif ($prop eq 'writedate') {
-        $pv = _getDate($stat->{modified});
+        $matchVal = _getDate($stat->{modified});
     } elsif ($prop eq 'writetime') {
-        $pv = _getTime($stat->{modified});
+        $matchVal = _getTime($stat->{modified});
     } elsif ($prop eq 'accessdate') {
-        $pv = _getDate($stat->{accessed});
+        $matchVal = _getDate($stat->{accessed});
     } elsif ($prop eq 'accesstime') {
-        $pv = _getTime($stat->{accessed});
+        $matchVal = _getTime($stat->{accessed});
     } elsif ($prop eq 'read only') {
-        $pv = $stat->{isReadable} && ! $stat->{isWritable} ? 1 : 0;
+        $matchVal = $stat->{isReadable} && ! $stat->{isWritable} ? 1 : 0;
         $numeric = 1;
     } else {
         die "Unsupported property: $prop";
     }
 
+    if ($numeric) {
+        return 0 if ! _matchNumericRule($rule->{op}, $rule->{value}, $matchVal);
+    } else {
+        return 0 if ! _matchStringRule($rule->{op}, $rule->{value}, $matchVal);
+    }
+    return 1;
+}
+
+sub _matchNumericRule {
+    my ($op, $ruleVal, $matchVal) = @_;
+
     if ($op eq "=") {
-        return 0 if $numeric ? $pv != $rv : $pv !~ /^\Q$rv\E$/i;
+        return 0 if $matchVal != $ruleVal;
     } elsif ($op eq "!=") {
-        return 0 if $numeric ? $pv == $rv : $pv =~ /^\Q$rv\E$/i;
+        return 0 if $matchVal == $ruleVal;
     } elsif ($op eq ">") {
-        return 0 if $pv <= $rv;
+        return 0 if $matchVal <= $ruleVal;
     } elsif ($op eq "<") {
-        return 0 if $pv >= $rv;
+        return 0 if $matchVal >= $ruleVal;
     } elsif ($op eq ">=") {
-        return 0 if $pv < $rv;
+        return 0 if $matchVal < $ruleVal;
     } elsif ($op eq "<=") {
-        return 0 if $pv > $rv;
-    } elsif ($op eq "contains") {
-        return 0 if $pv !~ /\Q$rv\E/i;
-    } elsif ($op eq "!contains") {
-        return 0 if $pv =~ /\Q$rv\E/i;
-    } elsif ($op eq "regex") {
-        return 0 if $pv !~ /$rv/i;
-    } elsif ($op eq "!regex") {
-        return 0 if $pv =~ /$rv/i;
-    } elsif ($op eq "cont.(case)") {
-        return 0 if $pv !~ /\Q$rv\E/;
-    } elsif ($op eq "!cont.(case)") {
-        return 0 if $pv =~ /\Q$rv\E/;
-    } elsif ($op eq "=(case)") {
-        return 0 if $pv ne $rv;
-    } elsif ($op eq "!=(case)") {
-        return 0 if $pv eq $rv;
-    # these don't exist in totalcmd
-    } elsif ($op eq "re.(case)") {
-        return 0 if $pv !~ /$rv/;
-    } elsif ($op eq "!re.(case)") {
-        return 0 if $pv =~ /$rv/;
+        return 0 if $matchVal > $ruleVal;
     } else {
         die "Unsupported operation: $op";
     }
+    return 1;
+}
 
+sub _matchStringRule {
+    my ($op, $ruleVal, $matchVal) = @_;
+
+    if ($op eq "=") {
+        return 0 if $matchVal !~ /^\Q$ruleVal\E$/i;
+    } elsif ($op eq "!=") {
+        return 0 if $matchVal =~ /^\Q$ruleVal\E$/i;
+    } elsif ($op eq "contains") {
+        return 0 if $matchVal !~ /\Q$ruleVal\E/i;
+    } elsif ($op eq "!contains") {
+        return 0 if $matchVal =~ /\Q$ruleVal\E/i;
+    } elsif ($op eq "regex") {
+        return 0 if $matchVal !~ /$ruleVal/i;
+    } elsif ($op eq "!regex") {
+        return 0 if $matchVal =~ /$ruleVal/i;
+    } elsif ($op eq "cont.(case)") {
+        return 0 if $matchVal !~ /\Q$ruleVal\E/;
+    } elsif ($op eq "!cont.(case)") {
+        return 0 if $matchVal =~ /\Q$ruleVal\E/;
+    } elsif ($op eq "=(case)") {
+        return 0 if $matchVal ne $ruleVal;
+    } elsif ($op eq "!=(case)") {
+        return 0 if $matchVal eq $ruleVal;
+    # these don't exist in totalcmd
+    } elsif ($op eq "re.(case)") {
+        return 0 if $matchVal !~ /$ruleVal/;
+    } elsif ($op eq "!re.(case)") {
+        return 0 if $matchVal =~ /$ruleVal/;
+    } else {
+        die "Unsupported operation: $op";
+    }
     return 1;
 }
 
