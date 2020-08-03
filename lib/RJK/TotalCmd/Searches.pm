@@ -48,6 +48,12 @@ sub match {
         #~     $name =~ /^(?:$search->{searchNotRegex})$/i;
     }
 
+    # flags
+    my $flags = $search->{flags};
+    if ($flags->{directory}) {
+        return if ! $stat->{isDir};
+    }
+
     # size
     if (defined $path->{size}) {
         return $result if $search->{size} && $path->{size} != $search->{size};
