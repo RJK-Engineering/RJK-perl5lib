@@ -35,6 +35,7 @@ sub traverse {
         or throw RJK::File::OpenFileException(error => "$!", file => $path, mode => '<');
 
     my ($root, $dir, $stat, $result, $skip);
+    $stat->{isDir} = 1;
     while (<$fh>) {
         chomp;
         my $fields = [ split /\t/ ];
@@ -55,7 +56,6 @@ sub traverse {
                 }
             }
 
-            $stat = { modified => '' };
             if (@$fields > 1) {
                 $dir = RJK::File::Paths::get($root, $fields->[0]);
                 if (! $opts->{nostat}) {
@@ -82,6 +82,7 @@ sub traverse {
             my $dirpath = $dir ? $dir->{path} : '';
             my $file = RJK::File::Paths::get($dirpath, $fields->[0]);
 
+            my $stat;
             if (! $opts->{nostat}) {
                 $stat->{size} = $fields->[1];
                 $stat->{modified} = ! $opts->{nostat} && RJK::TotalCmd::DiskDirFile::parse_datetime("$fields->[2] $fields->[3]");
