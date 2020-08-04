@@ -12,7 +12,6 @@ use strict;
 use warnings;
 
 use Win32::Console;
-require Win32::Console::ANSI;
 
 ###############################################################################
 =pod
