@@ -143,17 +143,26 @@ sub setLeftRightPaths {
 ###############################################################################
 =pod
 
----++ setSourceTargetPaths()
+---++ setSourcePath($path)
+---++ setTargetPath($path)
+---++ setSourceTargetPaths($source, $target)
 
 =cut
 ###############################################################################
+
+sub setSourcePath {
+    setSourceTargetPaths($_[0]);
+}
+
+sub setTargetPath {
+    setSourceTargetPaths(undef, $_[0]);
+}
 
 sub setSourceTargetPaths {
     my ($s, $t) = @_;
     my @args = ("totalcmd", "/O", "/S");
     push @args, "/L=\"$s\"" if $s;
     push @args, "/L=\"$t\"" if $t;
-    #~ print "@args\n";
     system @args;
 }
 
