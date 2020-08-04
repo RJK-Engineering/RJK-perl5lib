@@ -5,6 +5,9 @@ use warnings;
 
 use RJK::File::Paths;
 use RJK::File::Stat;
+use RJK::TreeVisitResult qw(matchesTreeVisitResult :constants);
+
+# Subdirectories are visited after all files in the directory have been visited.
 
 sub traverse {
     my ($class, $path, $visitor, $opts) = @_;
