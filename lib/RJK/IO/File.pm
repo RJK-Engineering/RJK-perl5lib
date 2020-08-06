@@ -3,6 +3,8 @@ package RJK::IO::File;
 use strict;
 use warnings;
 
+use File::Spec::Functions qw(catdir);
+
 use RJK::File::Exceptions;
 use RJK::File::Paths;
 use RJK::File::Stat;
@@ -13,7 +15,7 @@ sub new {
 
     if (ref $parent) {
         if (defined $child) {
-            $self->{path} = RJK::File::Paths::get($parent->{path}, $child)->{path};
+            $self->{path} = catdir($parent->{path}, $child);
         } else {
             $self->{path} = $parent->{path};
         }
