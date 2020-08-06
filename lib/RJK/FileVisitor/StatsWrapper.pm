@@ -23,6 +23,12 @@ sub postVisitDir {
     $self->{visitor}->postVisitDir(@_);
 }
 
+sub preVisitFiles {
+    my $self = shift;
+    $self->{stats}->preVisitFiles(@_);
+    $self->{visitor}->preVisitFiles(@_);
+}
+
 sub postVisitFiles {
     my $self = shift;
     $self->{stats}->postVisitFiles(@_);

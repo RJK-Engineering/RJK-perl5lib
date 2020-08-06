@@ -7,6 +7,7 @@ sub new {
     return bless {
         preVisitDir => 0,
         postVisitDir => 0,
+        preVisitFiles => 0,
         postVisitFiles => 0,
         visitFile => 0,
         visitFileFailed => 0,
@@ -31,6 +32,11 @@ sub preVisitDir {
 sub postVisitDir {
     my $self = shift;
     $self->{postVisitDir}++;
+}
+
+sub preVisitFiles {
+    my $self = shift;
+    $self->{preVisitFiles}++;
 }
 
 sub postVisitFiles {
