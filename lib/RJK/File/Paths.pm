@@ -7,7 +7,6 @@ use File::Spec::Functions qw(canonpath catdir catpath splitpath);
 
 sub get {
     my $path = catdir(grep {$_ ne ""} @_);
-    $path = canonpath($path);
 
     my ($volume, $directories, $file) = splitpath($path);
     my ($basename, $extension) = ($file =~ /^(.+)\.(.+)$/);
