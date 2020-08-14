@@ -77,32 +77,31 @@ sub getVolumes {
 ###############################################################################
 =begin TML
 
----++ getDiskfree($volume) -> ($free, $total)
+---++ getDiskFree($volume) -> ($free, $total, $available)
 
-Sizes in bytes.
-
-<verbatim>
-C:\> fsutil volume diskfree c:
-Total # of free bytes        : 51117883392
-Total # of bytes             : 249532772352
-Total # of avail free bytes  : 51117883392
-</verbatim>
+Free/total/available bytes.
 
 =cut
 ###############################################################################
 
-sub getDiskfree {
+sub getDiskFree {
     my ($class, $volume) = @_;
-    my ($free, $total);
+    my ($free, $total, $available);
     my @lines = `fsutil volume diskfree $volume`;
+
     foreach (@lines) {
-        if (/of free bytes\s*:\s*(\d+)/) {
+        if (/Total # of free bytes\s*:\s*(\d+)/) {
             $free = $1;
-        } elsif (/of bytes\s*:\s*(\d+)/) {
+        } elsif (/Total # of bytes\s*:\s*(\d+)/) {
             $total = $1;
+        } elsif (/Total # of avail free bytes\s*:\s*(\d+)/) {
+            $available = $1;
         }
     }
-    return wantarray ? ($free, $total) : \($free, $total);
+
+    die $lines[0] if ! $free;
+
+    return wantarray ? ($free, $total, $available) : \($free, $total, $available);
 }
 
 1;
