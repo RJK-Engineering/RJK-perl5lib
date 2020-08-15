@@ -48,6 +48,7 @@ sub loadConf {
     $props->load($path);
 
     while (my ($k, $v) = each %{$props->hash}) {
+        $k =~ s/\.(\w?)/\U$1/g; # make camelCase
         $options->{$k} = $v;
     }
 }
