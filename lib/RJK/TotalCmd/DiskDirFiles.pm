@@ -22,7 +22,7 @@ use RJK::File::Paths;
    * =$path= - path to DiskDirFile.
    * =$visitor= - =RJK::FileVisitor= object.
    * =%opts= - option hash.
-      * =$nostat= - do not include size and date fields (faster).
+      * =$opts{nostat}= - do not include size and date fields (faster).
    * =$terminated= - true if traversal was terminated, false otherwise.
 
 =cut
