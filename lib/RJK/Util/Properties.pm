@@ -14,6 +14,11 @@ sub get {
     return $self->{props}{$prop};
 }
 
+sub has {
+    my ($self, $prop) = @_;
+    return exists $self->{props}{$prop};
+}
+
 sub hash {
     my $self = shift;
     return wantarray ? %{$self->{props}} : $self->{props};
