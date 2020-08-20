@@ -14,29 +14,34 @@ use RJK::Exceptions;
 use RJK::IO::File;
 use RJK::TotalCmd::Search;
 
-my $_matchNumericRule = {
-    '=' => sub { $_[1] == $_[0] },
-    '!=' => sub { $_[1] != $_[0] },
-    '>' => sub { $_[1] > $_[0] },
-    '<' => sub { $_[1] < $_[0] },
-    '>=' => sub { $_[1] >= $_[0] },
-    '<=' => sub { $_[1] <= $_[0] },
+my $_pluginMatchers = {
+    tc => \&_matchTcRule,
+    perl => \&_matchPerlRule,
 };
 
-my $_matchStringRule = {
-    '=' => sub { $_[1] =~ /^\Q$_[0]\E$/i },
-    '!=' => sub { $_[1] !~ /^\Q$_[0]\E$/i },
-    'contains' => sub { $_[1] =~ /\Q$_[0]\E/i },
-    '!contains' => sub { $_[1] !~ /\Q$_[0]\E/i },
-    'regex' => sub { $_[1] =~ /$_[0]/i },
-    '!regex' => sub { $_[1] !~ /$_[0]/i },
-    'cont.(case)' => sub { $_[1] =~ /\Q$_[0]\E/ },
-    '!cont.(case)' => sub { $_[1] !~ /\Q$_[0]\E/ },
-    '=(case)' => sub { $_[1] eq $_[0] },
-    '!=(case)' => sub { $_[1] ne $_[0] },
+my $_numericRuleMatchers = {
+    '='  => sub { $_[1] == $_[0] },
+    '!=' => sub { $_[1] != $_[0] },
+    '>=' => sub { $_[1] >= $_[0] },
+    '<=' => sub { $_[1] <= $_[0] },
+    '>'  => sub { $_[1] > $_[0] },
+    '<'  => sub { $_[1] < $_[0] },
+};
+
+my $_stringRuleMatchers = {
+    '='            => sub { $_[1] =~ /^\Q$_[0]\E$/i },
+    '!='           => sub { $_[1] !~ /^\Q$_[0]\E$/i },
+    'contains'     => sub { $_[1] =~  /\Q$_[0]\E/i },
+    '!contains'    => sub { $_[1] !~  /\Q$_[0]\E/i },
+    'cont.(case)'  => sub { $_[1] =~  /\Q$_[0]\E/ },
+    '!cont.(case)' => sub { $_[1] !~  /\Q$_[0]\E/ },
+    'regex'        => sub { $_[1] =~    /$_[0]/i },
+    '!regex'       => sub { $_[1] !~    /$_[0]/i },
+    '=(case)'      => sub { $_[1] eq     $_[0] },
+    '!=(case)'     => sub { $_[1] ne     $_[0] },
     # these don't exist in totalcmd
-    're.(case)' => sub { $_[1] =~ /$_[0]/ },
-    '!re.(case)' => sub { $_[1] !~ /$_[0]/ },
+    're.(case)'    => sub { $_[1] =~    /$_[0]/ },
+    '!re.(case)'   => sub { $_[1] !~    /$_[0]/ },
 };
 
 ###############################################################################
@@ -96,7 +101,7 @@ sub match {
     }
 
     foreach (@{$search->{rules}}) {
-        next if _matchRule($result, $_, $search, $path, $stat);
+        next if _matchRule($result, $_, $path, $stat);
         return $result;
     }
 
@@ -126,33 +131,32 @@ sub match {
 }
 
 sub _matchRule {
-    my ($result, $rule, $search, $path, $stat) = @_;
-    my $plugin = $rule->{plugin};
+    my ($result, $rule, $path, $stat) = @_;
+    my $matcher = $_pluginMatchers->{$rule->{plugin}}
+        or die "Unsupported plugin: $rule->{plugin}";
+    return $matcher->($result, $rule, $path, $stat);
+}
 
-    if ($plugin eq "tc") {
-        return 0 if ! _matchTcRule($result, $rule, $search, $path, $stat);
-    }
+# rules not available in totalcmd
+sub _matchPerlRule {
+    my ($result, $rule, $path, $stat) = @_;
+    my $prop = $rule->{property};
 
-    # special rules not available in totalcmd
-    if ($plugin eq "perl") {
-        my $prop = $rule->{property};
-
-        if ($prop eq "text") {
-            return 0 if $rule->{value} ? !-T $path->{path} : -T $path->{path};
-        } elsif ($prop eq "binary") {
-            return 0 if $rule->{value} ? !-B $path->{path} : -B $path->{path};
-        } elsif ($prop eq "parent") {
-            return 0 if ! $path->{dir};
-            my $matcher = $_matchStringRule->{$rule->{op}}
-                or die "Unsupported operation: $rule->{op}";
-            return 0 if ! $matcher->("$rule->{value}\\", $path->{dir});
-        }
+    if ($prop eq "text") {
+        return 0 if $rule->{value} ? !-T $path->{path} : -T $path->{path};
+    } elsif ($prop eq "binary") {
+        return 0 if $rule->{value} ? !-B $path->{path} : -B $path->{path};
+    } elsif ($prop eq "parent") {
+        return 0 if ! $path->{dir};
+        my $matcher = $_stringRuleMatchers->{$rule->{op}}
+            or die "Unsupported operation: $rule->{op}";
+        return 0 if ! $matcher->("$rule->{value}\\", $path->{dir});
     }
     return 1;
 }
 
 sub _matchTcRule {
-    my ($result, $rule, $search, $path, $stat) = @_;
+    my ($result, $rule, $path, $stat) = @_;
 
     my $prop = $rule->{property};
     my $matchVal;
@@ -193,10 +197,10 @@ sub _matchTcRule {
 
     my $matcher;
     if ($numeric) {
-        $matcher = $_matchNumericRule->{$rule->{op}}
+        $matcher = $_numericRuleMatchers->{$rule->{op}}
             or die "Unsupported operation: $rule->{op}";
     } else {
-        $matcher = $_matchStringRule->{$rule->{op}}
+        $matcher = $_stringRuleMatchers->{$rule->{op}}
             or die "Unsupported operation: $rule->{op}";
     }
     return $matcher->($rule->{value}, $matchVal);
