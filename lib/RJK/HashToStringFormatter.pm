@@ -13,24 +13,22 @@ sub new {
 sub setFormat {
     my ($self, $format) = @_;
     # insert missing type specifications
-    $format =~ s/(%\w+)([^=\w])/$1=s$2/g;
-    $format =~ s/(%\w+)$/$1=s/;
-    #~ print "$format\n";
+    $format =~ s/(%\w+|%'[\w\s]+')([^=\w])/$1=s$2/g;
+    $format =~ s/(%\w+|%'[\w\s]+')$/$1=s/;
 
     my @fields;
-    my $precision = '-?\d*\.(\d+)?';
+    my $precision = '-?\d*(?:\.(\d+))?';
     my $i = 0;
     # optional precision
     # optional type, defaults to "s"
     # additional type "r": trim left side (show [r]ight) instead of right side when string exceeds max width
-    while ($format =~ s/%(\w+)=($precision)?([abcdefgilnoprsuvx])?/
+    while ($format =~ s/%(\w+|'[\w\s]+')=($precision)?([abcdefgilnoprsuvx])?/
             "%" . ($2||"") . ($4 && $4 eq "r" && "s" || $4 || "s") /e  #/
     ) {
         push @fields, $1;
         $self->{width}[$i] = $3;
         $self->{ltrim}[$i++] = $4 && $4 eq "r";
     }
-    #~ print "$format, @fields\n";
 
     $self->{format} = $format;
     $self->{fields} = \@fields;
