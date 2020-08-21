@@ -5,8 +5,10 @@ use warnings;
 
 sub new {
     my $self = bless {}, shift;
-    $self->setFormat($_[0]) if $_[0];
-    $self->{delimiter} = "\t";
+    my %opts = @_ == 1 ? (format => $_[0]) : @_;
+    $self->setFormat($opts{format}) if $opts{format};
+    $self->{filters} = $opts{filters};
+    $self->{header} = $opts{header};
     return $self;
 }
 
@@ -21,6 +23,9 @@ sub setFormat {
     my $i = 0;
     # optional precision
     # optional type, defaults to "s"
+    # additional type "h": convert size in bytes to human-readable format
+    #~ while ($format =~ s/%(\w+|'[\w\s]+')=($precision)?([abcdefghilnoprsuvx])?/
+    #~         "%" . ($2||"") . ($4 && ($4 eq "h" || $4 eq "r") && "s" || $4 || "s") /e  #/
     # additional type "r": trim left side (show [r]ight) instead of right side when string exceeds max width
     while ($format =~ s/%(\w+|'[\w\s]+')=($precision)?([abcdefgilnoprsuvx])?/
             "%" . ($2||"") . ($4 && $4 eq "r" && "s" || $4 || "s") /e  #/
@@ -36,35 +41,28 @@ sub setFormat {
     $self->{fields} = \@fields;
 }
 
-sub format {
-    my ($self, $hash, @fields) = @_;
-    my $format;
-    if (@fields) {
-        my @keys = keys %$hash;
-        my @match;
-        foreach my $field (@fields) {
-            if ($field =~ /[?*]/) {
-                $field =~ s/\?/./g;
-                $field =~ s/\*/.*/g;
-            }
-            push @match, sort grep { /^$field$/ } @keys;
-        }
-        @fields = @match;
-        $format = join $self->{delimiter}, ("%s")x@fields;
-    } else {
-        @fields = @{$self->{fields}};
-        $format = $self->{format};
-    }
+sub header {
+    my $self = shift;
+    return sprintf $self->{format}, map {
+        $self->{header}{$_} // $_
+    } @{$self->{fields}};
+}
 
+sub format {
+    my ($self, $hash) = @_;
+    my @fields = @{$self->{fields}};
     my @values = map { $hash->{$_} // "" } @fields;
+
     for (my $i=0; $i<@values; $i++) {
         if ($self->{ltrim}[$i] && $self->{width}[$i]) {
             $values[$i] = substr $values[$i], -$self->{width}[$i];
         }
+        if ($self->{filters}{$fields[$i]}) {
+            $values[$i] = $self->{filters}{$fields[$i]}($values[$i]);
+        }
     }
 
-    return sprintf $format, @values;
+    return sprintf $self->{format}, @values;
 }
 
 1;
-
