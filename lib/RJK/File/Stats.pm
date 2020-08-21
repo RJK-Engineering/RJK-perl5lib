@@ -8,15 +8,15 @@ use RJK::File::TraverseStats;
 use RJK::FileVisitor::StatsWrapper;
 
 sub traverse {
-    my ($class, $path, $visitor, $opts, $stats) = @_;
+    my ($class, $path, $visitor, $opts, $totals) = @_;
     $visitor ||= bless {}, 'RJK::FileVisitor';
 
-    $stats ||= $class->createStats();
+    my $stats = $class->createStats();
     $visitor = new RJK::FileVisitor::StatsWrapper($visitor, $stats);
-
     RJK::Files->traverse($path, $visitor, $opts);
 
     delete $stats->{dirStats};
+    $totals->update($stats) if $totals;
     return $stats;
 }
 
