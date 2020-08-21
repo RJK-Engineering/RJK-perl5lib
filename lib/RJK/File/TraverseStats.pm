@@ -3,18 +3,20 @@ package RJK::File::TraverseStats;
 use strict;
 use warnings;
 
+my @fields = qw(
+preVisitDir
+postVisitDir
+preVisitFiles
+postVisitFiles
+visitFile
+visitFileFailed
+size
+files
+dirs
+);
+
 sub new {
-    return bless {
-        preVisitDir => 0,
-        postVisitDir => 0,
-        preVisitFiles => 0,
-        postVisitFiles => 0,
-        visitFile => 0,
-        visitFileFailed => 0,
-        size => 0,
-        files => 0,
-        dirs => 0,
-    }, shift;
+    return bless { map { $_ => 0 } @fields }, shift;
 }
 
 sub preVisitDir {
@@ -63,6 +65,11 @@ sub visitFileFailed {
     if ($self->{dirStats}) {
         $self->{dirStats}->visitFileFailed(@_);
     }
+}
+
+sub update {
+    my ($self, $stats) = @_;
+    $self->{$_} += $stats->{$_} for @fields;
 }
 
 1;
