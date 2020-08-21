@@ -5,7 +5,9 @@ use warnings;
 
 sub printAndExit {
     if ( UNIVERSAL::isa($_, 'Exception') ) {
-        print STDERR ref, "\nerror = ", $_->error, "\n";
+        print STDERR ref, " at ", $_->trace->frame(1)->subroutine,
+            " line ", $_->trace->frame(0)->line,
+            "\nerror = ", $_->error, "\n";
         if ($_->Fields) {
             foreach my $field ($_->Fields) {
                 print STDERR "$field = ", $_->$field//"(undef)", "\n";

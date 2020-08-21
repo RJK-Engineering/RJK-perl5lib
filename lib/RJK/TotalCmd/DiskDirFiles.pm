@@ -32,7 +32,7 @@ sub traverse {
     my ($class, $path, $visitor, $opts) = @_;
 
     open my $fh, '<', $path
-        or throw RJK::File::OpenFileException(error => "$!", file => $path, mode => '<');
+        or throw RJK::OpenFileException(error => "$!", file => $path, mode => '<');
 
     my ($root, $dir, $stat, $result, $skip);
     $stat->{isDir} = 1;

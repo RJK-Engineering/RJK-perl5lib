@@ -5,18 +5,12 @@ use warnings;
 
 use Exception::Class (
     'Exception',
-    'RJK::File::Exception' => {
+    'RJK::FileException' => {
         isa => 'Exception',
         fields => ['file']
     },
-    'RJK::File::EmptyFileException' => {
-        isa => 'RJK::File::Exception'
-    },
-    'RJK::File::NoFileException' => {
-        isa => 'RJK::File::Exception'
-    },
-    'RJK::File::OpenFileException' => {
-        isa => 'RJK::File::Exception',
+    'RJK::OpenFileException' => {
+        isa => 'RJK::FileException',
         fields => ['mode']
     }
 );

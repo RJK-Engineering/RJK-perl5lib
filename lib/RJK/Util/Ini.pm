@@ -254,7 +254,7 @@ sub read {
     $file //= $self->{file};
 
     open my $in, '<', $file
-        or throw RJK::File::OpenFileException(error => "$!", file => $file, mode => '<');
+        or throw RJK::OpenFileException(error => "$!", file => $file, mode => '<');
     $self->clear();
 
     my ($pl, $keys);
@@ -292,7 +292,7 @@ sub write {
         $fh = $file;
     } else {
         open $fh, '>', $file
-           or throw RJK::File::OpenFileException(error => "$!", file => $file, mode => '>');
+           or throw RJK::OpenFileException(error => "$!", file => $file, mode => '>');
     }
 
     my @sections = $sort ? sort @{$self->{sections}}
