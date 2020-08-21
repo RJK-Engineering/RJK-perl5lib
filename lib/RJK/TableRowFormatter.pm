@@ -1,4 +1,4 @@
-package RJK::HashToStringFormatter;
+package RJK::TableRowFormatter;
 
 use strict;
 use warnings;
