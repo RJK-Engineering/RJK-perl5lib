@@ -28,6 +28,8 @@ sub setFormat {
         push @fields, $1;
         $self->{width}[$i] = $3;
         $self->{ltrim}[$i++] = $4 && $4 eq "r";
+
+        $fields[-1] =~ s/'//g;
     }
 
     $self->{format} = $format;
