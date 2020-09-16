@@ -56,7 +56,7 @@ See topic "Command line parameters" in Total Commander help.
 
 sub setPaths {
     my ($left, $right) = @_;
-    my @args = ("totalcmd.exe", "/O", "/L=\"$left\"");
+    my @args = ($ENV{COMMANDER_EXE}, "/O", "/L=\"$left\"");
     push @args, "/R=\"$right\"" if $right;
     system @args;
 }
@@ -133,7 +133,7 @@ sub tempFile {
 
 sub setLeftRightPaths {
     my ($l, $r) = @_;
-    my @args = ("totalcmd", "/O");
+    my @args = ($ENV{COMMANDER_EXE}, "/O");
     push @args, "/L=\"$l\"" if $l;
     push @args, "/L=\"$r\"" if $r;
     system @args;
@@ -160,7 +160,7 @@ sub setTargetPath {
 
 sub setSourceTargetPaths {
     my ($s, $t) = @_;
-    my @args = ("totalcmd", "/O", "/S");
+    my @args = ($ENV{COMMANDER_EXE}, "/O", "/S");
     push @args, "/L=\"$s\"" if $s;
     push @args, "/L=\"$t\"" if $t;
     system @args;
