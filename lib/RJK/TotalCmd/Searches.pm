@@ -61,16 +61,19 @@ my $_stringRuleMatchers = {
 sub match {
     my ($class, $search, $path, $stat) = @_;
     my $result = {};
+    my $flags = $search->{flags};
 
     # name
     my $name = $path->{name};
     $name =~ s|.*[\\/]||;
 
-    if ($search->{regex}) {
-        return $result if $name !~ /$search->{regex}/i;
-        $result->{captured} = [ $name =~ /$search->{regex}/i ];
-    } elsif ($search->{SearchFor}) {
-        return $result if $name !~ /\Q$search->{SearchFor}\E/i;
+    if ($search->{SearchFor}) {
+        if ($flags->{regex}) {
+            return $result if $name !~ /$search->{SearchFor}/i;
+            $result->{captured} = [ $name =~ /$search->{SearchFor}/i ];
+        } else {
+            return $result if $name !~ /\Q$search->{SearchFor}\E/i;
+        }
     } else {
         #~ return $result if $search->{searchRegex} &&
         #~     $name !~ /^(?:$search->{searchRegex})$/i;
@@ -79,8 +82,9 @@ sub match {
     }
 
     # flags
-    my $flags = $search->{flags};
-    if ($flags->{directory}) {
+    if ($flags->{directory} == 0) {
+        return if $stat->{isDir};
+    } elsif ($flags->{directory} == 1) {
         return if ! $stat->{isDir};
     }
 
@@ -96,7 +100,7 @@ sub match {
     if (defined $date) {
         return $result if $search->{mindate} && $date < $search->{mindate};
         return $result if $search->{maxdate} && $date > $search->{maxdate};
-        my $not = NotOlderThanTime($search->{flags});
+        my $not = NotOlderThanTime($flags);
         return $result if $not && $date < $not;
     }
 
