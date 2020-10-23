@@ -23,12 +23,12 @@ sub preVisitDir {
     my $self = shift;
     $self->{preVisitDir}++;
 
-    $self->{files} += @{$_[2]};
-    $self->{dirs} += @{$_[3]};
+    $self->{files} += @{$_[2]} if $_[2];
+    $self->{dirs} += @{$_[3]} if $_[3];
 
     $self->{dirStats} = __PACKAGE__->new;
-    $self->{dirStats}{files} = @{$_[2]};
-    $self->{dirStats}{dirs} = @{$_[3]};
+    $self->{dirStats}{files} = @{$_[2]} if $_[2];
+    $self->{dirStats}{dirs} = @{$_[3]} if $_[3];
 }
 
 sub postVisitDir {
