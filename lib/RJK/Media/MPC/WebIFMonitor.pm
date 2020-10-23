@@ -4,7 +4,7 @@ use parent 'RJK::Media::MPC::Monitor';
 use strict;
 use warnings;
 
-use RJK::Media::MPC::Status qw(:constants);
+use RJK::Media::MPC::Status ':constants';
 use RJK::Media::MPC::WebIF;
 
 sub new {
