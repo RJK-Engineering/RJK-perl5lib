@@ -11,7 +11,7 @@ sub get {
     my ($volume, $directories, $file) = splitpath($path);
     my ($basename, $extension) = ($file =~ /^(.+)\.(.+)$/);
 
-    return {
+    return bless {
         path => $path,
         dir => $file eq '' ? '' : catpath($volume, $directories, ''),
         name => $file,
@@ -19,7 +19,7 @@ sub get {
         directories => $directories,
         basename => $basename // $file,
         extension => $extension // ''
-    };
+    }, 'RJK::File::Path';
 }
 
 1;
