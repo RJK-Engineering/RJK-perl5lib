@@ -54,6 +54,14 @@ sub traverse {
                 } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
                     $skip = quotemeta($dir->{dir} || $dir->{path});
                 }
+
+                $result = $visitor->postVisitDir($dir, $stat);
+
+                if (matchesTreeVisitResult($result, TERMINATE)) {
+                    return 1;
+                } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
+                    $skip = quotemeta($dir->{dir} || $dir->{path});
+                }
             }
 
             if (@$fields > 1) {
@@ -64,6 +72,18 @@ sub traverse {
             } else {
                 $dir = RJK::File::Paths::get($fields->[0]);
                 $root = $dir->{path};
+            }
+
+            $result = $visitor->preVisitDir($dir, $stat);
+
+            if (matchesTreeVisitResult($result, TERMINATE)) {
+                return 1;
+            } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
+                $skip = quotemeta $dir->{path};
+            } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
+                $skip = quotemeta($dir->{dir} || $dir->{path});
+                $dir = undef; # don't postVisitFiles()
+                next;
             }
 
             $result = $visitor->preVisitFiles($dir, $stat);
@@ -100,6 +120,7 @@ sub traverse {
 
     if ($dir) {
         $result = $visitor->postVisitFiles($dir, $stat);
+        $result = $visitor->postVisitDir($dir, $stat);
     }
     return matchesTreeVisitResult($result, TERMINATE);
 }
