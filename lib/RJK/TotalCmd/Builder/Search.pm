@@ -116,7 +116,7 @@ sub create {
     if ($search->{plugin}) {
         my @args =
             map { s/^"//r =~ s/"$//r =~ s/\0/"/r }  # remove surrounding quotes, restore in-string quotes
-            $search->{plugin} =~ s/\\"/\0/gr          # replace escaped in-string quotes with null chars
+            $search->{plugin} =~ s/\\"/\0/gr        # replace escaped in-string quotes with null chars
             =~ /(".*?"|\S+)/g;                      # match quoted strings and non-space sequences
 
         while (my ($prop, $op, $value, $combineOp) = splice @args, 0, 4) {
