@@ -4,10 +4,6 @@
 
 ---++ Fields
 
-Each field has a corresponding accessor/mutator method with the same name,
-e.g. get name: =$search->name()=, set name: =$search->name("a name")=.
-Package variable =@RJK::TotalCmd::Search::fields= contains an ordered list of field names.
-
 Fields stored in =totalcmd.ini=
    * =$name= - Name
    * =$SearchFor= - Search mask
@@ -27,9 +23,6 @@ Calculated from flags
    * =$size= - Size in bytes calculated from ={size}= and ={sizeUnit}= if ={sizeMode}= equals =0=
    * =$minsize= - Size in bytes calculated from ={size}= and ={sizeUnit}= if ={sizeMode}= equals =1=
    * =$maxsize= - Size in bytes calculated from ={size}= and ={sizeUnit}= if ={sizeMode}= equals =2=
-
-For regex searches
-   * =$regex= - Equal to =SearchFor=
 
 For non-regex searches where =SearchFor= contains wildcards:
    * =$search= - =SearchFor= part before "|"
@@ -123,40 +116,29 @@ our @timeUnits = qw(
     hours days weeks months years
 );
 
-my @fieldDefaults;
-our @fields;
+my $proto = {
+    name => "",
+    SearchFor => "",
+    SearchIn => "",
+    SearchText => "",
+    SearchFlags => "",
+    plugin => "",
 
-BEGIN {
-    @fieldDefaults = (
-        name => "",
-        SearchFor => "",
-        SearchIn => "",
-        SearchText => "",
-        SearchFlags => "",
-        plugin => "",
+    paths => undef,
+    flags => undef,
+    rules => undef,
 
-        paths => [],
-        flags => {},
-        rules => [],
+    mindate => undef,
+    maxdate => undef,
+    size => undef,
+    minsize => undef,
+    maxsize => undef,
 
-        mindate => undef,
-        maxdate => undef,
-        size => undef,
-        minsize => undef,
-        maxsize => undef,
-
-        regex => undef,
-        search => undef,
-        searchNot => undef,
-        patterns => [],
-        patternsNot => [],
-    );
-    for (my $i=0; $i<@fieldDefaults; $i+=2) {
-        push @fields, $fieldDefaults[$i];
-    }
-}
-
-use Class::AccessorMaker {@fieldDefaults};
+    search => undef,
+    searchNot => undef,
+    patterns => undef,
+    patternsNot => undef,
+};
 
 our @flagNames = qw(
     archives textWord textCase textAscii textNot
@@ -166,18 +148,22 @@ our @flagNames = qw(
     dupes dupeContent dupeName dupeSize depth
 );
 
-my $defaults = {
+my $flagsProto = {
     compressed => 2,
     encrypted => 2,
-    flags => {
-        archive => 2,
-        readonly => 2,
-        hidden => 2,
-        system => 2,
-        directory => 2,
-        depth => 99,
-    }
+    archive => 2,
+    readonly => 2,
+    hidden => 2,
+    system => 2,
+    directory => 2,
+    depth => 99,
 };
+
+sub new {
+    my $self = bless \%$proto, shift;
+    $self->{flags} = \%$flagsProto;
+    return $self;
+}
 
 ###############################################################################
 =pod
@@ -192,7 +178,7 @@ Copy unset parameters from other =$search=.
 
 sub update {
     my ($self, $search) = @_;
-    foreach my $field (@fields) {
+    foreach my $field (keys %$proto) {
         if ($field eq "flags") {
             $self->{flags}{$_} //= $search->{flags}{$_}
                 foreach @flagNames;
@@ -213,12 +199,12 @@ Set defaults for undefined parameters.
 
 sub defaults {
     my $self = shift;
-    foreach my $field (@fields) {
+    foreach my $field (keys %$proto) {
         if ($field eq "flags") {
-            $self->{flags}{$_} //= $defaults->{flags}{$_} // 0
+            $self->{flags}{$_} //= $flagsProto->{$_} // 0
                 foreach @flagNames;
         } else {
-            $self->{$field} //= $defaults->{$field} || "";
+            $self->{$field} //= $proto->{$field} || "";
         }
     }
 }
