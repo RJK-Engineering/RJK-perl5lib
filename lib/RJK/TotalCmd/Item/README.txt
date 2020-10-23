@@ -14,7 +14,7 @@ Command (Item, CommandInterface) (abstract)
     cmd                 # command
     param               # parameters
     path                # start path
-    iconic              # 1 = minimize, -1 = maximize
+    iconic              # 1 = minimize (or "show as menu" if cmd ends with .bar, making the item a subbar), -1 = maximize
     key                 # shortcut key (command config)
     shortcuts           # shortcut keys (Options > Misc) only internal and user commands can have shortcuts (start menu items can be accessed as internal commands)
 StartMenuItem (MenuItem, Command) (required inherited fields: cmd, menu)
