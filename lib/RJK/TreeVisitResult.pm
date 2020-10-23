@@ -17,7 +17,7 @@ our @EXPORT_OK = (@EXPORT, 'matchesTreeVisitResult');
 our %EXPORT_TAGS = (constants => \@EXPORT);
 
 sub matchesTreeVisitResult {
-    my $result = shift || return 0;
+    UNIVERSAL::isa(my $result = shift, 'RJK::TreeVisitResult') || return 0;
     foreach (@_) {
         return 1 if $_ == $result;
     }
