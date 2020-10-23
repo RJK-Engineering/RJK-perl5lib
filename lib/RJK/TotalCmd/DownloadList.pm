@@ -78,6 +78,7 @@ sub list {
 
 sub add {
     my ($self, $operation, $source, $destination) = @_;
+    die if $operation ne "copy" and $operation ne "move";
     my $entry = "$operation:$source";
     $entry .= " -> $destination" if $destination;
     push @{$self->{list}}, $entry;
@@ -146,7 +147,7 @@ sub write {
 sub append {
     my ($self, $file) = @_;
     open (my $fh, ">>$file") || return;
-    foreach (@{$self->{lines}}) {
+    foreach (@{$self->{list}}) {
         print $fh "$_\n";
     }
     close $fh;
