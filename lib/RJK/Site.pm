@@ -13,5 +13,4 @@ sub getSearchUrl {
     return sprintf "$self->{protocol}://$self->{host}/$self->{searchPath}", $query;
 }
 
-
 1;
