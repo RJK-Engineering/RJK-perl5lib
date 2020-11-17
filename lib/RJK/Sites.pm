@@ -19,7 +19,7 @@ sub get {
 sub getForId {
     my ($class, $id) = @_;
     _getSites();
-    my @sites = sort { ($a->{idRegexPrio}//0) <=> ($b->{idRegexPrio}//0) } values %$sites;
+    my @sites = sort { ($a->{idRegexPrio}//999) <=> ($b->{idRegexPrio}//999) } values %$sites;
     foreach my $site (@sites) {
         next if ! $site->{idRegex};
         return $site if $id =~ /^$site->{idRegex}$/;
