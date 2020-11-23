@@ -1,5 +1,5 @@
 package RJK::Media::MPC::Actions::Category;
-use parent 'RJK::Media::MPC::Util';
+use parent 'RJK::Media::MPC::Actions';
 
 use File::Copy ();
 use RJK::File::Path::Util;

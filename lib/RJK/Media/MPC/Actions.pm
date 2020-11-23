@@ -1,4 +1,4 @@
-package RJK::Media::MPC::Util;
+package RJK::Media::MPC::Actions;
 
 sub new {
     my $self = bless {}, shift;
