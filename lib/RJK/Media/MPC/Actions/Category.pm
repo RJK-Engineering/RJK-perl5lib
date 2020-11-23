@@ -2,6 +2,9 @@ package RJK::Media::MPC::Actions::Category;
 use parent 'RJK::Media::MPC::Util';
 
 use File::Copy ();
+use RJK::File::Path::Util;
+use RJK::Files;
+use Try::Tiny;
 
 sub switch {
     my ($self, $file) = @_;
@@ -41,20 +44,22 @@ sub delete {
     while (my ($file, $settings) = each %{$self->settings->files}) {
         next if $settings->{category} ne "delete";
 
-        my ($sidecars, $dir) = $self->getSidecarFiles($file);
-        $self->moveSidecarFiles($sidecars, $dir, "$dir\\.removed");
+        try {
+            my ($sidecars, $dir) = $self->getSidecarFiles($file);
+            $self->moveSidecarFiles($sidecars, $dir, "$dir\\.removed");
 
-        if (unlink $file) {
-            $self->settings->delete($file, "category");
-            print "Deleted $file\n";
-        } else {
-            print "$!: $file\n" if $self->opts->{verbose};
-        }
+            if (unlink $file) {
+                $self->settings->delete($file, "category");
+                print "Deleted $file\n";
+            } else {
+                print "$!: $file\n" if $self->opts->{verbose};
+            }
+        } catch {
+        };
     }
     print "Done.\n";
 }
 
-use RJK::File::Path::Util;
 sub moveSidecarFiles {
     my ($self, $sidecars, $dir, $target) = @_;
     RJK::File::Path::Util::checkdir($target);
@@ -63,7 +68,6 @@ sub moveSidecarFiles {
     }
 }
 
-use RJK::Files;
 sub getSidecarFiles {
     my ($self, $file) = @_;
     my @sidecar;
@@ -89,14 +93,18 @@ sub move {
         next if ! $settings->{category};
         next if $settings->{category} eq "delete";
 
-        my ($sidecars, $dir) = $self->getSidecarFiles($file);
-        my $target = "$dir\\$settings->{category}";
-        $self->moveSidecarFiles($sidecars, $dir, $target);
+        try {
+            my ($sidecars, $dir) = $self->getSidecarFiles($file);
+            my $target = "$dir\\$settings->{category}";
+            $self->moveSidecarFiles($sidecars, $dir, $target);
 
-        if ($self->moveFile($file, $target)) {
-            $self->settings->delete($file, "category");
-        }
+            if ($self->moveFile($file, $target)) {
+                $self->settings->delete($file, "category");
+            }
+        } catch {
+        };
     }
+    print "Done.\n";
 }
 
 sub moveFile {
