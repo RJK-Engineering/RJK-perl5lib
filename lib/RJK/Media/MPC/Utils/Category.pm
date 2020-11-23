@@ -41,14 +41,44 @@ sub delete {
     while (my ($file, $settings) = each %{$self->settings->files}) {
         next if $settings->{category} ne "delete";
 
+        my ($sidecars, $dir) = $self->getSidecarFiles($file);
+        $self->moveSidecarFiles($sidecars, $dir, "$dir\\.removed");
+
         if (unlink $file) {
-            $self->settings->delete($file);
+            $self->settings->delete($file, "category");
             print "Deleted $file\n";
         } else {
             print "$!: $file\n" if $self->opts->{verbose};
         }
     }
     print "Done.\n";
+}
+
+use RJK::File::Path::Util;
+sub moveSidecarFiles {
+    my ($self, $sidecars, $dir, $target) = @_;
+    RJK::File::Path::Util::checkdir($target);
+    foreach (@$sidecars) {
+        $self->moveFile("$dir\\$_", $target);
+    }
+}
+
+use RJK::Files;
+sub getSidecarFiles {
+    my ($self, $file) = @_;
+    my @sidecar;
+    my ($dir, $name, $nameStart) = $file =~ /(.+)\\((.+)\.\w+)$/;
+    my $nameStartRe = qr/^$nameStart/;
+
+    my @names = @{RJK::Files->getEntries($dir)};
+    return if ! @names;
+    foreach (@names) {
+        next if $_ eq $name;
+        if (/$nameStartRe/) {
+            push @sidecar, $_;
+        }
+    }
+    return \@sidecar, $dir, $name, $nameStart;
 }
 
 sub move {
@@ -60,16 +90,25 @@ sub move {
         next if ! $settings->{category};
         next if $settings->{category} eq "delete";
 
-        my $dir = $file =~ s/[\\\/]+[^\\\/]+$//r;
-        $dir .= "\\$settings->{category}\\";
-        mkdir $dir;
+        my ($sidecars, $dir) = $self->getSidecarFiles($file);
+        my $target = "$dir\\$settings->{category}";
+        $self->moveSidecarFiles($sidecars, $dir, $target);
 
-        if (File::Copy::move $file, $dir) {
-            print "Moved $file -> $dir\n";
-        } else {
-            print "$!: $file\n";
+        if ($self->moveFile($file, $target)) {
+            $self->settings->delete($file, "category");
         }
     }
+}
+
+sub moveFile {
+    my ($self, $file, $target) = @_;
+
+    if (File::Copy::move $file, $target) {
+        print "Moved $file -> $target\n";
+        return 1;
+    }
+    print "$!: $file\n";
+    return 0;
 }
 
 1;
