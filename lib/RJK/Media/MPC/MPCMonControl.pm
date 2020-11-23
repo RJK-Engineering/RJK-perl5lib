@@ -56,11 +56,11 @@ sub init {
         #~ '?' => help,
         1 => sub { $self->showStatus },
         q => sub { $self->quit },
-        c => sub { $self->switch('Categorize') },
+        c => sub { $self->switch('Category') },
         s => sub { $self->switch('CopySnapshotToMediaFileDir') },
         u => sub { $self->settings->undo },
-        d => sub { $self->do('Categorize', 'delete') },
-        m => sub { $self->do('Categorize', 'move') },
+        d => sub { $self->do('Category', 'delete') },
+        m => sub { $self->do('Category', 'move') },
     };
 
     print "\n";
@@ -112,7 +112,7 @@ sub addObservers {
     $self->mpcMon->addObserver('CopySnapshotToMediaFileDir', 'SnapshotMonitor');
     $self->mpcMon->addObserver('SegmentList', 'SnapshotMonitor');
     #~ $self->mpcMon->addObserver('Favorites', 'IniMonitor');
-    $self->mpcMon->addObserver('Categorize', 'SnapshotMonitor');
+    $self->mpcMon->addObserver('Category', 'SnapshotMonitor');
     $self->mpcMon->addObserver('Positions', 'IniMonitor');
     $self->mpcMon->addObserver('IniDiff', 'IniMonitor');
     $self->mpcMon->addObserver('LogRecentFiles', 'IniMonitor');

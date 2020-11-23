@@ -1,4 +1,4 @@
-package RJK::Media::MPC::Observers::Categorize;
+package RJK::Media::MPC::Observers::Category;
 use parent 'RJK::Media::MPC::Observer';
 
 use strict;
