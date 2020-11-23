@@ -1,4 +1,4 @@
-package RJK::Media::MPC::Utils::Category;
+package RJK::Media::MPC::Actions::Category;
 use parent 'RJK::Media::MPC::Util';
 
 use File::Copy ();
@@ -70,9 +70,8 @@ sub getSidecarFiles {
     my ($dir, $name, $nameStart) = $file =~ /(.+)\\((.+)\.\w+)$/;
     my $nameStartRe = qr/^$nameStart/;
 
-    my @names = @{RJK::Files->getEntries($dir)};
-    return if ! @names;
-    foreach (@names) {
+    my $names = RJK::Files->getEntries($dir) // [];
+    foreach (@$names) {
         next if $_ eq $name;
         if (/$nameStartRe/) {
             push @sidecar, $_;
