@@ -39,8 +39,7 @@ sub init {
         $self->{settings} = new RJK::Media::MPC::MPCMonSettings($self->{opts}{settingsFile});
     }
 
-    $self->{mpcMon} = new RJK::Media::MPC::MPCMon($self->{opts});
-    $self->{mpcMon}{utils} = $self->utils;
+    $self->{mpcMon} = new RJK::Media::MPC::MPCMon($self);
     $self->{mpcMon}->init();
 
     return if $self->{opts}{status};
@@ -57,15 +56,20 @@ sub init {
         #~ '?' => help,
         1 => sub { $self->showStatus },
         q => sub { $self->quit },
-        c => sub { $self->switch("Categorize") },
-        s => sub { $self->switch("CopySnapshotToMediaFileDir") },
+        c => sub { $self->switch('Categorize') },
+        s => sub { $self->switch('CopySnapshotToMediaFileDir') },
         u => sub { $self->settings->undo },
-        d => sub { $self->utils->category->delete },
-        m => sub { $self->utils->category->move },
+        d => sub { $self->do('Categorize', 'delete') },
+        m => sub { $self->do('Categorize', 'move') },
     };
 
     print "\n";
     $self->showStatus();
+}
+
+sub do {
+    my ($self, $observer, $action) = @_;
+    $self->mpcMon->getObserver($observer)->do($action);
 }
 
 sub switch {
@@ -123,7 +127,7 @@ sub addObservers {
 
 sub listObservers {
     my $self = shift;
-    foreach my $monitor (values %{$self->mpcMon->{observables}}) {
+    foreach my $monitor (values %{$self->mpcMon->{monitors}}) {
         print "Monitor: $monitor->{name}\n";
         foreach my $observer (@{$monitor->{observers}}) {
             print "\tObserver: $observer->{name}\n";
