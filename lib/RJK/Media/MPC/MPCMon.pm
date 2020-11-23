@@ -3,13 +3,10 @@ package RJK::Media::MPC::MPCMon;
 use strict;
 use warnings;
 
-use Exception::Class('Exception');
-use File::Path ();
-
+use RJK::File::Path::Util;
 use RJK::Media::MPC::IniMonitor;
 use RJK::Media::MPC::SnapshotMonitor;
 use RJK::Media::MPC::WebIFMonitor;
-
 use RJK::Util::LockFile;
 
 sub new {
@@ -79,7 +76,7 @@ sub addObserver {
         return;
     }
 
-    my $observer = $class->new($name);
+    my $observer = $class->new($name, $self->{utils});
     my @mons = ref $mon ? @$mon : $mon ? ($mon) : keys %{$self->{observables}};
 
     foreach (@mons) {
@@ -165,17 +162,7 @@ sub getStatus {
 
 sub checkDir {
     my ($self, $dir) = @_;
-    if (-e $dir) {
-        unless (-d $dir) {
-            throw Exception("Not a directory: $dir");
-        }
-        return 0;
-    }
-    unless (File::Path::make_path $dir) {
-        throw Exception("$!: $dir");
-    }
-    print "Created $dir\n" if $self->{opts}{verbose};
-    return 1;
+    print "Created $dir\n" if RJK::File::Path::Util::checkdir($dir) && $self->{opts}{verbose};
 }
 
 1;
