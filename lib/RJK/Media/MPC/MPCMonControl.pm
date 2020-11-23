@@ -55,36 +55,29 @@ sub init {
         tab => sub { $self->settings->list },
         l => sub { $self->settings->list },
         #~ '?' => help,
-        1 => sub { $self->status },
+        1 => sub { $self->showStatus },
         q => sub { $self->quit },
-        c => sub {
-            $self->settings->setObserverEnabled(
-                "Categorize",
-                $self->mpcMon->observerSwitch("Categorize")
-            );
-        },
-        s => sub {
-            $self->settings->setObserverEnabled(
-                "CopySnapshotToMediaFileDir",
-                $self->mpcMon->observerSwitch("CopySnapshotToMediaFileDir")
-            );
-        },
+        c => sub { $self->switch("Categorize") },
+        s => sub { $self->switch("CopySnapshotToMediaFileDir") },
         u => sub { $self->settings->undo },
         d => sub { $self->utils->category->delete },
         m => sub { $self->utils->category->move },
     };
 
     print "\n";
-    $self->status();
+    $self->showStatus();
+}
+
+sub switch {
+    my ($self, $observer) = @_;
+    $self->settings->setObserverEnabled(
+        $observer,
+        $self->mpcMon->observerSwitch($observer)
+    );
 }
 
 sub start {
     my $self = shift;
-
-    if ($self->{opts}{status}) {
-        $self->status;
-        exit;
-    }
 
     $self->{console}->title($self->{opts}{windowTitle});
     if ($self->{opts}{verbose}) {
@@ -113,7 +106,7 @@ sub addObservers {
     my $self = shift;
     $self->mpcMon->addObserver('LogEvents');
     $self->mpcMon->addObserver('CopySnapshotToMediaFileDir', 'SnapshotMonitor');
-    #~ $self->mpcMon->addObserver('Bookmark', 'SnapshotMonitor');
+    $self->mpcMon->addObserver('SegmentList', 'SnapshotMonitor');
     #~ $self->mpcMon->addObserver('Favorites', 'IniMonitor');
     $self->mpcMon->addObserver('Categorize', 'SnapshotMonitor');
     $self->mpcMon->addObserver('Positions', 'IniMonitor');
@@ -174,7 +167,7 @@ sub quit {
     exit;
 }
 
-sub status {
+sub showStatus {
     my $self = shift;
 
     $self->listObservers;
@@ -188,6 +181,10 @@ sub status {
         print "No MPC status\n";
     }
     print "\n";
+}
+
+sub getStatus {
+    return $_[0]->mpcMon->getStatus;
 }
 
 1;
