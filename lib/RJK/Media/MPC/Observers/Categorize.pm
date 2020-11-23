@@ -5,10 +5,10 @@ use strict;
 use warnings;
 
 sub handleSnapshotCreatedEvent {
-    my ($self, $snapshot, $monitor) = @_;
+    my ($self, $snapshot, $monitor) = @_; # TODO why $monitor param?
 
-    $monitor->utils->getMediaFilePath($snapshot);
-    $monitor->utils->category->switch($snapshot->{mediaFile});
+    $self->utils->getMediaFilePath($snapshot);
+    $self->utils->category->switch($snapshot->{mediaFile});
 }
 
 1;
