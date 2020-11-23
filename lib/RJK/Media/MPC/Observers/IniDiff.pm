@@ -7,7 +7,7 @@ use warnings;
 use Text::Diff;
 
 sub handleFileChangedEvent {
-    my ($self, $ini) = @_;
+    my ($self, $ini, $monitor) = @_;
 
     if ($self->{content}) {
         my $diff = diff \$self->{content}, $ini->{file}, {
