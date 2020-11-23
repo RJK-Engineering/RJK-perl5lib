@@ -60,30 +60,6 @@ sub delete {
     print "Done.\n";
 }
 
-sub moveSidecarFiles {
-    my ($self, $sidecars, $dir, $target) = @_;
-    RJK::File::Path::Util::checkdir($target);
-    foreach (@$sidecars) {
-        $self->moveFile("$dir\\$_", $target);
-    }
-}
-
-sub getSidecarFiles {
-    my ($self, $file) = @_;
-    my @sidecar;
-    my ($dir, $name, $nameStart) = $file =~ /(.+)\\((.+)\.\w+)$/;
-    my $nameStartRe = qr/^$nameStart/;
-
-    my $names = RJK::Files->getEntries($dir) // [];
-    foreach (@$names) {
-        next if $_ eq $name;
-        if (/$nameStartRe/) {
-            push @sidecar, $_;
-        }
-    }
-    return \@sidecar, $dir, $name, $nameStart;
-}
-
 sub move {
     my $self = shift;
 
@@ -105,6 +81,30 @@ sub move {
         };
     }
     print "Done.\n";
+}
+
+sub getSidecarFiles {
+    my ($self, $file) = @_;
+    my @sidecar;
+    my ($dir, $name, $nameStart) = $file =~ /(.+)\\((.+)\.\w+)$/;
+    my $nameStartRe = qr/^$nameStart/;
+
+    my $names = RJK::Files->getEntries($dir) // [];
+    foreach (@$names) {
+        next if $_ eq $name;
+        if (/$nameStartRe/) {
+            push @sidecar, $_;
+        }
+    }
+    return \@sidecar, $dir, $name, $nameStart;
+}
+
+sub moveSidecarFiles {
+    my ($self, $sidecars, $dir, $target) = @_;
+    RJK::File::Path::Util::checkdir($target);
+    foreach (@$sidecars) {
+        $self->moveFile("$dir\\$_", $target);
+    }
 }
 
 sub moveFile {
