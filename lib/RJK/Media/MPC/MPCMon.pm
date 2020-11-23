@@ -11,7 +11,8 @@ use RJK::Util::LockFile;
 
 sub new {
     my $self = bless {}, shift;
-    $self->{opts} = shift;
+    $self->{controller} = shift;
+    $self->{opts} = $self->{controller}{opts};
     return $self;
 }
 
@@ -37,15 +38,15 @@ sub finish {
 sub setupMonitors {
     my $self = shift;
 
-    $self->{monitors} = [
-        $self->{observables}{IniMonitor} = new RJK::Media::MPC::IniMonitor(
+    $self->{monitorList} = [
+        $self->{monitors}{IniMonitor} = new RJK::Media::MPC::IniMonitor(
             file => $self->{opts}{mpcIni}
         ),
-        $self->{observables}{SnapshotMonitor} = new RJK::Media::MPC::SnapshotMonitor(
+        $self->{monitors}{SnapshotMonitor} = new RJK::Media::MPC::SnapshotMonitor(
             snapshotDir => $self->{opts}{snapshotDir},
             unlinkSnapshots => 1
         ),
-        $self->{observables}{WebIFMonitor} = new RJK::Media::MPC::WebIFMonitor(
+        $self->{monitors}{WebIFMonitor} = new RJK::Media::MPC::WebIFMonitor(
             port => $self->{opts}{port},
             url => $self->{opts}{url},
             requestAgent => $self->{opts}{requestAgent},
@@ -53,18 +54,22 @@ sub setupMonitors {
         ),
     ];
 
-    foreach (@{$self->{monitors}}) {
+    foreach (@{$self->{monitorList}}) {
         $_->init();
         $_->{name} = (/::(\w+)=/)[0];
-        $_->{utils} = $self->{utils};
+        $_->{utils} = $self->{controller}{utils};
     }
 }
 
 sub poll {
-    $_->poll() for @{$_[0]{monitors}};
+    $_->poll() for @{$_[0]{monitorList}};
 }
 
 ###############################################################################
+
+sub getObserver {
+    $_[0]{observers}{$_[1]}
+}
 
 sub addObserver {
     my ($self, $name, $mon) = @_;
@@ -76,11 +81,10 @@ sub addObserver {
         return;
     }
 
-    my $observer = $class->new($name, $self->{utils});
-    my @mons = ref $mon ? @$mon : $mon ? ($mon) : keys %{$self->{observables}};
-
+    $self->{observers}{$name} = $class->new($name, $self->{controller});
+    my @mons = ref $mon ? @$mon : $mon ? ($mon) : keys %{$self->{monitors}};
     foreach (@mons) {
-        $self->{observers}{$_}{$name} = $observer;
+        $self->{observerRegistry}{$_}{$name} = $self->{observers}{$name};
     }
 }
 
@@ -89,10 +93,10 @@ sub enableObserver {
     $self->getObservers($name, $mon, sub {
         my ($name, $mon, $observer) = @_;
         print "Enable: $name => $mon\n";
-        if ($self->{observables}{$mon}->hasObserver($observer)) {
+        if ($self->{monitors}{$mon}->hasObserver($observer)) {
             print "Observer already enabled: $mon => $name\n";
         } else {
-            $self->{observables}{$mon}->addObserver($observer);
+            $self->{monitors}{$mon}->addObserver($observer);
         }
     });
 }
@@ -102,7 +106,7 @@ sub disableObserver {
     $self->getObservers($name, $mon, sub {
         my ($name, $mon, $observer) = @_;
         print "Disable: $mon => $name\n";
-        if (! $self->{observables}{$mon}->removeObserver($observer)) {
+        if (! $self->{monitors}{$mon}->removeObserver($observer)) {
             print "Observer already disabled: $mon => $name\n";
         }
     });
@@ -112,13 +116,13 @@ sub observerSwitch {
     my ($self, $name, $mon) = @_;
     return $self->getObservers($name, $mon, sub {
         my ($name, $mon, $observer) = @_;
-        if ($self->{observables}{$mon}->hasObserver($observer)) {
+        if ($self->{monitors}{$mon}->hasObserver($observer)) {
             print "Disable: $mon => $name\n";
-            $self->{observables}{$mon}->removeObserver($observer);
+            $self->{monitors}{$mon}->removeObserver($observer);
             return 0;
         } else {
             print "Enable: $mon => $name\n";
-            $self->{observables}{$mon}->addObserver($observer);
+            $self->{monitors}{$mon}->addObserver($observer);
             return 1;
         }
     });
@@ -129,8 +133,8 @@ sub getObservers {
     my $retval;
 
     if ($mon) {
-        if ($self->{observables}{$mon}) {
-            if (my $observer = $self->{observers}{$mon}{$name}) {
+        if ($self->{monitors}{$mon}) {
+            if (my $observer = $self->{observerRegistry}{$mon}{$name}) {
                 $retval = $callback->($name, $mon, $observer);
             } else {
                 print "WARN Invalid Observer: $name\n";
@@ -140,8 +144,8 @@ sub getObservers {
         }
     } else {
         my $observer;
-        foreach $mon (keys %{$self->{observables}}) {
-            if ($observer = $self->{observers}{$mon}{$name}) {
+        foreach $mon (keys %{$self->{monitors}}) {
+            if ($observer = $self->{observerRegistry}{$mon}{$name}) {
                 $retval = $callback->($name, $mon, $observer);
                 last;
             }
@@ -157,7 +161,7 @@ sub getObservers {
 
 sub getStatus {
     my $self = shift;
-    return $self->{observables}{WebIFMonitor}->getStatus();
+    return $self->{monitors}{WebIFMonitor}->getStatus();
 }
 
 sub checkDir {
