@@ -3,21 +3,22 @@ package RJK::File::Path::Util;
 use strict;
 use warnings;
 
-use Exception::Class('Exception');
 use File::Path ();
+use RJK::File::Exceptions;
 
 sub checkdir {
     my ($dir) = @_;
     if (-e $dir) {
-        unless (-d $dir) {
-            throw Exception("Not a directory: $dir");
-        }
-        return 0;
+        return if -d $dir;
+        throw RJK::FileException(error => "Not a directory: $dir", file => $dir);
     }
-    unless (File::Path::make_path $dir) {
-        throw Exception("$!: $dir");
-    }
-    return 1;
+
+    File::Path::make_path $dir, {error => \my $err};
+    return if ! $err || ! @$err;
+
+    my ($file, $message) = %{$err->[0]};
+    throw Exception($message) if $file eq '';
+    throw RJK::FileException(error => $message, file => $file);
 }
 
 1;
