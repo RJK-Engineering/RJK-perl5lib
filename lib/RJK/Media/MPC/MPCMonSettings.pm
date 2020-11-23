@@ -68,17 +68,31 @@ sub set {
 }
 
 sub delete {
-    my ($self, $file) = @_;
-    delete $self->{files}{$file};
+    my ($self, $file, $prop) = @_;
+    if ($prop) {
+        delete $self->{files}{$file}{$prop};
+        $self->updateFile($file);
+    } else {
+        delete $self->{files}{$file};
+    }
     $self->{dirty} = 1;
+}
+
+sub updateFile {
+    my ($self, $file) = @_;
+    if (! keys %{$self->{files}{$file}}) {
+        delete $self->{files}{$file};
+        $self->{dirty} = 1;
+    }
 }
 
 sub undo {
     my $self = shift;
     my $p = $self->{previous};
     if ($p) {
-        delete $self->{files}{ $p->{file} }{ $p->{prop} };
         print "Undo: $p->{file} ($p->{prop})\n";
+        delete $self->{files}{ $p->{file} }{ $p->{prop} };
+        $self->updateFile($p->{file});
         $self->{dirty} = 1;
     } else {
         print "No undo history\n";
@@ -87,9 +101,9 @@ sub undo {
 
 sub list {
     my $self = shift;
-    while (my ($file, $settings) = each %{$self->{files}}) {
-        my $cat = $settings->{category};
-        printf "%s\t%s\n", $cat ? "$cat" : "", $file;
+    foreach (sort { lc $a cmp lc $b } keys %{$self->{files}}) {
+        my $cat = $self->{files}{$_}{category};
+        printf "%s\t%s\n", $cat ? "$cat" : "", $_;
     }
     print "\n";
 }
