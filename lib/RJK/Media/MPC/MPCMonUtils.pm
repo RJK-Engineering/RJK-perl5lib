@@ -3,18 +3,12 @@ package RJK::Media::MPC::MPCMonUtils;
 use strict;
 use warnings;
 
-use RJK::Media::MPC::Utils::Category;
 use RJK::Win32::ProcessList;
 
 sub new {
     my $self = bless {}, shift;
     $self->{controller} = shift;
-    $self->{category} = new RJK::Media::MPC::Utils::Category($self->{controller});
     return $self;
-}
-
-sub category {
-    $_[0]{category}
 }
 
 sub nowPlaying {
