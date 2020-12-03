@@ -3,7 +3,7 @@ use parent 'RJK::Media::MPC::Actions';
 
 use File::Copy ();
 use RJK::File::Path::Util;
-use RJK::Files;
+use RJK::File::Sidecar;
 use Try::Tiny;
 
 sub switch {
@@ -45,8 +45,8 @@ sub delete {
         next if $settings->{category} ne "delete";
 
         try {
-            my ($sidecars, $dir) = $self->getSidecarFiles($file);
-            $self->moveSidecarFiles($sidecars, $dir, "$dir\\.removed");
+            my ($sidecars, $dir) = RJK::File::Sidecar->getSidecarFiles($file);
+            $self->moveSidecarFiles($sidecars, $dir, "$dir\\.removed") if @$sidecars;
 
             if (unlink $file) {
                 $self->settings->delete($file, "category");
@@ -70,7 +70,7 @@ sub move {
         next if $settings->{category} eq "delete";
 
         try {
-            my ($sidecars, $dir) = $self->getSidecarFiles($file);
+            my ($sidecars, $dir) = RJK::File::Sidecar->getSidecarFiles($file);
             my $target = "$dir\\$settings->{category}";
             $self->moveSidecarFiles($sidecars, $dir, $target);
 
@@ -81,22 +81,6 @@ sub move {
         };
     }
     print "Done.\n";
-}
-
-sub getSidecarFiles {
-    my ($self, $file) = @_;
-    my @sidecar;
-    my ($dir, $name, $nameStart) = $file =~ /(.+)\\((.+)\.\w+)$/;
-    my $nameStartRe = qr/^$nameStart/;
-
-    my $names = RJK::Files->getEntries($dir) // [];
-    foreach (@$names) {
-        next if $_ eq $name;
-        if (/$nameStartRe/) {
-            push @sidecar, $_;
-        }
-    }
-    return \@sidecar, $dir, $name, $nameStart;
 }
 
 sub moveSidecarFiles {
