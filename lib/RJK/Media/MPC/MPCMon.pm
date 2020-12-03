@@ -57,7 +57,6 @@ sub setupMonitors {
     foreach (@{$self->{monitorList}}) {
         $_->init();
         $_->{name} = (/::(\w+)=/)[0];
-        $_->{utils} = $self->{controller}{utils};
     }
 }
 
