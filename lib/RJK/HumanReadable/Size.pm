@@ -8,6 +8,7 @@ our $precision = 3;
 our ($number, $symbol, $exact);
 
 sub get {
+    my $self = shift;
     $exact = shift || return "";
 
     $symbol = "";
