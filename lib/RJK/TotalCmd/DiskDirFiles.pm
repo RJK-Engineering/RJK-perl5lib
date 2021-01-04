@@ -52,7 +52,7 @@ sub traverse {
                 if (matchesTreeVisitResult($result, TERMINATE)) {
                     return 1;
                 } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
-                    $skip = quotemeta($dir->{dir} || $dir->{path});
+                    $skip = quotemeta($dir->{parent} || $dir->{path});
                 }
 
                 $result = $visitor->postVisitDir($dir, $stat);
@@ -60,7 +60,7 @@ sub traverse {
                 if (matchesTreeVisitResult($result, TERMINATE)) {
                     return 1;
                 } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
-                    $skip = quotemeta($dir->{dir} || $dir->{path});
+                    $skip = quotemeta($dir->{parent} || $dir->{path});
                 }
             }
 
@@ -81,7 +81,7 @@ sub traverse {
             } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
                 $skip = quotemeta $dir->{path};
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
-                $skip = quotemeta($dir->{dir} || $dir->{path});
+                $skip = quotemeta($dir->{parent} || $dir->{path});
                 $dir = undef; # don't postVisitFiles()
                 next;
             }
@@ -93,7 +93,7 @@ sub traverse {
             } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
                 $skip = quotemeta $dir->{path};
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
-                $skip = quotemeta($dir->{dir} || $dir->{path});
+                $skip = quotemeta($dir->{parent} || $dir->{path});
                 $dir = undef; # don't postVisitFiles()
             }
         } else {
