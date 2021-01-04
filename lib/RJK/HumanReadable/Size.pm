@@ -8,7 +8,7 @@ our $precision = 3;
 our ($number, $symbol, $exact);
 
 sub get {
-    $exact = shift;
+    $exact = shift || return "";
 
     $symbol = "";
     return $number = $exact if $exact < 1024;
