@@ -37,14 +37,14 @@ sub setFormat {
         $fields[-1] =~ s/'//g;
     }
 
-    $self->{format} = $format;
+    $self->{format} = "$format\n";
     $self->{fields} = \@fields;
 }
 
 sub header {
     my $self = shift;
     return sprintf $self->{format}, map {
-        $self->{header}{$_} // $_
+        $self->{header}{$_} // ucfirst $_
     } @{$self->{fields}};
 }
 
