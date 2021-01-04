@@ -24,7 +24,7 @@ use warnings;
 ###############################################################################
 
 sub sendCommand {
-    my ($cm) = @_;
+    my ($self, $cm) = @_;
     my $exe = 'SendTCCommand.exe';
     system $exe, $cm;
 }
@@ -55,7 +55,7 @@ See topic "Command line parameters" in Total Commander help.
 ###############################################################################
 
 sub setPaths {
-    my ($left, $right) = @_;
+    my ($self, $left, $right) = @_;
     my @args = ($ENV{COMMANDER_EXE}, "/O", "/L=\"$left\"");
     push @args, "/R=\"$right\"" if $right;
     system @args;
@@ -71,7 +71,7 @@ Take paths from Total Commander list file or from arguments.
 ###############################################################################
 
 sub pathListfromArguments {
-    my (@args) = @_;
+    my ($self, @args) = @_;
 
     my $pathList = new File::PathList();
     foreach (@args) {
@@ -98,7 +98,8 @@ Create a temp file in =$ENV{TEMP}= and return a file handle for it.
 ###############################################################################
 
 sub tempFile {
-    my $extension = shift // "tmp";
+    my ($self, $extension) = @_;
+    $extension //= "tmp";
 
     unless (exists $ENV{TEMP} && defined $ENV{TEMP}) {
         return (undef, undef, "Environment variable TEMP not defined");
@@ -132,7 +133,7 @@ sub tempFile {
 ###############################################################################
 
 sub setLeftRightPaths {
-    my ($l, $r) = @_;
+    my ($self, $l, $r) = @_;
     my @args = ($ENV{COMMANDER_EXE}, "/O");
     push @args, "/L=\"$l\"" if $l;
     push @args, "/L=\"$r\"" if $r;
@@ -151,15 +152,17 @@ sub setLeftRightPaths {
 ###############################################################################
 
 sub setSourcePath {
-    setSourceTargetPaths($_[0]);
+    my ($self, $s) = @_;
+    $self->setSourceTargetPaths($s);
 }
 
 sub setTargetPath {
-    setSourceTargetPaths(undef, $_[0]);
+    my ($self, $t) = @_;
+    $self->setSourceTargetPaths(undef, $t);
 }
 
 sub setSourceTargetPaths {
-    my ($s, $t) = @_;
+    my ($self, $s, $t) = @_;
     my @args = ($ENV{COMMANDER_EXE}, "/O", "/S");
     push @args, "/L=\"$s\"" if $s;
     push @args, "/L=\"$t\"" if $t;
@@ -178,7 +181,7 @@ no message if =$msg= is an empty string, prints a default message otherwise.
 ###############################################################################
 
 sub pauseInTotalCmdEnv {
-    my $msg = shift;
+    my ($self, $msg) = @_;
 
     if (defined $msg) {
         print "$msg\n" if $msg ne "";
