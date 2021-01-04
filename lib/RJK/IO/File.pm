@@ -28,7 +28,7 @@ sub new {
 
 sub name { $_[0]->toPath->{name} }
 sub path { $_[0]{path} }
-sub parent { $_[0]->toPath->{dir} }
+sub parent { $_[0]->toPath->{parent} }
 sub canExecute { -x $_[0]{path} }
 sub canRead { -r $_[0]{path} }
 sub canWrite { -r $_[0]{path} }
