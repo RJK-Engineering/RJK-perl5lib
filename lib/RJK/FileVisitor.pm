@@ -3,6 +3,10 @@ package RJK::FileVisitor;
 use strict;
 use warnings;
 
+sub new {
+    bless {}, shift;
+}
+
 # Invoked for a directory before entries in the directory are visited.
 sub preVisitDir {
     my ($self, $dir, $stat) = @_;
