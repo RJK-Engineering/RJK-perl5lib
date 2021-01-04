@@ -15,6 +15,7 @@ sub path        { $_[0]{path} }
 sub parent      { $_[0]{parent} }
 sub name        { $_[0]{name} }
 sub volume      { $_[0]{volume} }
+sub drive       { $_[0]{drive} }
 sub directories { $_[0]{directories} }
 sub basename    { $_[0]{basename} }
 sub extension   { $_[0]{extension} }
