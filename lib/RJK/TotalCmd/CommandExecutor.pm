@@ -256,7 +256,7 @@ sub getParams {
 
             # create list file
             my ($fh, $error);
-            ($fh, $params{sourceListFile}, $error) = RJK::TotalCmd::Utils::tempFile();
+            ($fh, $params{sourceListFile}, $error) = RJK::TotalCmd::Utils->tempFile();
             if ($error) {
                 if (defined $params{sourceListFile}) {
                     throw RJK::TotalCmd::Command::ListFileException(
