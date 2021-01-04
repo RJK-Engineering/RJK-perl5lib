@@ -151,10 +151,10 @@ sub _matchPerlRule {
     } elsif ($prop eq "binary") {
         return 0 if $rule->{value} ? !-B $path->{path} : -B $path->{path};
     } elsif ($prop eq "parent") {
-        return 0 if ! $path->{dir};
+        return 0 if ! $path->{parent};
         my $matcher = $_stringRuleMatchers->{$rule->{op}}
             or die "Unsupported operation: $rule->{op}";
-        return 0 if ! $matcher->("$rule->{value}\\", $path->{dir});
+        return 0 if ! $matcher->("$rule->{value}\\", $path->{parent});
     }
     return 1;
 }
