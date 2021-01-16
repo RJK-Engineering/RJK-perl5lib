@@ -52,7 +52,9 @@ sub createSnapshots {
 
     my $time = $opts->{position} =~ s/:/./gr;
     $time .= "s" if $time !~ /\./;
-    my $snapshot = "$videoFile->{parent}\\$videoFile->{basename}_$time.jpg";
+    my $parent = $videoFile->parent;
+    my $basename = $videoFile->basename;
+    my $snapshot = "$parent\\${basename}_$time.jpg";
     createSnapshot($videoFile, $opts->{position} =~ s/\./:/gr, $snapshot);
 }
 
