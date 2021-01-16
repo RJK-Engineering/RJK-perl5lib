@@ -13,6 +13,7 @@ use warnings;
 use RJK::File::Exceptions;
 use RJK::TotalCmd::DiskDirFile;
 use RJK::TreeVisitResult qw(matchesTreeVisitResult :constants);
+use RJK::File::Path;
 use RJK::File::Paths;
 
 ###############################################################################
@@ -52,7 +53,7 @@ sub traverse {
                 if (matchesTreeVisitResult($result, TERMINATE)) {
                     return 1;
                 } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
-                    $skip = quotemeta($dir->{parent} || $dir->{path});
+                    $skip = quotemeta($dir->parent || $dir->{path});
                 }
 
                 $result = $visitor->postVisitDir($dir, $stat);
@@ -60,7 +61,7 @@ sub traverse {
                 if (matchesTreeVisitResult($result, TERMINATE)) {
                     return 1;
                 } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
-                    $skip = quotemeta($dir->{parent} || $dir->{path});
+                    $skip = quotemeta($dir->parent || $dir->{path});
                 }
             }
 
@@ -81,7 +82,7 @@ sub traverse {
             } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
                 $skip = quotemeta $dir->{path};
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
-                $skip = quotemeta($dir->{parent} || $dir->{path});
+                $skip = quotemeta($dir->parent || $dir->{path});
                 $dir = undef; # don't postVisitFiles()
                 next;
             }
@@ -93,7 +94,7 @@ sub traverse {
             } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
                 $skip = quotemeta $dir->{path};
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
-                $skip = quotemeta($dir->{parent} || $dir->{path});
+                $skip = quotemeta($dir->parent || $dir->{path});
                 $dir = undef; # don't postVisitFiles()
             }
         } else {
