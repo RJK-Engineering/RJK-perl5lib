@@ -28,5 +28,15 @@ print $p->basename ."\n";
 print $p->extension ."\n";
 
 $p = RJK::File::Paths::get('c:\file.ext\dir....\..\..\.\a..exe.');
+$p = RJK::File::Paths::get('c:\\a');
+$p = RJK::File::Paths::get('c:\\');
+$p = RJK::File::Paths::get('c:');
+$p = RJK::File::Paths::get('c:\file.ext\..\a\b\c\..\..\q\..\..\r\s');
 dd $p;
-dd $p->normalize();
+$p = $p->normalize();
+dd $p;
+
+print $p->parent ."\n";
+print $p->volume ."\n";
+print $p->basename ."\n";
+print $p->extension ."\n";
