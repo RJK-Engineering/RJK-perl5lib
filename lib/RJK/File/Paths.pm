@@ -4,30 +4,29 @@ use strict;
 use warnings;
 
 my $separatorsRegex = qr{ [\\\/]+ }x;
-my $splitPathRegex = qr{ ^ ((\w):) (?: (\\.+)\\(.+) | \\(.*) )? $ }x;
-my $splitFilenameRegex = qr{ ^ (.+)\.(.+) $ }x;
+my $splitPathRegex = qr{ ^ (\w): (?: (\\.+)\\(.+) | \\(.+) )? $ }x;
 
 sub get {
     my $path = ucfirst join "\\", @_;
     $path =~ s/$separatorsRegex/\\/g;
     $path =~ s/$separatorsRegex$//;
 
-    my ($volume, $drive, $directories, $file, $noparent) = $path =~ /$splitPathRegex/;
+    my ($drive, $directories, $file, $fileInRoot) = $path =~ /$splitPathRegex/;
     if (not defined $file) {
-        $file = $noparent // '';
-        $directories = '';
+        if (defined $fileInRoot) {
+            $file = $fileInRoot;
+        } else {
+            $file = '';
+            $path .= '\\';
+        }
+        $directories = '\\';
     }
-    my ($basename, $extension) = ($file =~ /$splitFilenameRegex/);
 
     return bless {
         path => $path,
-        parent => $file eq '' ? '' : $volume.$directories,
         name => $file,
-        volume => $volume,
         drive => $drive,
         directories => $directories,
-        basename => $basename // $file,
-        extension => $extension // ''
     }, 'RJK::File::Path';
 }
 
