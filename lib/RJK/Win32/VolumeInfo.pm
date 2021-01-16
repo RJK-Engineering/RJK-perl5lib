@@ -24,25 +24,6 @@ use Win32API::File qw(
     getLogicalDrives GetVolumeInformation GetDriveType
     :DRIVE_);
 
-my $types = {
-    DRIVE_UNKNOWN     => DRIVE_UNKNOWN,
-    DRIVE_NO_ROOT_DIR => DRIVE_NO_ROOT_DIR,
-    DRIVE_REMOVABLE   => DRIVE_REMOVABLE,
-    DRIVE_FIXED       => DRIVE_FIXED,
-    DRIVE_REMOTE      => DRIVE_REMOTE,
-    DRIVE_CDROM       => DRIVE_CDROM,
-    DRIVE_RAMDISK     => DRIVE_RAMDISK,
-};
-sub types { $types }
-
-my %typeFlags = (
-    DRIVE_FIXED, '=',
-    DRIVE_REMOVABLE, '^',
-    DRIVE_REMOTE, '@',
-    DRIVE_CDROM, '%',
-);
-sub typeFlags { \%typeFlags }
-
 ###############################################################################
 =begin TML
 
@@ -57,18 +38,17 @@ sub getVolumes {
     foreach my $path (@drives) {
         my @x = (undef)x7;
         GetVolumeInformation($path, @x);
-        my $label = $x[0];
-
         my $type = GetDriveType($path);
 
         my $driveLetter = $path;
         $driveLetter =~ s/:\\//;
         $volumes{$driveLetter} = {
             path => $path,
-            label => $label,
-            driveLetter => $driveLetter,
-            type => $type,
-            typeFlag => defined $typeFlags{$type} ? $typeFlags{$type} : "?"
+            label => $x[0],
+            serial => $x[2],
+            fs => $x[5],
+            letter => $driveLetter,
+            type => $type
         };
     }
     return wantarray ? map { $volumes{$_} } sort keys %volumes : \%volumes;
@@ -77,16 +57,17 @@ sub getVolumes {
 ###############################################################################
 =begin TML
 
----++ getDiskFree($volume) -> ($free, $total, $available)
+---++ getUsage($volume) -> ($free, $total, $available) or { free => $free, total => $total, available => $available }
 
 Free/total/available bytes.
 
 =cut
 ###############################################################################
 
-sub getDiskFree {
+sub getUsage {
     my ($class, $volume) = @_;
     my ($free, $total, $available);
+    $volume =~ s/:?$/:/;
     my @lines = `fsutil volume diskfree $volume`;
 
     foreach (@lines) {
@@ -101,7 +82,11 @@ sub getDiskFree {
 
     die $lines[0] if ! $free;
 
-    return wantarray ? ($free, $total, $available) : \($free, $total, $available);
+    return wantarray ? ($free, $total, $available) : {
+        free => $free,
+        total => $total,
+        available => $available
+    }
 }
 
 1;
