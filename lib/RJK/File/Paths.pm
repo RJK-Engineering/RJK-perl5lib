@@ -11,7 +11,7 @@ sub get {
     $path =~ s/$separatorsRegex/\\/g;
     $path =~ s/$separatorsRegex$//;
 
-    my ($drive, $directories, $file, $fileInRoot) = $path =~ /$splitPathRegex/;
+    my ($volume, $directories, $file, $fileInRoot) = $path =~ /$splitPathRegex/;
     if (not defined $file) {
         if (defined $fileInRoot) {
             $file = $fileInRoot;
@@ -25,7 +25,7 @@ sub get {
     return bless {
         path => $path,
         name => $file,
-        drive => $drive,
+        volume => $volume,
         directories => $directories,
     }, 'RJK::File::Path';
 }
