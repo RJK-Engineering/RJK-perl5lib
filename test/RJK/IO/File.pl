@@ -35,3 +35,7 @@ if (! $f->exists) {
     File::Path::make_path($dir) or die "$!: $dir";
     $f->delete();
 }
+
+my $path = RJK::File::Paths::get($file);
+$f = new RJK::IO::File($path, 'sd');
+print "$f->{path}\n";
