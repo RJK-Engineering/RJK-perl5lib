@@ -165,7 +165,7 @@ sub setSourceTargetPaths {
     my ($self, $s, $t) = @_;
     my @args = ($ENV{COMMANDER_EXE}, "/O", "/S");
     push @args, "/L=\"$s\"" if $s;
-    push @args, "/L=\"$t\"" if $t;
+    push @args, "/R=\"$t\"" if $t;
     system @args;
 }
 
