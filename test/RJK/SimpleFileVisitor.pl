@@ -3,30 +3,49 @@ use warnings;
 
 use RJK::Files;
 use RJK::SimpleFileVisitor;
+use RJK::File::TreeVisitResult;
 
 my $visitor = new RJK::SimpleFileVisitor(
     visitFileFailed => sub {
         my ($file, $error) = @_;
         print "$error: $file->{path}\n";
     },
+    preVisitDir => sub {
+        my ($dir, $stat) = @_;
+        printf ">D %s\n", $dir->{path};
+        #~ return TERMINATE;
+        #~ return SKIP_SUBTREE if $dir->{name} eq 'dir1';
+        #~ return SKIP_SIBLINGS if $dir->{name} eq 'dir1';
+    },
+    postVisitDir => sub {
+        my ($dir, $stat) = @_;
+        printf "<D %s\n", $dir->{path};
+        #~ return TERMINATE;
+        #~ return SKIP_SIBLINGS if $dir->{name} eq 'dir1';
+    },
     postVisitFiles => sub {
-        my ($dir, $stat, $files, $dirs) = @_;
-        printf "%s\nfiles: %u, dirs: %u\n", $dir->{path}, scalar @$files, scalar @$dirs;
+        my ($dir, $stat) = @_;
+        printf "<F %s\n", $dir->{path};
+        #~ return TERMINATE;
+        #~ return SKIP_SIBLINGS if $dir->{name} eq 'dir1';
     },
     visitFile => sub {
         my ($file, $stat) = @_;
-        #~ print "$_\n";
-        #~ print "$file->{path}\n";
-        #~ printf "%s %s\n", $path->getParent(), $path->getFileName();
+        print "$file->{path}\n";
+        #~ return TERMINATE;
+        #~ return SKIP_SIBLINGS if $file->{name} eq 'file1';
+        #~ return SKIP_SIBLINGS if $file->{name} eq 'file2';
     }
 );
 
-#~ my $path = 'c:\temp';
-my $path = 'c:\temp\jdshow';
-#~ my $path = 'c:\temp\a.txt';
+my $testDir = 'c:\temp\root';
+my $path = $testDir;
 #~ my $path = 'fail';
-#~ RJK::Files->traverse($path, $visitor);
 
+my $terminated = RJK::Files->traverse($path, $visitor, {sort=>1});
+print "TERMINATEd\n" if $terminated;
+
+__END__
 
 use RJK::File::Stats;
 my $stats = RJK::File::Stats->traverse($path);
@@ -38,7 +57,7 @@ $visitor = new RJK::SimpleFileVisitor(
         print "$error: $file->{path}\n";
     },
     postVisitFiles => sub {
-        my ($dir, $stat, $files, $dirs) = @_;
+        my ($dir, $stat) = @_;
         printf "%s\n", $dir->{path};
         #~ printf "dirs: %u, files: %u\n", scalar @$dirs, scalar @$files;
         my $ds = $stats->{dirStats};
