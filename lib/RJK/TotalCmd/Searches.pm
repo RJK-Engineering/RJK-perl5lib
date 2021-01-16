@@ -11,6 +11,7 @@ use strict;
 use warnings;
 
 use RJK::Exceptions;
+use RJK::File::Path;
 use RJK::IO::File;
 use RJK::TotalCmd::Search;
 
@@ -151,10 +152,11 @@ sub _matchPerlRule {
     } elsif ($prop eq "binary") {
         return 0 if $rule->{value} ? !-B $path->{path} : -B $path->{path};
     } elsif ($prop eq "parent") {
-        return 0 if ! $path->{parent};
+        my $parent = $path->parent;
+        return 0 if ! $parent;
         my $matcher = $_stringRuleMatchers->{$rule->{op}}
             or die "Unsupported operation: $rule->{op}";
-        return 0 if ! $matcher->("$rule->{value}\\", $path->{parent});
+        return 0 if ! $matcher->("$rule->{value}\\", $parent);
     }
     return 1;
 }
@@ -167,11 +169,11 @@ sub _matchTcRule {
     my $numeric;
 
     if ($prop eq 'name') {
-        $matchVal = $path->{basename};
+        $matchVal = $path->basename;
     } elsif ($prop eq 'fullname') {
         $matchVal = $path->{name};
     } elsif ($prop eq 'ext') {
-        $matchVal = $path->{extension};
+        $matchVal = $path->extension;
     } elsif ($prop eq 'path') {
         $matchVal = $path->{path};
     } elsif ($prop eq 'size') {
