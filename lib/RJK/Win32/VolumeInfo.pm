@@ -1,17 +1,10 @@
+###############################################################################
 =begin TML
 
 ---+ package RJK::Win32::VolumeInfo
 
-* drive not mapped/mounted
-? DRIVE_UNKNOWN     None of the following.
-? DRIVE_NO_ROOT_DIR A "drive" that does not have a file system. This can be a drive letter that hasn't been defined or a drive letter assigned to a partition that hasn't been formatted yet.
-^ DRIVE_REMOVABLE   A floppy diskette drive or other removable media drive, but not a CD-ROM drive.
-= DRIVE_FIXED       An ordinary hard disk partition.
-@ DRIVE_REMOTE      A network share.
-% DRIVE_CDROM       A CD-ROM drive.
-? DRIVE_RAMDISK     A "ram disk" or memory-resident virtual file system used for high-speed access to small amounts of temporary file space.
-
 =cut
+###############################################################################
 
 package RJK::Win32::VolumeInfo;
 
@@ -25,9 +18,11 @@ use Win32API::File qw(
     :DRIVE_);
 
 ###############################################################################
-=begin TML
+=pod
 
 ---++ getVolumes() -> \%volumes or @volumes
+
+Volume type value reference: https://metacpan.org/pod/Win32API::File#GetDriveType
 
 =cut
 ###############################################################################
@@ -55,7 +50,7 @@ sub getVolumes {
 }
 
 ###############################################################################
-=begin TML
+=pod
 
 ---++ getUsage($volume) -> ($free, $total, $available) or { free => $free, total => $total, available => $available }
 
