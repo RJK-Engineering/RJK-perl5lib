@@ -118,6 +118,8 @@ sub traverseDir {
                 return TERMINATE;
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
                 return $visitor->postVisitDir($dir, $dirStat);
+            } elsif (matchesTreeVisitResult($result, SKIP_DIRS)) {
+                @dirs = ();
             } elsif (matchesTreeVisitResult($result, SKIP_FILES)) {
                 last;
             }
