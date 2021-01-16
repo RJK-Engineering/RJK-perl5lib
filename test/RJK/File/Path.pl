@@ -26,3 +26,7 @@ print $p->volume ."\n";
 print $p->directories ."\n";
 print $p->basename ."\n";
 print $p->extension ."\n";
+
+$p = RJK::File::Paths::get('c:\file.ext\dir....\..\..\.\a..exe.');
+dd $p;
+dd $p->normalize();
