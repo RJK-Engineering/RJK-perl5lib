@@ -15,17 +15,17 @@ use overload '""' => 'path',
 
 sub path        { $_[0]{path} }
 sub name        { $_[0]{name} }
-sub drive       { $_[0]{drive} }
+sub volume      { $_[0]{volume} }
 sub directories { $_[0]{directories} }
 
 my $trailingDotsRegex = qr{ \.+ $ }x;
 
 sub parent {
-    $_[0]{name} eq '' ? '' : RJK::File::Paths::get($_[0]{drive} . ':' . $_[0]{directories});
+    $_[0]{name} eq '' ? '' : RJK::File::Paths::get($_[0]{volume} . ':' . $_[0]{directories});
 }
 
-sub volume {
-    $_[0]{drive} . ':';
+sub driveletter {
+    $_[0]{volume} . ':';
 }
 
 my $splitFilenameRegex = qr{ ^ (.+)\.(.+) $ }x;
