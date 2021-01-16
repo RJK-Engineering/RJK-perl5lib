@@ -10,12 +10,10 @@ use v5.16; # enables fc feature
 use strict;
 use warnings;
 
-use Date::Parse ();
+use Time::Local 'timelocal';
 use Exception::Class 'Exception';
 
 use RJK::IO::File;
-
-my $rootDirpath = ".";
 
 ###############################################################################
 =pod
@@ -30,7 +28,8 @@ Returns a new =RJK::TotalCmd::DiskDirFile= object.
 
 sub new {
     my $self = bless {}, shift;
-    $self->{root} = shift;
+    my $root = shift;
+    $self->setRoot($root) if $root;
     return $self;
 }
 
@@ -54,6 +53,7 @@ sub setRoot {
     my ($self, $path) = @_;
     $path =~ s/\\$//;
     $self->{root} = $path;
+    $self->{directories}[0][0] = $path;
 }
 
 sub getFiles {
@@ -116,7 +116,7 @@ sub setDir {
     my ($self, $path, $stat) = @_;
     my $dir = $self->_splitDir($path);
     $dir || throw Exception("Path not in root: $path, root: $self->{root}");
-    return if $dir eq $rootDirpath;
+    return if $dir eq $self->{root};
 
     my $f = new RJK::IO::File($path);
     $stat //= $f->stat;
@@ -179,11 +179,11 @@ sub read {
     my $root = <$fh>;
     chomp $root;
 
+    $self->{directories} = [];
     $self->setRoot($root);
-    $self->{directories} = [ [ $rootDirpath ] ];
-    $self->{files}{$rootDirpath} = {};
+    $self->{files} = {};
 
-    my $dirpath = $rootDirpath;
+    my $dirpath = "";
     while (<$fh>) {
         chomp;
         my @file = split /\t/;
@@ -231,12 +231,12 @@ sub _splitFile {
     my ($self, $path) = @_;
     return () if $path !~ s/^\Q$self->{root}\E//i;
     my ($dirpath, $filename) = $path =~ /\\?(.*)\\(.+)/;
-    return ($dirpath || $rootDirpath, $filename);
+    return ($dirpath || $self->{root}, $filename);
 }
 
 sub _splitDir {
     my ($self, $path) = @_;
-    return ($path =~ /^\Q$self->{root}\E\\(.*?)\\*$/i)[0] || $rootDirpath;
+    return ($path =~ /^\Q$self->{root}\E\\(.*?)\\*$/i)[0] || $self->{root};
 }
 
 sub _fileExists {
@@ -253,7 +253,9 @@ sub _dirExists {
 sub parse_datetime {
     my @t = split /[:\. ]/, shift;
     die if @t != 6;
-    return Date::Parse::str2time(sprintf "%u:%02u:%02uT%02u:%02u:%02u", @t);
+    $t[0] -= 1900;
+    $t[1]--;
+    return timelocal(@t);
 }
 
 sub format_datetime {
