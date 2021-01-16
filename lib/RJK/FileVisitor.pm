@@ -27,12 +27,12 @@ sub postVisitDir {
 
 # Invoked for a directory before files in the directory are visited.
 sub preVisitFiles {
-    my ($self, $dir, $stat, $files, $dirs) = @_;
+    my ($self, $dir, $stat) = @_;
 }
 
 # Invoked for a directory after all files in the directory have been visited.
 sub postVisitFiles {
-    my ($self, $dir, $stat, $files, $dirs) = @_;
+    my ($self, $dir, $stat) = @_;
 }
 
 # Invoked for a file in a directory.
