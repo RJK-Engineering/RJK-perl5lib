@@ -47,10 +47,10 @@ postVisitDir("root")
 
 Skipped files/dirs for different TreeVisitResults when preVisitDir("dir1") is called:
 
-SKIP_FILES       skips file2
-SKIP_DIRECTORIES skips dir2
-SKIP_SUBTREE     skips dir2, file2
-SKIP_SIBLINGS    skips dir2, file2, dir3
+SKIP_FILES    skips file2
+SKIP_DIRS     skips dir2
+SKIP_SUBTREE  skips dir2, file2
+SKIP_SIBLINGS skips dir2, file2, dir3
 </verbatim>
 
 =cut
@@ -76,12 +76,16 @@ sub traverse {
 
 sub traverseDir {
     my ($class, $dir, $visitor, $opts, $dirStat) = @_;
-    my $result;
+    my ($result, $skipFiles, $skipDirs);
 
     if (my $entries = $class->getEntries($dir->{path})) {
         $result = $visitor->preVisitDir($dir, $dirStat);
         if (matchesTreeVisitResult($result, TERMINATE, SKIP_SUBTREE, SKIP_SIBLINGS)) {
             return $result;
+        } elsif (matchesTreeVisitResult($result, SKIP_FILES)) {
+            $skipFiles = 1;
+        } elsif (matchesTreeVisitResult($result, SKIP_DIRS)) {
+            $skipDirs = 1;
         }
 
         my (@dirs, @files);
@@ -89,11 +93,11 @@ sub traverseDir {
             my $child = RJK::File::Paths::get($dir->{path}, $_);
             my $stat = RJK::File::Stat::get($child->{path});
             if (! $stat) {
-                push @files, [ $child ];
+                push @files, [ $child ] unless $skipFiles;
             } elsif ($stat->{isDir}) {
-                push @dirs, [ $child, $stat ];
+                push @dirs, [ $child, $stat ] unless $skipDirs;
             } elsif ($stat->{isFile}) {
-                push @files, [ $child, $stat ];
+                push @files, [ $child, $stat ] unless $skipFiles;
             }
         }
 
@@ -114,6 +118,8 @@ sub traverseDir {
                 return TERMINATE;
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
                 return $visitor->postVisitDir($dir, $dirStat);
+            } elsif (matchesTreeVisitResult($result, SKIP_FILES)) {
+                last;
             }
         }
 
@@ -122,6 +128,8 @@ sub traverseDir {
             return TERMINATE;
         } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
             return $visitor->postVisitDir($dir, $dirStat);
+        } elsif (matchesTreeVisitResult($result, SKIP_DIRS)) {
+            @dirs = ();
         }
 
         foreach (@dirs) {
