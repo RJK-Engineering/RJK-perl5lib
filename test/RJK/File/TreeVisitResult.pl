@@ -15,5 +15,5 @@ print "ok\n" if matchesTreeVisitResult($result, TERMINATE, SKIP_SIBLINGS, SKIP_S
 $result = SKIP_FILES;
 print "ok\n" if matchesTreeVisitResult($result, SKIP_FILES);
 
-$result = SKIP_DIRECTORIES;
-print "ok\n" if matchesTreeVisitResult($result, SKIP_DIRECTORIES);
+$result = SKIP_DIRS;
+print "ok\n" if matchesTreeVisitResult($result, SKIP_DIRS);
