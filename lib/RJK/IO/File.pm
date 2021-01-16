@@ -3,32 +3,20 @@ package RJK::IO::File;
 use strict;
 use warnings;
 
-use File::Spec::Functions qw(catdir);
-
 use RJK::File::Exceptions;
+use RJK::File::Path;
 use RJK::File::Paths;
 use RJK::File::Stat;
 
 sub new {
     my $self = bless {}, shift;
-    my ($parent, $child) = @_;
-
-    if (ref $parent) {
-        if (defined $child) {
-            $self->{path} = catdir($parent->{path}, $child);
-        } else {
-            $self->{path} = $parent->{path};
-        }
-    } else {
-        $self->{path} = RJK::File::Paths::get(@_)->{path};
-    }
-
+    $self->{path} = RJK::File::Paths::get(@_)->{path};
     return $self;
 }
 
 sub name { $_[0]->toPath->{name} }
 sub path { $_[0]{path} }
-sub parent { $_[0]->toPath->{parent} }
+sub parent { $_[0]->toPath->parent }
 sub canExecute { -x $_[0]{path} }
 sub canRead { -r $_[0]{path} }
 sub canWrite { -r $_[0]{path} }
