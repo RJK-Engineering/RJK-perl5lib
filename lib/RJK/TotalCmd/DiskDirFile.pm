@@ -251,10 +251,10 @@ sub _dirExists {
 }
 
 sub parse_datetime {
-    my @t = split /[:\. ]/, shift;
+    my @t = reverse split /[:\. ]/, shift;
     die if @t != 6;
-    $t[0] -= 1900;
-    $t[1]--;
+    $t[5] -= 1900;
+    $t[4]--;
     return timelocal(@t);
 }
 
