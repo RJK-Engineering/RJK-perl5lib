@@ -83,23 +83,3 @@ $ddf->setFile($file);
 
 $filepath = 'DiskDirFile.test.new~.lst';
 $ddf->write($filepath);
-
-__END__
-
-my ($d, $f) = (0, 0);
-foreach (@{$dd->dirs}) {
-    my ($dir, $size, $date, $time) = @$_;
-    print "@$_\n" if ++$d <= 0;
-
-    foreach ($dd->getFiles($dir)) {
-        print "\t@$_\n" if $d <= 0;
-        $f++;
-    }
-}
-print "$d dirs, $f files\n";
-
-my @results = $dd->search("tour 2010");
-foreach (@results) {
-    print "$_->{modified}\n";
-    print "$_->{parent}->{modified} $_->{path}\n";
-}
