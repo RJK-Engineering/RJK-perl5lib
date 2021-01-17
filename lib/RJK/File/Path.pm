@@ -19,6 +19,16 @@ sub volume      { $_[0]{volume} }
 sub directories { $_[0]{directories} }
 sub separator   { our $separator }
 
+sub names {
+    loadModule('Base');
+    &names;
+}
+
+sub subpath {
+    loadModule('Base');
+    &subpath;
+}
+
 sub parent {
     loadModule('Base');
     &parent;
@@ -35,12 +45,12 @@ sub driveletter {
 }
 
 sub basename {
-    loadModule('Base');
+    loadModule('Filename');
     &basename;
 }
 
 sub extension {
-    loadModule('Base');
+    loadModule('Filename');
     &extension;
 }
 
@@ -67,10 +77,11 @@ java.nio.file.Path
 
   FileSystem getFileSystem()                 - Returns the file system that created this object.
 x Path getFileName()                         - Returns the name of the file or directory denoted by this path as a Path object.
-  Path getName(int index)                    - Returns a name element of this path as a Path object.
-  int getNameCount()                         - Returns the number of name elements in the path.
+1 Path getName(int index)                    - Returns a name element of this path as a Path object.
+1 int getNameCount()                         - Returns the number of name elements in the path, 0 = root.
 x Path getParent()                           - Returns the parent path, or null if this path does not have a parent.
 x Path getRoot()                             - Returns the root component of this path as a Path object, or null if this path does not have a root component.
+1 = names()
 
 x Path normalize()                           - Returns a path that is this path with redundant name elements eliminated.
   Path relativize(Path other)                - Constructs a relative path between this path and a given path.
@@ -89,7 +100,7 @@ x Path normalize()                           - Returns a path that is this path 
 
   boolean startsWith(Path other)             - Tests if this path starts with the given path.
   boolean startsWith(String other)           - Tests if this path starts with a Path, constructed by converting the given path string, in exactly the manner specified by the startsWith(Path) method.
-  Path subpath(int beginIndex, int endIndex) - Returns a relative Path that is a subsequence of the name elements of this path.
+x Path subpath(int beginIndex, int endIndex) - Returns a relative Path that is a subsequence of the name elements of this path.
   Path toAbsolutePath()                      - Returns a Path object representing the absolute path of this path.
   File toFile()                              - Returns a File object representing this path.
 x Path toRealPath(LinkOption... options)     - Returns the real path of an existing file.
