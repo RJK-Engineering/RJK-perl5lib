@@ -71,7 +71,7 @@ Throws =RJK::Win32::DriveStatus::NoVolumeInfoException=.
 
 sub update {
     my $self = shift;
-    my $volumes = RJK::Win32::VolumeInfo::getVolumes();
+    my $volumes = RJK::Win32::VolumeInfo->getVolumes();
     unless ($volumes) {
         throw RJK::Win32::DriveStatus::NoVolumeInfoException("$^E");
     }
