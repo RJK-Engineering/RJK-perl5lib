@@ -10,6 +10,7 @@ use RJK::Stat;
 
 sub new {
     my $self = bless {}, shift;
+    $_[0] = $_[0]->{path} if ref $_[0];
     $self->{path} = RJK::Paths->get(@_)->{path};
     return $self;
 }
