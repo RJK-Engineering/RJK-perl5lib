@@ -8,46 +8,31 @@ use RJK::File::Paths;
 
 our $separator;
 
+sub names {
+    my @names = split /\Q$separator\E/, $_[0]{path};
+    shift @names if $_[0]{volume};
+    return wantarray ? @names : \@names;
+}
+
+sub subpath {
+    my ($self, $begin, $end) = @_;
+    my @path = splice @{$self->names}, $begin, $end;
+    RJK::File::Paths::get($self->driveletter, @path);
+}
+
 sub parent {
-    $_[0]{name} eq '' ? '' : RJK::File::Paths::get($_[0]{volume} . ':' . $_[0]{directories});
+    return '' if $_[0]{name} eq '';
+    RJK::File::Paths::get($_[0]->driveletter, $_[0]{directories});
 }
 
 sub root {
+    $_[0]{volume} || return;
     RJK::File::Paths::get($_[0]{volume} . ':' . $separator);
 }
 
 sub driveletter {
+    $_[0]{volume} || return;
     $_[0]{volume} . ':';
-}
-
-my $splitFilenameRegex = qr{ ^ (.+)\.(.+) $ }x;
-
-sub basename {
-    ($_[0]{name} =~ /$splitFilenameRegex/)[0] // $_[0]{name} // '';
-}
-
-sub extension {
-    ($_[0]{name} =~ /$splitFilenameRegex/)[1] // '';
-}
-
-my $trailingDotsRegex = qr{ \.+ $ }x;
-
-sub normalize {
-    my $path = shift->{path};
-    my (@normalized, $updir);
-    $updir = 0;
-
-    foreach my $name (reverse split /\Q$separator\E/, $path) {
-        ++$updir && next if $name eq '..';
-        $updir-- && next if $updir;
-        next if $name eq '.';
-
-        $name =~ s/$trailingDotsRegex//;    # remove trailing dots, java.nio.file.Path does not do this
-        unshift @normalized, $name;
-    }
-    $path = join $separator, @normalized;
-
-    return RJK::File::Paths::get($path);
 }
 
 1;
