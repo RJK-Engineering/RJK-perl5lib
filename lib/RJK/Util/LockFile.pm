@@ -1,7 +1,7 @@
 package RJK::Util::LockFile;
 
 sub checkExistingLock {
-    my $lockFile = shift;
+    my ($self, $lockFile) = @_;
     if (-e $lockFile) {
         open my $fh, '<', $lockFile or die "$!: $lockFile";
         my $pid = <$fh>;
@@ -23,14 +23,14 @@ sub checkExistingLock {
 }
 
 sub createLock {
-    my $lockFile = shift;
+    my ($self, $lockFile) = @_;
     open my $fh, '>', $lockFile or die "$!: $lockFile";
     print $fh $$; # write pid
     close $fh;
 }
 
 sub removeLock {
-    my $lockFile = shift;
+    my ($self, $lockFile) = @_;
     unlink $lockFile;
 }
 
