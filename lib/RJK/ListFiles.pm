@@ -25,18 +25,18 @@ sub getPaths {
 
 sub getDirs {
     my ($self, $file) = @_;
-    my @paths = grep { $self->isDir($_) } @{$self->getPaths($file)};
+    my @paths = grep { $self->isDir } @{$self->getPaths($file)};
     return wantarray ? @paths : \@paths;
 }
 
 sub getFiles {
     my ($self, $file) = @_;
-    my @paths = grep { ! $self->isDir($_) } @{$self->getPaths($file)};
+    my @paths = grep { ! $self->isDir } @{$self->getPaths($file)};
     return wantarray ? @paths : \@paths;
 }
 
 sub isDir {
-    substr($_[1], -1) eq "\\";
+    substr($_[1]//$_, -1) eq "\\";
 }
 
 1;
