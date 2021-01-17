@@ -3,7 +3,9 @@ package RJK::File::Paths;
 use strict;
 use warnings;
 
-my $separator = RJK::File::Path::separator();
+use RJK::FileSystems;
+
+my $separator = RJK::FileSystems->getDefault->separator;
 my $sep = quotemeta $separator;
 my $separatorsRegex = qr{ [$sep]+ }x;
 my $splitPathRegex = qr{ ^ (?:(\w):)? (?: (.*)$sep(.+) )? $ }x;
