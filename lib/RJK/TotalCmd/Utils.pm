@@ -1,9 +1,11 @@
+###############################################################################
 =begin TML
 
 ---+ package RJK::TotalCmd::Utils
 Total Commander utility functions.
 
 =cut
+###############################################################################
 
 package RJK::TotalCmd::Utils;
 
@@ -59,29 +61,6 @@ sub setPaths {
     my @args = ($ENV{COMMANDER_EXE}, "/O", "/L=\"$left\"");
     push @args, "/R=\"$right\"" if $right;
     system @args;
-}
-
-###############################################################################
-=pod
-
----++ pathListfromArguments(@args)
-Take paths from Total Commander list file or from arguments.
-
-=cut
-###############################################################################
-
-sub pathListfromArguments {
-    my ($self, @args) = @_;
-
-    my $pathList = new File::PathList();
-    foreach (@args) {
-        if (/^(.+[\\\/]+)?CMD\w{3,4}.tmp$/) {
-            $pathList->loadFromFile(file => $_) || return;
-        } else {
-            $pathList->add($_);
-        }
-    }
-    return $pathList;
 }
 
 ###############################################################################
@@ -190,6 +169,18 @@ sub pauseInTotalCmdEnv {
     }
 
     <STDIN> if $ENV{COMMANDER_EXE};
+}
+
+###############################################################################
+=pod
+
+---++ isListFile($listFilePath) -> $boolean
+
+=cut
+###############################################################################
+
+sub isListFile {
+    $_[1] =~ /^(.*[\\\/])?CMD\w{3,4}.tmp$/;
 }
 
 1;
