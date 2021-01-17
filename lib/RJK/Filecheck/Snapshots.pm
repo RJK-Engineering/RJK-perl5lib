@@ -8,6 +8,7 @@ use RJK::File::Sidecar;
 use RJK::File::TreeVisitResult;
 use RJK::Filecheck::Dirs;
 use RJK::Files;
+use RJK::ListFiles;
 use RJK::SimpleFileVisitor;
 
 my $opts;
@@ -34,7 +35,11 @@ my $visitor = new RJK::SimpleFileVisitor(
 sub create {
     my $self = shift;
     $opts = shift;
-    RJK::Files->traverse($opts->{path}, $visitor);
+    if ($opts->{listFile}) {
+        RJK::ListFiles->traverse($opts->{listFile}, $visitor);
+    } elsif ($opts->{path}) {
+        RJK::Files->traverse($opts->{path}, $visitor);
+    }
 }
 
 sub createSnapshots {
