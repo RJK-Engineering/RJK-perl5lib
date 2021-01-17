@@ -4,7 +4,7 @@ use strict;
 use warnings;
 no warnings 'redefine';
 
-use RJK::File::Paths;
+use RJK::Paths;
 
 our $separator;
 
@@ -17,17 +17,17 @@ sub names {
 sub subpath {
     my ($self, $begin, $end) = @_;
     my @path = splice @{$self->names}, $begin, $end;
-    RJK::File::Paths::get($self->driveletter, @path);
+    RJK::Paths->get($self->driveletter, @path);
 }
 
 sub parent {
     return '' if $_[0]{name} eq '';
-    RJK::File::Paths::get($_[0]->driveletter, $_[0]{directories});
+    RJK::Paths->get($_[0]->driveletter, $_[0]{directories});
 }
 
 sub root {
     $_[0]{volume} || return;
-    RJK::File::Paths::get($_[0]{volume} . ':' . $separator);
+    RJK::Paths->get($_[0]{volume} . ':' . $separator);
 }
 
 sub driveletter {

@@ -14,7 +14,7 @@ use RJK::File::Exceptions;
 use RJK::TotalCmd::DiskDirFile;
 use RJK::TreeVisitResult qw(matchesTreeVisitResult :constants);
 use RJK::File::Path;
-use RJK::File::Paths;
+use RJK::Paths;
 
 ###############################################################################
 =pod
@@ -66,12 +66,12 @@ sub traverse {
             }
 
             if (@$fields > 1) {
-                $dir = RJK::File::Paths::get($root, $fields->[0]);
+                $dir = RJK::Paths->get($root, $fields->[0]);
                 if (! $opts->{nostat}) {
                     $stat->{modified} = RJK::TotalCmd::DiskDirFile::parse_datetime("$fields->[2] $fields->[3]");
                 }
             } else {
-                $dir = RJK::File::Paths::get($fields->[0]);
+                $dir = RJK::Paths->get($fields->[0]);
                 $root = $dir->{path};
             }
 
@@ -101,7 +101,7 @@ sub traverse {
             next if defined $skip;
 
             my $dirpath = $dir ? $dir->{path} : '';
-            my $file = RJK::File::Paths::get($dirpath, $fields->[0]);
+            my $file = RJK::Paths->get($dirpath, $fields->[0]);
 
             my $stat;
             if (! $opts->{nostat}) {

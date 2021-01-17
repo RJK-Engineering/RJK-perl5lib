@@ -1,4 +1,4 @@
-package RJK::File::Paths;
+package RJK::Paths;
 
 use strict;
 use warnings;
@@ -8,9 +8,10 @@ use RJK::FileSystems;
 my $separator = RJK::FileSystems->getDefault->separator;
 my $sep = quotemeta $separator;
 my $separatorsRegex = qr{ [$sep]+ }x;
-my $splitPathRegex = qr{ ^ (?:(\w):)? (?: (.*)$sep(.+) )? $ }x;
+my $splitPathRegex = qr{ ^ (?: (\w): )? (?: (.*)$sep(.+) )? $ }x;
 
 sub get {
+    my $self = shift;
     my $path = join $separator, grep {$_ ne ''} @_;
     $path =~ s/$separatorsRegex/$separator/g;
     my $trailingSeparator = $path =~ s/$separatorsRegex$//;

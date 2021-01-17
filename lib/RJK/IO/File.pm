@@ -5,12 +5,12 @@ use warnings;
 
 use RJK::File::Exceptions;
 use RJK::File::Path;
-use RJK::File::Paths;
+use RJK::Paths;
 use RJK::File::Stat;
 
 sub new {
     my $self = bless {}, shift;
-    $self->{path} = RJK::File::Paths::get(@_)->{path};
+    $self->{path} = RJK::Paths->get(@_)->{path};
     return $self;
 }
 
@@ -81,7 +81,7 @@ sub stat {
 }
 
 sub toPath {
-    RJK::File::Paths::get($_[0]{path});
+    RJK::Paths->get($_[0]{path});
 }
 
 sub open {

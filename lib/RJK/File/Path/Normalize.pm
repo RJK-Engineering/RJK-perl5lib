@@ -4,7 +4,7 @@ use strict;
 use warnings;
 no warnings 'redefine';
 
-use RJK::File::Paths;
+use RJK::Paths;
 
 our $separator;
 our $currentDirName;
@@ -27,7 +27,7 @@ sub normalize {
     }
     $path = join $separator, @normalized;
 
-    return RJK::File::Paths::get($path);
+    return RJK::Paths->get($path);
 }
 
 1;

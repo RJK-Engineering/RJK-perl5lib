@@ -36,6 +36,6 @@ if (! $f->exists) {
     $f->delete();
 }
 
-my $path = RJK::File::Paths::get($file);
+my $path = RJK::Paths->get($file);
 $f = new RJK::IO::File($path, 'sd');
 print "$f->{path}\n";

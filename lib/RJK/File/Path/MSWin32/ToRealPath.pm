@@ -4,11 +4,11 @@ use strict;
 use warnings;
 no warnings 'redefine';
 
-use RJK::File::Paths;
+use RJK::Paths;
 use Win32;
 
 sub toRealPath {
-    RJK::File::Paths::get(
+    RJK::Paths->get(
         Win32::GetLongPathName(
             scalar Win32::GetFullPathName(
                 $_[0]{path}
