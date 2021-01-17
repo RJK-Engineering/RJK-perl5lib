@@ -60,7 +60,7 @@ Free/total/available bytes.
 ###############################################################################
 
 sub getUsage {
-    my ($class, $volume) = @_;
+    my ($self, $volume) = @_;
     my ($free, $total, $available);
     $volume =~ s/:?$/:/;
     my @lines = `fsutil volume diskfree $volume`;
