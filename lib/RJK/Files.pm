@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use RJK::Paths;
-use RJK::File::Stat;
+use RJK::Stat;
 use RJK::File::TreeVisitResult qw(matchesTreeVisitResult :constants);
 
 ###############################################################################
@@ -61,7 +61,7 @@ sub traverse {
     my $result;
 
     $path = RJK::Paths->get($path);
-    my $stat = RJK::File::Stat::get($path->{path});
+    my $stat = RJK::Stat->get($path->{path});
 
     if (! $stat) {
         $result = $visitor->visitFileFailed($path, "Stat failed");
@@ -91,7 +91,7 @@ sub traverseDir {
         my (@dirs, @files);
         foreach (@$entries) {
             my $child = RJK::Paths->get($dir->{path}, $_);
-            my $stat = RJK::File::Stat::get($child->{path});
+            my $stat = RJK::Stat->get($child->{path});
             if (! $stat) {
                 push @files, [ $child ] unless $skipFiles;
             } elsif ($stat->{isDir}) {

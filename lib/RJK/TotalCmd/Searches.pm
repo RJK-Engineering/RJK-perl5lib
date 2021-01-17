@@ -51,7 +51,7 @@ my $_stringRuleMatchers = {
 ---+++ RJK::TotalCmd::Searches->match($search, $path, $stat) -> \%result
    * =$search= - =RJK::TotalCmd::Search= object.
    * =$path= - =RJK::File::Path= object.
-   * =$stat= - =RJK::File::Stat= object.
+   * =$stat= - =RJK::Stat= object.
    * =%result= - result hash.
       * =$result{matched}= true if matched, false otherwise.
       * =$result{captured}= reference to captured regex groups.

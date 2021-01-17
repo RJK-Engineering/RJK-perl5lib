@@ -1,10 +1,10 @@
-package RJK::File::Stat;
+package RJK::Stat;
 
 use strict;
 use warnings;
 
 sub get {
-    my $path = shift;
+    my ($self, $path) = @_;
 
     my @stat = stat $path;
     return if ! @stat;

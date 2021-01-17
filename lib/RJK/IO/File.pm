@@ -6,7 +6,7 @@ use warnings;
 use RJK::File::Exceptions;
 use RJK::File::Path;
 use RJK::Paths;
-use RJK::File::Stat;
+use RJK::Stat;
 
 sub new {
     my $self = bless {}, shift;
@@ -76,7 +76,7 @@ sub getParentFile {
 }
 
 sub stat {
-    RJK::File::Stat::get($_[0]{path})
+    RJK::Stat->get($_[0]{path})
         || throw RJK::FileException(error => "Stat failed", file => $_[0]{path});
 }
 
