@@ -57,28 +57,46 @@ SKIP_SIBLINGS skips dir2, file2, dir3
 ###############################################################################
 
 sub traverse {
-    my ($class, $path, $visitor, $opts) = @_;
+    my ($self, $path, $visitor, $opts, $stats) = @_;
     my $result;
+    if ($stats) {
+        &traverseWithStats;
+        $result = $stats->{result};
+    } else {
+        $result = &_traverse;
+    }
+    return matchesTreeVisitResult($result, TERMINATE);
+}
 
+sub _traverse {
+    my ($self, $path, $visitor, $opts) = @_;
     $path = RJK::Paths->get($path);
     my $stat = RJK::Stat->get($path->{path});
 
     if (! $stat) {
-        $result = $visitor->visitFileFailed($path, "Stat failed");
+        return $visitor->visitFileFailed($path, "Stat failed");
     } elsif ($stat->{isDir}) {
-        $result = $class->traverseDir($path, $visitor, $opts, $stat);
+        return $self->traverseDir($path, $visitor, $opts, $stat);
     } elsif ($stat->{isFile}) {
-        $result = $visitor->visitFile($path, $stat);
+        return $visitor->visitFile($path, $stat);
     }
+}
 
-    return matchesTreeVisitResult($result, TERMINATE);
+sub traverseWithStats {
+    require RJK::Files::TraverseWithStats;
+    &traverseWithStats;
+}
+
+sub createStats {
+    require RJK::Files::TraverseWithStats;
+    &createStats;
 }
 
 sub traverseDir {
-    my ($class, $dir, $visitor, $opts, $dirStat) = @_;
+    my ($self, $dir, $visitor, $opts, $dirStat) = @_;
     my ($result, $skipFiles, $skipDirs);
 
-    if (my $entries = $class->getEntries($dir->{path})) {
+    if (my $entries = $self->getEntries($dir->{path})) {
         $result = $visitor->preVisitDir($dir, $dirStat);
         if (matchesTreeVisitResult($result, TERMINATE, SKIP_SUBTREE, SKIP_SIBLINGS)) {
             return $result;
@@ -136,7 +154,7 @@ sub traverseDir {
 
         foreach (@dirs) {
             my ($dir, $stat) = @$_;
-            $result = $class->traverseDir($dir, $visitor, $opts, $stat);
+            $result = $self->traverseDir($dir, $visitor, $opts, $stat);
             if (matchesTreeVisitResult($result, TERMINATE)) {
                 return TERMINATE;
             } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
@@ -151,7 +169,7 @@ sub traverseDir {
 }
 
 sub getEntries {
-    my ($class, $dir) = @_;
+    my ($self, $dir) = @_;
     opendir my $dh, $dir or return;
 
     my @entries = grep {

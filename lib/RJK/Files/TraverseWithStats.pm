@@ -1,22 +1,21 @@
-package RJK::File::Stats;
+package RJK::Files;
 
 use strict;
 use warnings;
+no warnings 'redefine';
 
-use RJK::Files;
 use RJK::File::TraverseStats;
 use RJK::FileVisitor::StatsWrapper;
 
-sub traverse {
-    my ($self, $path, $visitor, $opts, $totals) = @_;
+sub traverseWithStats {
+    my ($self, $path, $visitor, $opts, $stats) = @_;
     $visitor ||= bless {}, 'RJK::FileVisitor';
+    $stats //= &createStats;
 
-    my $stats = $self->createStats();
     $visitor = new RJK::FileVisitor::StatsWrapper($visitor, $stats);
-    RJK::Files->traverse($path, $visitor, $opts);
+    $stats->{result} = $self->_traverse($path, $visitor, $opts);
 
     delete $stats->{dirStats};
-    $totals->update($stats) if $totals;
     return $stats;
 }
 

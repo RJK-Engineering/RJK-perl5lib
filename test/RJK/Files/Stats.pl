@@ -1,16 +1,18 @@
 use strict;
 use warnings;
 
-use RJK::Stats;
+use RJK::Files;
 use RJK::SimpleFileVisitor;
 
 #~ my $path = 'c:\temp';
-my $path = 'c:\temp\jdshow';
+my $path = 'c:\temp\1';
 #~ my $path = 'c:\temp\a.txt';
 #~ my $path = 'fail';
 
-my $total = RJK::Stats->traverse($path);
-my $stats = RJK::Stats->createStats();
+my $total = RJK::Files->traverseWithStats($path);
+my $stats = RJK::Files->createStats();
+displayStats();
+
 my $visitor = new RJK::SimpleFileVisitor(
     visitFileFailed => sub {
         my ($file, $error) = @_;
@@ -21,8 +23,11 @@ my $visitor = new RJK::SimpleFileVisitor(
     }
 );
 
-RJK::Stats->traverse($path, $visitor, undef, $stats);
+RJK::Files->traverse($path, $visitor, undef, $stats);
 displayStats();
+
+use Data::Dump;
+dd $stats;
 
 sub displayStats {
     printf "dirs: %u/%u/%u, files: %u/%u/%u, size: %u/%u/%u\n",
