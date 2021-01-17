@@ -12,7 +12,7 @@ RJK::TotalCmd::DiskDirFiles->traverse($file, new RJK::SimpleFileVisitor(
     visitFile => sub {
         my ($file, $stat) = @_;
         #~ print "$_\n";
-        print "$stat->{size}\t$stat->{modified}\t$file->{path}\n";
+        print $stat->size, "\t", $stat->modified, "\t$file->{path}\n";
         #~ return TERMINATE;
         #~ return SKIP_SIBLINGS;
         #~ return SKIP_SUBTREE; # same as CONTINUE for visitFile
@@ -20,7 +20,7 @@ RJK::TotalCmd::DiskDirFiles->traverse($file, new RJK::SimpleFileVisitor(
     },
     preVisitFiles => sub {
         my ($dir, $stat) = @_;
-        print "---> $dir->{path}\t$stat->{modified}\n";
+        print "---> $dir->{path}\t", $stat->modified, "\n";
         #~ return SKIP_SIBLINGS;
         #~ return SKIP_SUBTREE;
         return SKIP_SUBTREE if $dir->{name} eq 'INC';

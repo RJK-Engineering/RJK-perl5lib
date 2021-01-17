@@ -1,3 +1,4 @@
+###############################################################################
 =begin TML
 
 ---+ package RJK::TotalCmd::DiskDirFiles
@@ -12,6 +13,7 @@ use warnings;
 
 use RJK::File::Exceptions;
 use RJK::TotalCmd::DiskDirFile;
+use RJK::TotalCmd::DiskDirStat;
 use RJK::TreeVisitResult qw(matchesTreeVisitResult :constants);
 use RJK::Path;
 use RJK::Paths;
@@ -35,7 +37,8 @@ sub traverse {
     open my $fh, '<', $path
         or throw RJK::OpenFileException(error => "$!", file => $path, mode => '<');
 
-    my ($root, $dir, $stat, $result, $skip);
+    my ($root, $dir, $result, $skip);
+    my $stat = new RJK::TotalCmd::DiskDirStat;
     $stat->{isDir} = 1;
     while (<$fh>) {
         chomp;
@@ -105,6 +108,7 @@ sub traverse {
 
             my $stat;
             if (! $opts->{nostat}) {
+                $stat = new RJK::TotalCmd::DiskDirStat;
                 $stat->{size} = $fields->[1];
                 $stat->{modified} = ! $opts->{nostat} && RJK::TotalCmd::DiskDirFile::parse_datetime("$fields->[2] $fields->[3]");
             }

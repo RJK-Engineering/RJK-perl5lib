@@ -84,20 +84,20 @@ sub match {
 
     # flags
     if ($flags->{directory} == 0) {
-        return if $stat->{isDir};
+        return if $stat->isDir;
     } elsif ($flags->{directory} == 1) {
-        return if ! $stat->{isDir};
+        return if ! $stat->isDir;
     }
 
     # size
-    if (defined $path->{size}) {
-        return $result if $search->{size} && $path->{size} != $search->{size};
-        return $result if $search->{minsize} && $path->{size} < $search->{minsize};
-        return $result if $search->{maxsize} && $path->{size} > $search->{maxsize};
+    if ($stat->isFile) {
+        return $result if $search->{size} && $stat->size != $search->{size};
+        return $result if $search->{minsize} && $stat->size < $search->{minsize};
+        return $result if $search->{maxsize} && $stat->size > $search->{maxsize};
     }
 
-    # date - TODO: creation/access date
-    my $date = $path->{modified};
+    # date
+    my $date = $stat->modified;
     if (defined $date) {
         return $result if $search->{mindate} && $date < $search->{mindate};
         return $result if $search->{maxdate} && $date > $search->{maxdate};
@@ -177,25 +177,25 @@ sub _matchTcRule {
     } elsif ($prop eq 'path') {
         $matchVal = $path->{path};
     } elsif ($prop eq 'size') {
-        $matchVal = $stat->{size};
+        $matchVal = $stat->size;
         $numeric = 1;
     } elsif ($prop eq 'directory') {
-        $matchVal = $stat->{isDir} ? 1 : 0;
+        $matchVal = $stat->isDir ? 1 : 0;
         $numeric = 1;
     } elsif ($prop eq 'creationdate') {
-        $matchVal = _getDate($stat->{created});
+        $matchVal = _getDate($stat->created);
     } elsif ($prop eq 'creationtime') {
-        $matchVal = _getTime($stat->{created});
+        $matchVal = _getTime($stat->created);
     } elsif ($prop eq 'writedate') {
-        $matchVal = _getDate($stat->{modified});
+        $matchVal = _getDate($stat->modified);
     } elsif ($prop eq 'writetime') {
-        $matchVal = _getTime($stat->{modified});
+        $matchVal = _getTime($stat->modified);
     } elsif ($prop eq 'accessdate') {
-        $matchVal = _getDate($stat->{accessed});
+        $matchVal = _getDate($stat->accessed);
     } elsif ($prop eq 'accesstime') {
-        $matchVal = _getTime($stat->{accessed});
+        $matchVal = _getTime($stat->accessed);
     } elsif ($prop eq 'read only') {
-        $matchVal = $stat->{isReadable} && ! $stat->{isWritable} ? 1 : 0;
+        $matchVal = $stat->isReadable && ! $stat->isWritable ? 1 : 0;
         $numeric = 1;
     } else {
         die "Unsupported property: $prop";
@@ -223,6 +223,7 @@ sub _matchTcRule {
 ###############################################################################
 
 sub NotOlderThanTime {
+    return;
     die "FIXME";
     my $flags = shift;
     return unless $flags->{time};

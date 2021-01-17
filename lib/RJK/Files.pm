@@ -75,9 +75,9 @@ sub _traverse {
 
     if (! $stat) {
         return $visitor->visitFileFailed($path, "Stat failed");
-    } elsif ($stat->{isDir}) {
+    } elsif ($stat->isDir) {
         return $self->traverseDir($path, $visitor, $opts, $stat);
-    } elsif ($stat->{isFile}) {
+    } elsif ($stat->isFile) {
         return $visitor->visitFile($path, $stat);
     }
 }
@@ -112,9 +112,9 @@ sub traverseDir {
             my $stat = RJK::Stat->get($child->{path});
             if (! $stat) {
                 push @files, [ $child ] unless $skipFiles;
-            } elsif ($stat->{isDir}) {
+            } elsif ($stat->isDir) {
                 push @dirs, [ $child, $stat ] unless $skipDirs;
-            } elsif ($stat->{isFile}) {
+            } elsif ($stat->isFile) {
                 push @files, [ $child, $stat ] unless $skipFiles;
             }
         }

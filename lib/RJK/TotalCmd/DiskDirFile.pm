@@ -107,8 +107,8 @@ sub setFile {
     $stat //= $f->stat;
 
     $self->{files}{$dir}{$file} = [
-        $file, $stat->{size},
-        format_datetime($stat->{modified})
+        $file, $stat->size,
+        format_datetime($stat->modified)
     ];
 }
 
@@ -125,7 +125,7 @@ sub setDir {
         foreach (@{$self->{directories}}) {
             next if $_->[0] ne $dir;
             # update stat
-            ($_->[2], $_->[3]) = format_datetime($stat->{modified});
+            ($_->[2], $_->[3]) = format_datetime($stat->modified);
             last;
         }
     } else {
@@ -136,7 +136,7 @@ sub setDir {
         }
 
         push @{$self->{directories}}, [
-            $dir, 0, format_datetime($stat->{modified})
+            $dir, 0, format_datetime($stat->modified)
         ];
         $self->{files}{$dir} = {};
     }

@@ -24,8 +24,8 @@ sub canWrite { -r $_[0]{path} }
 sub exists { -e $_[0]{path} }
 sub isFile { -f $_[0]{path} }
 sub isDir { -d $_[0]{path} }
-sub fileCreated { $_[0]->stat->{created} }
-sub lastModified { $_[0]->stat->{modified} }
+sub fileCreated { $_[0]->stat->created }
+sub lastModified { $_[0]->stat->modified }
 
 sub createNewFile {
     return if -e $_[0]{path};

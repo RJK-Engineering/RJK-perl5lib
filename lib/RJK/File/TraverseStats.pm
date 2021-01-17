@@ -50,7 +50,7 @@ sub visitFile {
     my ($self, $file, $stat) = @_;
 
     $self->{visitFile}++;
-    $self->{size} += $stat->{size} || 0;
+    $self->{size} += $stat->size || 0;
 
     if ($self->{dirStats}) {
         $self->{dirStats}->visitFile($file, $stat);
