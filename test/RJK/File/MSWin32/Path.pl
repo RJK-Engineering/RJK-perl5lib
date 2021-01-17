@@ -10,6 +10,16 @@ use Data::Dump;
 dd $p->toRealPath;
 
 $p = RJK::File::Paths::get('c:\a\..\.\b');
+dd $p;
 dd $p->normalize;
 
-dd $p->root;
+$p = RJK::File::Paths::get('c:');
+dd $p;
+dd scalar $p->names;
+
+$p = RJK::File::Paths::get('adsd\.asdd.sd');
+dd $p;
+dd $p->parent;
+dd $p->subpath(1,2);
+dd $p->basename;
+dd $p->extension;
