@@ -10,7 +10,7 @@ use RJK::File::TreeVisitResult qw(matchesTreeVisitResult :constants);
 ###############################################################################
 =begin TML
 
----+++ RJK::Files::traverse($path, $visitor, %opts) -> $terminated
+---+++ RJK::Files->traverse($path, $visitor, %opts) -> $terminated
    * =$path= - path to dir or file.
    * =$visitor= - =RJK::FileVisitor= object.
    * =%opts= - option hash.
