@@ -3,12 +3,14 @@ package RJK::File::Paths;
 use strict;
 use warnings;
 
-my $separatorsRegex = qr{ [\\\/]+ }x;
-my $splitPathRegex = qr{ ^ (\w): (?: (\\.+)\\(.+) | \\(.+) )? $ }x;
+my $separator = RJK::File::Path::separator();
+my $sep = quotemeta $separator;
+my $separatorsRegex = qr{ [$sep]+ }x;
+my $splitPathRegex = qr{ ^ (\w): (?: ($sep.+)$sep(.+) | $sep(.+) )? $ }x;
 
 sub get {
-    my $path = ucfirst join "\\", @_;
-    $path =~ s/$separatorsRegex/\\/g;
+    my $path = ucfirst join $separator, @_;
+    $path =~ s/$separatorsRegex/$separator/g;
     $path =~ s/$separatorsRegex$//;
 
     my ($volume, $directories, $file, $fileInRoot) = $path =~ /$splitPathRegex/;
@@ -17,9 +19,9 @@ sub get {
             $file = $fileInRoot;
         } else {
             $file = '';
-            $path .= '\\';
+            $path .= $separator;
         }
-        $directories = '\\';
+        $directories = $separator;
     }
 
     return bless {
