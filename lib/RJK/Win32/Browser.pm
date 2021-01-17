@@ -11,11 +11,11 @@ my $browsers = {
     firefox => 'c:\Program Files\Mozilla Firefox\firefox.exe'
 };
 
-sub OpenUrl {
-    my ($url, $browser) = @_;
+sub openUrl {
+    my ($self, $url, $browser) = @_;
     $browser ||= $browsers->{default} || 'detect';
     if ($browser eq 'detect') {
-        $browser = Detect();
+        $browser = &detect;
         if (! $browser) {
             warn "Can't find browser";
             return;
@@ -28,7 +28,7 @@ sub OpenUrl {
     system $browsers->{$browser}, $url;
 }
 
-sub Detect {
+sub detect {
     if (ProcessExists('firefox.exe')) {
         return 'firefox';
     } elsif (ProcessExists('chrome.exe')) {
