@@ -6,29 +6,34 @@ use warnings;
 my $separator = RJK::File::Path::separator();
 my $sep = quotemeta $separator;
 my $separatorsRegex = qr{ [$sep]+ }x;
-my $splitPathRegex = qr{ ^ (\w): (?: ($sep.+)$sep(.+) | $sep(.+) )? $ }x;
+my $splitPathRegex = qr{ ^ (?:(\w):)? (?: (.*)$sep(.+) )? $ }x;
 
 sub get {
-    my $path = ucfirst join $separator, @_;
+    my $path = join $separator, grep {$_ ne ''} @_;
     $path =~ s/$separatorsRegex/$separator/g;
-    $path =~ s/$separatorsRegex$//;
+    my $trailingSeparator = $path =~ s/$separatorsRegex$//;
 
-    my ($volume, $directories, $file, $fileInRoot) = $path =~ /$splitPathRegex/;
+    my ($volume, $directories, $file) = $path =~ /$splitPathRegex/;
     if (not defined $file) {
-        if (defined $fileInRoot) {
-            $file = $fileInRoot;
+        if ($volume) {
+            if ($trailingSeparator) {
+                $path .= $separator;
+                $directories = $separator;
+            }
         } else {
-            $file = '';
-            $path .= $separator;
+            $file = $path;
         }
-        $directories = $separator;
+    }
+    if ($volume) {
+        $path = ucfirst $path;
+        $volume = ucfirst $volume;
     }
 
     return bless {
         path => $path,
-        name => $file,
-        volume => $volume,
-        directories => $directories,
+        name => $file // '',
+        volume => $volume // '',
+        directories => $directories // '',
     }, 'RJK::File::Path';
 }
 
