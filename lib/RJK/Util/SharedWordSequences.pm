@@ -1,3 +1,4 @@
+###############################################################################
 =begin TML
 
 ---+ package !RJK::Util::SharedWordSequences
@@ -23,7 +24,7 @@ use warnings;
 ###############################################################################
 
 sub get {
-    my ($w1, $w2, $minLength) = @_;
+    my ($self, $w1, $w2, $minLength) = @_;
     $w1 = [ $w1 =~ /(\w+)/g ] if ! ref $w1;
     $w2 = [ $w2 =~ /(\w+)/g ] if ! ref $w2;
     $minLength //= 1;
