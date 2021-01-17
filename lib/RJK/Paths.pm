@@ -37,7 +37,7 @@ sub get {
         name => $file // '',
         volume => $volume // '',
         directories => $directories // '',
-    }, 'RJK::File::Path';
+    }, 'RJK::Path';
 }
 
 1;

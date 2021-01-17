@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use RJK::Paths;
-use RJK::File::Path;
+use RJK::Path;
 
 my $p = RJK::Paths->get('c:\file.ext');
 

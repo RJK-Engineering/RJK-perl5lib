@@ -11,7 +11,7 @@ use strict;
 use warnings;
 
 use RJK::Exceptions;
-use RJK::File::Path;
+use RJK::Path;
 use RJK::IO::File;
 use RJK::TotalCmd::Search;
 
@@ -50,7 +50,7 @@ my $_stringRuleMatchers = {
 
 ---+++ RJK::TotalCmd::Searches->match($search, $path, $stat) -> \%result
    * =$search= - =RJK::TotalCmd::Search= object.
-   * =$path= - =RJK::File::Path= object.
+   * =$path= - =RJK::Path= object.
    * =$stat= - =RJK::Stat= object.
    * =%result= - result hash.
       * =$result{matched}= true if matched, false otherwise.

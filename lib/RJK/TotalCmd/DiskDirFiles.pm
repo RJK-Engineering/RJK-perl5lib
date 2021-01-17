@@ -13,7 +13,7 @@ use warnings;
 use RJK::File::Exceptions;
 use RJK::TotalCmd::DiskDirFile;
 use RJK::TreeVisitResult qw(matchesTreeVisitResult :constants);
-use RJK::File::Path;
+use RJK::Path;
 use RJK::Paths;
 
 ###############################################################################

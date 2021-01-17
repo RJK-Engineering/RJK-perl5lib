@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use RJK::File::Exceptions;
-use RJK::File::Path;
+use RJK::Path;
 use RJK::Paths;
 use RJK::Stat;
 

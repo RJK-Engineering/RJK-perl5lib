@@ -1,4 +1,4 @@
-package RJK::File::Path::Util;
+package RJK::Path::Util;
 
 use strict;
 use warnings;

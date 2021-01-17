@@ -1,9 +1,9 @@
-package RJK::File::Path;
+package RJK::Path;
 
 # Path object is immutable, only fields + accessors.
-# Accessors are available when RJK::File::Path is imported.
-# Providers of Path objects return blessed RJK::File::Path hashes
-# containing required fields, they don't import RJK::File::Path.
+# Accessors are available when RJK::Path is imported.
+# Providers of Path objects return blessed RJK::Path hashes
+# containing required fields, they don't import RJK::Path.
 
 use strict;
 use warnings;

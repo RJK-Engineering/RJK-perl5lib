@@ -3,7 +3,7 @@ package RJK::Filecheck::Snapshots;
 use strict;
 use warnings;
 
-use RJK::File::Path;
+use RJK::Path;
 use RJK::File::Sidecar;
 use RJK::File::TreeVisitResult;
 use RJK::Filecheck::Dirs;

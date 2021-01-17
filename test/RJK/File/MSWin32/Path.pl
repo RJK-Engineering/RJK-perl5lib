@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use RJK::File::Path;
+use RJK::Path;
 use RJK::Paths;
 
 my $p = RJK::Paths->get('c:\microsoft vs code\code.visualelementsmanifest.xml');
