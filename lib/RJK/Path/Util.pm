@@ -7,7 +7,7 @@ use File::Path ();
 use RJK::File::Exceptions;
 
 sub checkdir {
-    my ($dir) = @_;
+    my ($self, $dir) = @_;
     if (-e $dir) {
         return if -d $dir;
         throw RJK::FileException(error => "Not a directory: $dir", file => $dir);
