@@ -3,7 +3,7 @@ package RJK::Win32::Browser;
 use strict;
 use warnings;
 
-use RJK::Win32::ProcessList qw(ProcessExists);
+use RJK::Win32::ProcessList;
 
 my $browsers = {
     default => 'firefox',
@@ -29,9 +29,9 @@ sub openUrl {
 }
 
 sub detect {
-    if (ProcessExists('firefox.exe')) {
+    if (RJK::Win32::ProcessList->processExists('firefox.exe')) {
         return 'firefox';
-    } elsif (ProcessExists('chrome.exe')) {
+    } elsif (RJK::Win32::ProcessList->processExists('chrome.exe')) {
         return 'chrome';
     }
 }

@@ -38,7 +38,7 @@ sub doPoll {
 
 sub getProcessHash {
     my $self = shift;
-    return RJK::Win32::ProcessList::GetProcessHash($self->{imageName});
+    return RJK::Win32::ProcessList->getProcessHash($self->{imageName});
 }
 
 1;

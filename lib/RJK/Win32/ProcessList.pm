@@ -2,15 +2,6 @@ package RJK::Win32::ProcessList;
 
 use strict;
 use warnings;
-use Exporter ();
-
-our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(
-    GetByPid
-    ProcessExists
-    GetProcessList
-);
-our %EXPORT_TAGS = (ALL => \@EXPORT_OK);
 
 my @fields = qw(
     ImageName
@@ -24,25 +15,25 @@ my @fields = qw(
     WindowTitle
 );
 
-sub GetByPid {
+sub getByPid {
     my $pid = shift;
     my $values;
-    _GetList(sub {
+    _getList(sub {
         $values = shift;
     }, $pid, "PID");
     return $values;
 }
 
-sub ProcessExists {
-    my $imageName = shift;
-    return @{GetProcessList($imageName)};
+sub processExists {
+    my ($self, $imageName) = @_;
+    return @{$self->getProcessList($imageName)};
 }
 
-sub GetProcessList {
-    my $imageName = shift;
+sub getProcessList {
+    my ($self, $imageName) = @_;
     my @list;
 
-    _GetList(sub {
+    _getList(sub {
         my $values = shift;
         return push @list, $values;
     }, $imageName);
@@ -50,12 +41,12 @@ sub GetProcessList {
     return \@list;
 }
 
-sub GetProcessHash {
-    my ($imageName, $key) = @_;
+sub getProcessHash {
+    my ($self, $imageName, $key) = @_;
     $key //= "PID";
     my %hash;
 
-    _GetList(sub {
+    _getList(sub {
         my $values = shift;
         $hash{$values->{$key}} = $values;
     }, $imageName);
@@ -63,7 +54,7 @@ sub GetProcessHash {
     return \%hash;
 }
 
-sub _GetList {
+sub _getList {
     my ($callback, $value, $match) = @_;
     $match //= "ImageName";
     my $header = 1;
