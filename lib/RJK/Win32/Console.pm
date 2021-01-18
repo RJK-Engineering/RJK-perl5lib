@@ -286,14 +286,36 @@ sub question {
 ###############################################################################
 =pod
 
----+++ newline()
+---++ itemFromList($list) -> $answer
+
+=cut
+###############################################################################
+
+sub itemFromList {
+    my ($self, $list) = @_;
+    my $i = 1;
+    foreach (@$list) {
+        $self->write($i++ . ") $_\n");
+        last if $i==9;
+    }
+    my $n = $self->readKeyChar;
+
+    if ($n =~ /^\d+$/ && $n>0 && $n<=@$list) {
+        return $list->[$n-1];
+    }
+}
+
+###############################################################################
+=pod
+
+---+++ newLine()
 Ensure we're on a new line, i.e. if we're not at the
 start of a line, go to the start of the next.
 
 =cut
 ###############################################################################
 
-sub newline {
+sub newLine {
     my ($self) = @_;
     my @c = $self->{wcStdOut}->Cursor;
     if ($c[0] > 0) {
@@ -307,7 +329,7 @@ sub newline {
 =pod
 
 ---+++ printLine($string, $trim)
-Print string after ensuring we're on a new line (see =newline()=) and move
+Print string after ensuring we're on a new line (see =newLine()=) and move
 cursor to the next line.
 Trims string to fit on one line if =$trim= has a true value.
 
@@ -316,14 +338,15 @@ Trims string to fit on one line if =$trim= has a true value.
 
 sub printLine {
     my ($self, $str, $trim) = @_;
-    $self->newline;
+    $self->newLine;
+
     my $columns = ($self->{wcStdOut}->Info)[0];
-    if ($trim) {
-        $self->write(substr $str, 0, $columns);
-    }
-    # move cursor to next line if not already because it wrapped at eol at the
-    # end of the string written, i.e. the string fits the screen width exactly.
-    $self->write("\n") if length($str) % $columns;
+    $str = substr $str, 0, $columns if $trim;
+    $self->write($str);
+
+    # do not print newline if cursor already on next line because of wrapping
+    # after last character, i.e. string fits screen width exactly
+    $self->write("\n") unless length($str) == $columns;
 }
 
 ###############################################################################
@@ -395,28 +418,6 @@ sub lineUp {
     my @c = $self->{wcStdOut}->Cursor;
     $c[1] -= $nrOfLines;
     $self->{wcStdOut}->Cursor(@c);
-}
-
-###############################################################################
-=pod
-
----++ itemFromList($list) -> $answer
-
-=cut
-###############################################################################
-
-sub itemFromList {
-    my ($self, $list) = @_;
-    my $i = 1;
-    foreach (@$list) {
-        $self->write($i++ . ") $_\n");
-        last if $i==9;
-    }
-    my $n = $self->readKeyChar;
-
-    if ($n =~ /^\d+$/ && $n>0 && $n<=@$list) {
-        return $list->[$n-1];
-    }
 }
 
 1;
