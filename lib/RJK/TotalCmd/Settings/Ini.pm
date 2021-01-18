@@ -1,3 +1,4 @@
+###############################################################################
 =begin TML
 
 ---+ package RJK::TotalCmd::Settings::Ini
@@ -84,6 +85,7 @@ Submenus start with =menu[i]=-[name]= and end with =menu[i]=--=.
 </verbatim>
 
 =cut
+###############################################################################
 
 package RJK::TotalCmd::Settings::Ini;
 

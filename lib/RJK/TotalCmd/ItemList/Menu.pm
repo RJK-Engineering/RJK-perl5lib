@@ -1,3 +1,4 @@
+###############################################################################
 =begin TML
 
 ---+ package RJK::TotalCmd::ItemList::Menu
@@ -5,6 +6,7 @@
 A Total Commander menu contains a list of menu items which describe commands or submenus.
 
 =cut
+###############################################################################
 
 package RJK::TotalCmd::ItemList::Menu;
 use parent RJK::TotalCmd::ItemList::ItemList;

@@ -1,3 +1,4 @@
+###############################################################################
 =begin TML
 
 ---+ package RJK::TotalCmd::Settings::Inc
@@ -5,6 +6,7 @@ Total Commander =TOTALCMD.INC= file.
 An =RJK::TotalCmd::ItemList::ItemList= of =RJK::TotalCmd::Item::InternalCmd= objects.
 
 =cut
+###############################################################################
 
 package RJK::TotalCmd::Settings::Inc;
 use parent 'RJK::TotalCmd::ItemList::ItemList';

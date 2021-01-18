@@ -1,3 +1,4 @@
+###############################################################################
 =begin TML
 
 ---+ package RJK::TotalCmd::DownloadList
@@ -26,6 +27,7 @@ must be saved either as ANSI (plain text) or UTF-8 (with byte order
 marker BOM at the beginning).
 
 =cut
+###############################################################################
 
 package RJK::TotalCmd::DownloadList;
 
