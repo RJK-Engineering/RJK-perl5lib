@@ -47,7 +47,7 @@ package RJK::TotalCmd::Builder::Search;
 use strict;
 use warnings;
 
-use RJK::Exceptions;
+use RJK::Exception;
 use RJK::TotalCmd::Search;
 
 sub create {

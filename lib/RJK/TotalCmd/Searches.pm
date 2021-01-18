@@ -10,7 +10,7 @@ package RJK::TotalCmd::Searches;
 use strict;
 use warnings;
 
-use RJK::Exceptions;
+use RJK::Exception;
 use RJK::Path;
 use RJK::IO::File;
 use RJK::TotalCmd::Search;
