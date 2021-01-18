@@ -81,7 +81,7 @@ sub update {
 
     # set offline
     foreach my $vol (values %$status) {
-        my $l = $vol->{driveLetter};
+        my $l = $vol->{letter};
         next if $self->{ignore}{$l};
 
         next if ! $vol->{online};
@@ -93,7 +93,7 @@ sub update {
 
     # set online
     foreach my $vol (values %$volumes) {
-        my $l = $vol->{driveLetter};
+        my $l = $vol->{letter};
         next if $self->{ignore}{$l};
 
         if ($status->{$l}) {
@@ -138,7 +138,7 @@ sub online {
     my $self = shift;
     my %online;
     foreach ($self->all) {
-        my $driveLetter = $_->{driveLetter};
+        my $driveLetter = $_->{letter};
         next if $self->{ignore}{$driveLetter};
         $online{$driveLetter} = $_ if $_->{online};
     }
@@ -160,7 +160,7 @@ sub offline {
     my $self = shift;
     my %offline;
     foreach ($self->all) {
-        my $driveLetter = $_->{driveLetter};
+        my $driveLetter = $_->{letter};
         next if $self->{ignore}{$driveLetter};
         $offline{$driveLetter} = $_ unless $_->{online};
     }
@@ -182,7 +182,7 @@ sub active {
     my $self = shift;
     my %active;
     foreach ($self->all) {
-        my $driveLetter = $_->{driveLetter};
+        my $driveLetter = $_->{letter};
         next if $self->{ignore}{$driveLetter};
         $active{$driveLetter} = $_ if $_->{active};
     }
@@ -204,7 +204,7 @@ sub inactive {
     my $self = shift;
     my %inactive;
     foreach ($self->all) {
-        my $driveLetter = $_->{driveLetter};
+        my $driveLetter = $_->{letter};
         next if $self->{ignore}{$driveLetter};
         $inactive{$driveLetter} = $_ unless $_->{active};
     }
