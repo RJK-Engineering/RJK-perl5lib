@@ -55,8 +55,10 @@ try {
     $file = 'c:\\temp\\filedoesntexist';
     $ddf->setFile($file);
 } catch {
-    if ($_->isa('RJK::File::Exception')) {
+    if (ref && $_->isa('RJK::File::Exception')) {
         print "$_->{message}: $_->{file}\n";
+    } else {
+        die $_;
     }
 };
 
@@ -64,8 +66,10 @@ try {
     $file = 'c:\\temp\\dirdoesntexist\\a.txt';
     $ddf->setFile($file);
 } catch {
-    if ($_->isa('RJK::File::Exception')) {
+    if (ref && $_->isa('RJK::File::Exception')) {
         print "$_->{message}: $_->{file}\n";
+    } else {
+        die $_;
     }
 };
 
@@ -73,8 +77,10 @@ try {
     $dir = 'c:\\notinroot\\sljdf';
     $ddf->setDir($dir);
 } catch {
-    if ($_->isa('Exception')) {
+    if (ref && $_->isa('Exception')) {
         print "$_->{message}\n";
+    } else {
+        die $_;
     }
 };
 
