@@ -455,4 +455,10 @@ sub getPreviousLine {
     return $_[0]->getLine($row);
 }
 
+sub removeDupeLine {
+    return if &getCurrentLine ne &getPreviousLine;
+    &clearCurrentLine;
+    &lineUp;
+}
+
 1;
