@@ -3,12 +3,12 @@ use warnings;
 
 use Try::Tiny;
 
-use Exceptions; # use "use" because compile time so before requires and it looks good :)
-require FileException;
-require NoVolumeInfoException;
-require OpenFileException;
+use Exceptions;
+use FileException;
+use NoVolumeInfoException;
+use OpenFileException;
 
-require RJK::Exceptions;
+use RJK::Exceptions;
 
 try {
     #~ throw Exception("Uitzonderlijk");
