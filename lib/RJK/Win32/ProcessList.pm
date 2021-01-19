@@ -3,7 +3,7 @@ package RJK::Win32::ProcessList;
 use strict;
 use warnings;
 
-my @fields = qw(
+our @fields = qw(
     ImageName
     PID
     SessionName
@@ -16,10 +16,11 @@ my @fields = qw(
 );
 
 sub getByPid {
-    my $pid = shift;
+    my ($self, $pid) = @_;
     my $values;
     _getList(sub {
         $values = shift;
+        return 0;
     }, $pid, "PID");
     return $values;
 }
@@ -34,8 +35,7 @@ sub getProcessList {
     my @list;
 
     _getList(sub {
-        my $values = shift;
-        return push @list, $values;
+        push @list, @_;
     }, $imageName);
 
     return \@list;
