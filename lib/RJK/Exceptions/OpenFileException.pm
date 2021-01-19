@@ -1,5 +1,4 @@
 package OpenFileException;
-use parent 'FileException';
 
 use Exception::Class (
     'OpenFileException' => {
