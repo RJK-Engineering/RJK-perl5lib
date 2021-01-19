@@ -4,16 +4,16 @@ use strict;
 use warnings;
 
 use Devel::StackTrace;
+require Exception::Class;
 
-my $exceptionBaseClass = 'Exception::Class::Base';
+my $exceptionBaseClass = $Exception::Class::BASE_EXC_CLASS;
 my $verbose = 0;
 
 sub _handle {
     return 0 if handleUnknownErrors();
     my $self = shift;
-    my @exceptions = @_ ? @_ % 2
-        ? ($exceptionBaseClass => @_) : @_
-        : ($exceptionBaseClass => \&printException);
+    my $default = shift if @_ % 2;
+    my @exceptions = (@_, $exceptionBaseClass => $default || \&printException);
 
     while (my ($name, $handler) = splice @exceptions, 0, 2) {
         next if ! $_->isa($name);
