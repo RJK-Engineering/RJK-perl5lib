@@ -17,7 +17,7 @@ use RJK::Util::JSON;
 use RJK::Win32::VolumeInfo;
 
 use Exceptions;
-require NoVolumeInfoException;
+use NoVolumeInfoException;
 
 ###############################################################################
 =pod
