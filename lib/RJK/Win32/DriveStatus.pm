@@ -16,13 +16,8 @@ use warnings;
 use RJK::Util::JSON;
 use RJK::Win32::VolumeInfo;
 
-use Exception::Class (
-    'Exception',
-    'RJK::Win32::DriveStatus::Exception' =>
-        { isa => 'Exception' },
-    'RJK::Win32::DriveStatus::NoVolumeInfoException' =>
-        { isa => 'RJK::Win32::DriveStatus::Exception' },
-);
+use Exceptions;
+require NoVolumeInfoException;
 
 ###############################################################################
 =pod
@@ -71,7 +66,7 @@ sub ignore {
 ---+++ update() -> $status
 Get online volumes, newly online volumes are set to active.
 Returns true if the set of online of volumes has changed, false otherwise.
-Throws =RJK::Win32::DriveStatus::NoVolumeInfoException=.
+Throws =NoVolumeInfoException=.
 
 =cut
 ###############################################################################
@@ -79,7 +74,7 @@ Throws =RJK::Win32::DriveStatus::NoVolumeInfoException=.
 sub update {
     my $self = shift;
     my $volumes = RJK::Win32::VolumeInfo->getVolumes();
-    throw RJK::Win32::DriveStatus::NoVolumeInfoException("$^E") if !$volumes;
+    throw NoVolumeInfoException("$^E") if !$volumes;
 
     my $changed;
     $self->_setOffline($volumes, \$changed);
