@@ -26,17 +26,19 @@ Returns a new =Console= object.
 =cut
 ###############################################################################
 
+my $echo = 1;
+my ($in, $out);
+
 sub new {
     my $self = bless {}, shift;
 
     if ($^O eq 'MSWin32') {
-        $self->{wcStdOut} = new Win32::Console(STD_OUTPUT_HANDLE);
-        $self->{wcStdIn} = new Win32::Console(STD_INPUT_HANDLE);
+        $in = new Win32::Console(STD_INPUT_HANDLE);
+        $out = new Win32::Console(STD_OUTPUT_HANDLE);
     } else {
         die "OS not supported";
     }
 
-    $self->{echo} = 1;
     return $self;
 }
 
@@ -56,11 +58,11 @@ See =[[http://search.cpan.org/~jdb/Win32-Console-0.10/Console.pm][Win32::Console
 =cut
 ###############################################################################
 
-sub cursor    {  $_[0]->{wcStdOut}->Cursor(@_)   }
-sub columns   { ($_[0]->{wcStdOut}->Info)[0]     }
-sub row       { ($_[0]->{wcStdOut}->Cursor)[1]   }
-sub title     {  $_[0]->{wcStdOut}->Title($_[1]) }
-sub getEvents {  $_[0]->{wcStdIn}->GetEvents()   }
+sub cursor    {  $out->Cursor(@_)   }
+sub columns   { ($out->Info)[0]     }
+sub row       { ($out->Cursor)[1]   }
+sub title     {  $out->Title($_[1]) }
+sub getEvents {  $in->GetEvents()   }
 
 ###############################################################################
 =pod
@@ -77,9 +79,9 @@ See =[[http://search.cpan.org/~jdb/Win32-Console-0.10/Console.pm][Win32::Console
 =cut
 ###############################################################################
 
-sub write     { $_[0]->{wcStdOut}->Write($_[1]) }
-sub input     { $_[0]->{wcStdIn}->Input() }
-sub flush     { $_[0]->{wcStdIn}->Flush() }
+sub write     { $out->Write($_[1]) }
+sub input     { $in->Input() }
+sub flush     { $in->Flush() }
 
 ###############################################################################
 =pod
@@ -150,7 +152,7 @@ sub confirm {
 
     $self->write("$question ");
     my $key = $self->readKeyChar();
-    $self->write("$key\n") if $self->{echo};
+    $self->write("$key\n") if $echo;
 
     return lc $key eq 'y';
 }
@@ -207,16 +209,15 @@ sub select {
 sub question {
     my ($self, $question, $value) = @_;
 
-    my $c = $self->{wcStdOut};
-    my $columns = ($c->Info)[0];
+    my $columns = ($out->Info)[0];
     return if 10 + length $question > $columns; # not enough columns
     $value = substr $value, 0, $columns - 2 - length $question; # chop value to fit on line
 
-    $c->Write($question);
-    my @startCursor = $c->Cursor;
+    $out->Write($question);
+    my @startCursor = $out->Cursor;
     my $homePos = $startCursor[0];
 
-    $c->Write($value);
+    $out->Write($value);
     my $endPos = $startCursor[0] + length $value;
 
     my $key = 0;
@@ -225,24 +226,24 @@ sub question {
         my @event = $self->input;
         if (@event && $event[0] == 1 and $event[1]) {
             $key = $event[5];
-            my @c = $c->Cursor;
+            my @c = $out->Cursor;
             my $pos = $c[0];
             if ($event[3] == 8) { # backspace
                 if ($c[0] > $homePos) {
-                    my $r = $c->ReadChar($endPos - $c[0] + 1, @c[0..1]);
+                    my $r = $out->ReadChar($endPos - $c[0] + 1, @c[0..1]);
                     $c[0]--;
-                    $c->Cursor(@c);
-                    $c->Write($r . " ");
+                    $out->Cursor(@c);
+                    $out->Write($r . " ");
                     $endPos--;
                 }
             } elsif ($event[3] == 27) { # escape
                 # reset
-                $c->Cursor(@startCursor);
-                $c->Write(" " x ($endPos - $homePos));
-                $c->Cursor(@startCursor);
+                $out->Cursor(@startCursor);
+                $out->Write(" " x ($endPos - $homePos));
+                $out->Cursor(@startCursor);
                 $endPos = $startCursor[0];
                 if ($prevKey != 27) {
-                    $c->Write($value);
+                    $out->Write($value);
                     $endPos += length $value;
                 }
                 $c[0] = $endPos;
@@ -261,26 +262,26 @@ sub question {
             } elsif ($event[3] == 46) { # delete
                 if ($c[0] < $endPos) {
                     $c[0]++;
-                    my $r = $c->ReadChar($endPos - $c[0] + 1, @c[0..1]);
+                    my $r = $out->ReadChar($endPos - $c[0] + 1, @c[0..1]);
                     $c[0]--;
-                    $c->Cursor(@c);
-                    $c->Write($r . " ");
+                    $out->Cursor(@c);
+                    $out->Write($r . " ");
                     $endPos--;
                 }
             } elsif ($key >= 20) {
                 if ($endPos < $columns - 2) { # multi-line edit not supported
-                    $c->Write(chr($key) . $c->ReadChar($endPos - $c[0] + 1, @c[0..1]));
+                    $out->Write(chr($key) . $out->ReadChar($endPos - $c[0] + 1, @c[0..1]));
                     $c[0]++;
                     $endPos++;
                 }
             }
-            $c->Cursor(@c);
+            $out->Cursor(@c);
             $prevKey = $prevKey == 27 ? 0 : $event[3];
         }
     } while ($key != 13); # enter
 
-    my $input = $c->ReadChar($endPos - $homePos, @startCursor[0..1]);
-    $c->Write("\n");
+    my $input = $out->ReadChar($endPos - $homePos, @startCursor[0..1]);
+    $out->Write("\n");
 
     return $input;
 }
@@ -319,11 +320,11 @@ start of a line, go to the start of the next.
 
 sub newLine {
     my ($self) = @_;
-    my @c = $self->{wcStdOut}->Cursor;
+    my @c = $out->Cursor;
     if ($c[0] > 0) {
         $c[0] = 0;
         $c[1]++;
-        $self->{wcStdOut}->Cursor(@c);
+        $out->Cursor(@c);
     }
 }
 
@@ -342,7 +343,7 @@ sub printLine {
     my ($self, $str, $trim) = @_;
     $self->newLine;
 
-    my $columns = ($self->{wcStdOut}->Info)[0];
+    my $columns = ($out->Info)[0];
     $str = substr $str, 0, $columns if $trim;
     $self->write($str);
 
@@ -365,8 +366,7 @@ sub updateLine {
     my ($self, $str, $trim) = @_;
 
     # get cursor position
-    my $o = $self->{wcStdOut};
-    my ($col, $row) = my @c = $o->Cursor;
+    my ($col, $row) = my @c = $out->Cursor;
 
     # adjust string
     if ($trim || $col) {
@@ -374,7 +374,7 @@ sub updateLine {
         my $chomped = 0;
         $chomped++ while chomp $str;
 
-        my $columns = ($o->Info)[0] - 1;
+        my $columns = ($out->Info)[0] - 1;
         my $length = length $str;
 
         if ($trim) {
@@ -389,20 +389,20 @@ sub updateLine {
             # erase previous text not printed over by new text
             my $n = $col - $length;
             if ($n > 0) {
-                $o->FillChar(" ", $n, $length, $row);
+                $out->FillChar(" ", $n, $length, $row);
             }
             # go to start of line
             $c[0] = 0;
             #~ print  "$length == $columns\n";
             #~ $c[1]-- if $length == $columns;
-            $o->Cursor(@c);
+            $out->Cursor(@c);
         }
 
         # append chomped newlines
         $str .= "\n" x $chomped;
     }
 
-    $o->Write($str);
+    $out->Write($str);
 }
 
 ###############################################################################
@@ -417,9 +417,9 @@ Move cursor up. Defaults to 1 line.
 sub lineUp {
     my ($self, $nrOfLines) = @_;
     $nrOfLines ||= 1;
-    my @c = $self->{wcStdOut}->Cursor;
+    my @c = $out->Cursor;
     $c[1] -= $nrOfLines;
-    $self->{wcStdOut}->Cursor(@c);
+    $out->Cursor(@c);
 }
 
 ###############################################################################
@@ -436,34 +436,29 @@ sub lineUp {
 
 sub clearLine {
     my ($self, $row) = @_;
-    my $o = $self->{wcStdOut};
-    my $col = ($o->Info)[0];
-    $o->FillChar(" ", $col, 0, $row);
+    my $col = ($out->Info)[0];
+    $out->FillChar(" ", $col, 0, $row);
 }
 
 sub clearCurrentLine {
-    my $o = $_[0]->{wcStdOut};
-    my $row = ($o->Cursor)[1];
+    my $row = ($out->Cursor)[1];
     $_[0]->clearLine($row);
 }
 
 sub getLine {
     my ($self, $row) = @_;
-    my $o = $self->{wcStdOut};
-    my $col = ($o->Info)[0];
-    my $chars = $o->ReadChar($col, 0, $row);
+    my $col = ($out->Info)[0];
+    my $chars = $out->ReadChar($col, 0, $row);
     return $chars =~ s/\s+$//r;
 }
 
 sub getCurrentLine {
-    my $o = $_[0]->{wcStdOut};
-    my $row = ($o->Cursor)[1];
+    my $row = ($out->Cursor)[1];
     return $_[0]->getLine($row);
 }
 
 sub getPreviousLine {
-    my $o = $_[0]->{wcStdOut};
-    my $row = ($o->Cursor)[1] - 1;
+    my $row = ($out->Cursor)[1] - 1;
     return $_[0]->getLine($row);
 }
 
