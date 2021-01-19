@@ -14,3 +14,8 @@ dd $pl;
 
 $pl = RJK::Win32::ProcessList->getByPid(0);
 dd $pl;
+
+$pl = RJK::Win32::ProcessList->processExists("mpc-hc64.exe");
+dd $pl;
+$pl = RJK::Win32::ProcessList->processExists("asdfghjkl");
+dd $pl;
