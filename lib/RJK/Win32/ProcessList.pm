@@ -17,51 +17,34 @@ our @fields = qw(
 
 sub getByPid {
     my ($self, $pid) = @_;
-    my $values;
-    _getList(sub {
-        $values = shift;
-        return 0;
-    }, $pid, "PID");
-    return $values;
-}
-
-sub getProcessList {
-    my ($self, $imageName) = @_;
-    my @list;
-
-    _getList(sub {
-        push @list, @_;
-    }, $imageName);
-
-    return \@list;
+    my $proc;
+    _iterate(sub { $proc = shift; return 0 }, $pid, "PID");
+    return $proc;
 }
 
 sub processExists {
     my ($self, $imageName) = @_;
     my $exists;
-
-    _getList(sub {
-        $exists = 1;
-        return 0;
-    }, $imageName);
-
+    _iterate(sub { $exists = 1; return 0 }, $imageName);
     return $exists;
+}
+
+sub getProcessList {
+    my ($self, $imageName) = @_;
+    my @list;
+    _iterate(sub { push @list, @_ }, $imageName);
+    return \@list;
 }
 
 sub getProcessHash {
     my ($self, $imageName, $key) = @_;
     $key //= "PID";
     my %hash;
-
-    _getList(sub {
-        my $values = shift;
-        $hash{$values->{$key}} = $values;
-    }, $imageName);
-
+    _iterate(sub { my $proc = shift; $hash{$proc->{$key}} = $proc }, $imageName);
     return \%hash;
 }
 
-sub _getList {
+sub _iterate {
     my ($callback, $value, $match) = @_;
     $match //= "ImageName";
     my $header = 1;
