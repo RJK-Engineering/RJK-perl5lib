@@ -3,7 +3,7 @@
 
 ---+ package RJK::Win32::DriveStatus
 
-Drive status info.
+File persisted drive status model.
 
 =cut
 ###############################################################################
@@ -79,26 +79,32 @@ Throws =RJK::Win32::DriveStatus::NoVolumeInfoException=.
 sub update {
     my $self = shift;
     my $volumes = RJK::Win32::VolumeInfo->getVolumes();
-    unless ($volumes) {
-        throw RJK::Win32::DriveStatus::NoVolumeInfoException("$^E");
-    }
+    throw RJK::Win32::DriveStatus::NoVolumeInfoException("$^E") if !$volumes;
 
-    my $status = $self->{status};
-    my $changed = 0;
+    my $changed;
+    $self->_setOffline($volumes, \$changed);
+    $self->_setOnline($volumes, \$changed);
 
-    # set offline
-    foreach my $vol (values %$status) {
+    $self->commit() if $changed;
+    return $changed;
+}
+
+sub _setOffline {
+    my ($self, $volumes, $changed) = @_;
+    foreach my $vol (values %{$self->{status}}) {
         my $l = $vol->{letter};
         next if $self->{ignore}{$l};
-
         next if ! $vol->{online};
         next if $volumes->{$l};
 
         $vol->{online} = 0;
-        $changed = 1;
+        $$changed = 1;
     }
+}
 
-    # set online
+sub _setOnline {
+    my ($self, $volumes, $changed) = @_;
+    my $status = $self->{status};
     foreach my $vol (values %$volumes) {
         my $l = $vol->{letter};
         next if $self->{ignore}{$l};
@@ -106,13 +112,11 @@ sub update {
         if ($status->{$l}) {
             next if $status->{$l}{online};
             $status->{$l}{online} = 1;
-            $changed = 1;
+            $$changed = 1;
         } else {
             $status->{$l} = $vol;
         }
     }
-    $self->commit() if $changed;
-    return $changed;
 }
 
 ###############################################################################
