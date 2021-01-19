@@ -436,6 +436,7 @@ sub clearLine {
 sub clearCurrentLine {
     my $row = ($out->Cursor)[1];
     $_[0]->clearLine($row);
+    $out->Cursor(0, $row);
 }
 
 sub getLine {
@@ -458,7 +459,6 @@ sub getPreviousLine {
 sub removeDupeLine {
     return if &getCurrentLine ne &getPreviousLine;
     &clearCurrentLine;
-    &lineUp;
 }
 
 1;
