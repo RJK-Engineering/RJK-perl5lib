@@ -25,11 +25,6 @@ sub getByPid {
     return $values;
 }
 
-sub processExists {
-    my ($self, $imageName) = @_;
-    return @{$self->getProcessList($imageName)};
-}
-
 sub getProcessList {
     my ($self, $imageName) = @_;
     my @list;
@@ -39,6 +34,18 @@ sub getProcessList {
     }, $imageName);
 
     return \@list;
+}
+
+sub processExists {
+    my ($self, $imageName) = @_;
+    my $exists;
+
+    _getList(sub {
+        $exists = 1;
+        return 0;
+    }, $imageName);
+
+    return $exists;
 }
 
 sub getProcessHash {
