@@ -13,6 +13,7 @@ package RJK::Win32::DriveStatus;
 use strict;
 use warnings;
 
+use RJK::Util::JSON;
 use RJK::Win32::VolumeInfo;
 
 use Exception::Class (
@@ -44,10 +45,14 @@ Create a new =RJK::Win32::DriveStatus= object.
 
 sub new {
     my $self = bless {}, shift;
-    my %opts = @_;
-    $self->{ignore} = $opts{ignore};
-    $self->{status} = $opts{status};
+    my $opts = shift;
+    $self->{ignore} = $opts->{ignore};
+    $self->{status} = RJK::Util::JSON->read($self->{statusFile} = $opts->{statusFile});
     return $self;
+}
+
+sub commit {
+    RJK::Util::JSON->write($_[0]{statusFile}, $_[0]{status});
 }
 
 sub status {
@@ -78,7 +83,7 @@ sub update {
         throw RJK::Win32::DriveStatus::NoVolumeInfoException("$^E");
     }
 
-    my $status = $self->status;
+    my $status = $self->{status};
     my $changed = 0;
 
     # set offline
@@ -106,6 +111,7 @@ sub update {
             $status->{$l} = $vol;
         }
     }
+    $self->commit() if $changed;
     return $changed;
 }
 
@@ -122,7 +128,7 @@ Returns a =$driveLetter => \%volume= hash reference in scalar context.
 
 sub all {
     my $self = shift;
-    return wantarray ? valuesSortedByKey($self->status) : $self->status;
+    return wantarray ? valuesSortedByKey($self->{status}) : $self->{status};
 }
 
 ###############################################################################
@@ -144,7 +150,7 @@ sub online {
         next if $self->{ignore}{$driveLetter};
         $online{$driveLetter} = $_ if $_->{online};
     }
-    return wantarray ? valuesSortedByKey(%online) : \%online;
+    return wantarray ? valuesSortedByKey(\%online) : \%online;
 }
 
 ###############################################################################
@@ -166,7 +172,7 @@ sub offline {
         next if $self->{ignore}{$driveLetter};
         $offline{$driveLetter} = $_ unless $_->{online};
     }
-    return wantarray ? valuesSortedByKey(%offline) : \%offline;
+    return wantarray ? valuesSortedByKey(\%offline) : \%offline;
 }
 
 ###############################################################################
@@ -188,7 +194,7 @@ sub active {
         next if $self->{ignore}{$driveLetter};
         $active{$driveLetter} = $_ if $_->{active};
     }
-    return wantarray ? valuesSortedByKey(%active) : \%active;
+    return wantarray ? valuesSortedByKey(\%active) : \%active;
 }
 
 ###############################################################################
@@ -210,7 +216,7 @@ sub inactive {
         next if $self->{ignore}{$driveLetter};
         $inactive{$driveLetter} = $_ unless $_->{active};
     }
-    return wantarray ? valuesSortedByKey(%inactive) : \%inactive;
+    return wantarray ? valuesSortedByKey(\%inactive) : \%inactive;
 }
 
 ###############################################################################
@@ -226,12 +232,15 @@ sub toggleActive {
     my ($self, $driveLetter) = @_;
     my $status = $self->{status}{$driveLetter} // return;
     $status->{active} = $status->{active} ? 0 : 1;
+    $self->commit();
+    return $status->{active};
 }
 
 ###############################################################################
 =pod
 
 ---+++ isOnline($driveLetter) -> $boolean
+---+++ str() -> $statusString
 
 =cut
 ###############################################################################
@@ -243,8 +252,14 @@ sub isOnline {
 }
 
 sub valuesSortedByKey {
-    my %hash = @_;
-    map { $hash{$_} } sort keys %hash;
+    my $hash = shift;
+    map { $hash->{$_} } sort keys %$hash;
+}
+
+sub str {
+    my $vol = $_[1] // $_;
+    !$vol->{online} && "offline" ||
+    $vol->{active} && "active"  || "inactive";
 }
 
 1;
