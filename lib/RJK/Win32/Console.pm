@@ -366,10 +366,10 @@ sub updateLine {
 
     # get cursor position
     my $o = $self->{wcStdOut};
-    my ($x, $y) = my @c = $o->Cursor;
+    my ($col, $row) = my @c = $o->Cursor;
 
     # adjust string
-    if ($trim || $x) {
+    if ($trim || $col) {
         # chomp newlines
         my $chomped = 0;
         $chomped++ while chomp $str;
@@ -385,11 +385,11 @@ sub updateLine {
             }
         }
 
-        if ($x) {
+        if ($col) {
             # erase previous text not printed over by new text
-            my $n = $x - $length;
+            my $n = $col - $length;
             if ($n > 0) {
-                $o->FillChar(" ", $n, $length, $y);
+                $o->FillChar(" ", $n, $length, $row);
             }
             # go to start of line
             $c[0] = 0;
