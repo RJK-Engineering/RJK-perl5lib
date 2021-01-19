@@ -422,4 +422,49 @@ sub lineUp {
     $self->{wcStdOut}->Cursor(@c);
 }
 
+###############################################################################
+=pod
+
+---+++ clearLine($row)
+---+++ clearCurrentLine()
+---+++ getLine($row)
+---+++ getCurrentLine()
+---+++ getPreviousLine()
+
+=cut
+###############################################################################
+
+sub clearLine {
+    my ($self, $row) = @_;
+    my $o = $self->{wcStdOut};
+    my $col = ($o->Info)[0];
+    $o->FillChar(" ", $col, 0, $row);
+}
+
+sub clearCurrentLine {
+    my $o = $_[0]->{wcStdOut};
+    my $row = ($o->Cursor)[1];
+    $_[0]->clearLine($row);
+}
+
+sub getLine {
+    my ($self, $row) = @_;
+    my $o = $self->{wcStdOut};
+    my $col = ($o->Info)[0];
+    my $chars = $o->ReadChar($col, 0, $row);
+    return $chars =~ s/\s+$//r;
+}
+
+sub getCurrentLine {
+    my $o = $_[0]->{wcStdOut};
+    my $row = ($o->Cursor)[1];
+    return $_[0]->getLine($row);
+}
+
+sub getPreviousLine {
+    my $o = $_[0]->{wcStdOut};
+    my $row = ($o->Cursor)[1] - 1;
+    return $_[0]->getLine($row);
+}
+
 1;
