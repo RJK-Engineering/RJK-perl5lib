@@ -30,16 +30,13 @@ my $echo = 1;
 my ($in, $out);
 
 sub new {
-    my $self = bless {}, shift;
-
     if ($^O eq 'MSWin32') {
         $in = new Win32::Console(STD_INPUT_HANDLE);
         $out = new Win32::Console(STD_OUTPUT_HANDLE);
     } else {
         die "OS not supported";
     }
-
-    return $self;
+    return bless {}, shift;
 }
 
 ###############################################################################
@@ -108,9 +105,8 @@ Prints lists of choices and waits for choice selection.
 ###############################################################################
 
 sub pause {
-    my $self = shift;
     while (1) {
-        my @event = $self->input;
+        my @event = $in->Input;
         last if $event[0]
             and $event[0] == 1  # keyboard
             and $event[1]       # key pressed
@@ -119,9 +115,8 @@ sub pause {
 }
 
 sub readKey {
-    my $self = shift;
     while (1) {
-        my @event = $self->input;
+        my @event = $in->Input;
 
         if ($event[0]
         and $event[0] == 1  # keyboard
@@ -133,9 +128,8 @@ sub readKey {
 }
 
 sub readKeyChar {
-    my $self = shift;
     while (1) {
-        my @event = $self->input;
+        my @event = $in->Input;
 
         if ($event[0]
         and $event[0] == 1  # keyboard
@@ -150,9 +144,9 @@ sub readKeyChar {
 sub confirm {
     my ($self, $question) = @_;
 
-    $self->write("$question ");
-    my $key = $self->readKeyChar();
-    $self->write("$key\n") if $echo;
+    $out->Write("$question ");
+    my $key = &readKeyChar;
+    $out->Write("$key\n") if $echo;
 
     return lc $key eq 'y';
 }
@@ -160,20 +154,20 @@ sub confirm {
 sub ask {
     my ($self, $question, $choices) = @_;
 
-    $self->write("$question (");
-    $self->write(join "/", map { $_->[1] // $_->[0] } @$choices);
-    $self->write(") ");
+    $out->Write("$question (");
+    $out->Write(join "/", map { $_->[1] // $_->[0] } @$choices);
+    $out->Write(") ");
 
     my %retvals = map { $_->[0] => $_->[2] // $_->[1] // $_->[0] } @$choices;
     my $key = chr(0);
     do {
-        my @event = $self->input;
+        my @event = $in->Input;
         if (@event && $event[0] == 1 and $event[1]) {
             $key = chr $event[5];
         }
     } while (! grep { /$key/ } keys %retvals);
 
-    $self->write("$key\n");
+    $out->Write("$key\n");
 
     my $ret = $retvals{$key};
     return ref $ret && ref $ret eq 'CODE' ? $ret->() : $ret;
@@ -185,13 +179,13 @@ sub select {
 
     my $i = 0x31;
     foreach (@$choices) {
-        $self->write(chr($i) . ". $_\n");
+        $out->Write(chr($i) . ". $_\n");
         die if ++$i > 0x31 + 9; # 1-9
     }
 
     my $key = 0;
     while (1) {
-        my @event = $self->input;
+        my @event = $in->Input;
         if (@event && $event[0] == 1 and $event[1]) {
             $key = $event[5];
             if ($key >= 0x31 and $key < 0x31 + @$choices) {
@@ -223,7 +217,7 @@ sub question {
     my $key = 0;
     my $prevKey = 0;
     do {
-        my @event = $self->input;
+        my @event = $in->Input;
         if (@event && $event[0] == 1 and $event[1]) {
             $key = $event[5];
             my @c = $out->Cursor;
@@ -298,10 +292,10 @@ sub itemFromList {
     my ($self, $list) = @_;
     my $i = 1;
     foreach (@$list) {
-        $self->write($i++ . ") $_\n");
+        $out->Write($i++ . ") $_\n");
         last if $i==9;
     }
-    my $n = $self->readKeyChar;
+    my $n = &readKeyChar;
 
     if ($n =~ /^\d+$/ && $n>0 && $n<=@$list) {
         return $list->[$n-1];
@@ -319,7 +313,6 @@ start of a line, go to the start of the next.
 ###############################################################################
 
 sub newLine {
-    my ($self) = @_;
     my @c = $out->Cursor;
     if ($c[0] > 0) {
         $c[0] = 0;
@@ -345,11 +338,11 @@ sub printLine {
 
     my $columns = ($out->Info)[0];
     $str = substr $str, 0, $columns if $trim;
-    $self->write($str);
+    $out->Write($str);
 
     # do not print newline if cursor already on next line because of wrapping
     # after last character, i.e. string fits screen width exactly
-    $self->write("\n") unless length($str) == $columns;
+    $out->Write("\n") unless length($str) == $columns;
 }
 
 ###############################################################################
