@@ -11,7 +11,7 @@ sub get {
     my ($class, $prop) = @_;
     $class->loadConfig() if ! $config;
     die "Missing configuration property: $prop" if ! $config->has($prop);
-    return $config->get($prop);
+    return $config->get($prop) =~ s/%(.+)%/$ENV{$1}/gr;
 }
 
 sub loadConfig {
