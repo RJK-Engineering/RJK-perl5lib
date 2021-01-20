@@ -13,3 +13,9 @@ my $props = $np->parse($name);
 
 use Data::Dump;
 dd $props;
+
+use RJK::Filecheck;
+
+$np = RJK::Filecheck->createNameParser('c:\Users\Rob\AppData\Local\RJK-utils\filecheck\filenames');
+$props = $np->parse($name);
+dd $props;
