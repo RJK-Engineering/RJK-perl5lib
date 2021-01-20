@@ -1,7 +1,7 @@
 ###############################################################################
 =begin TML
 
----+ package !RJK::TotalCmd::Builder::Search
+---+ package !RJK::TotalCmd::Deserialize::Search
 
 ---++ Flags
 
@@ -43,7 +43,7 @@ booleanOp := =                          * for boolean ops the rule value is eith
 =cut
 ###############################################################################
 
-package RJK::TotalCmd::Builder::Search;
+package RJK::TotalCmd::Deserialize::Search;
 
 use strict;
 use warnings;
