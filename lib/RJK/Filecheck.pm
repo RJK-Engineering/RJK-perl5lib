@@ -14,4 +14,13 @@ sub getStore {
     return $store->{$module} = $module;
 }
 
+sub createNameParser {
+    loadModule("CreateNameParser");
+    &createNameParser;
+}
+
+sub loadModule {
+    eval "require " . __PACKAGE__ . "::$_[0]";
+}
+
 1;
