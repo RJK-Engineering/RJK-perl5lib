@@ -1,5 +1,10 @@
 package RJK::Util::LockFile;
 
+use strict;
+use warnings;
+
+use RJK::Win32::ProcessList;
+
 sub checkExistingLock {
     my ($self, $lockFile) = @_;
     if (-e $lockFile) {
