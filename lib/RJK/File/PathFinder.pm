@@ -26,7 +26,7 @@ sub FindPath {
     my @paths = @_;
     my $path;
     foreach (@paths) {
-        s|%(\w+)%|$ENV{$1}//''|ge;
+        s'%(.*?)%' $ENV{$1} // $1 && "%$1%" || "%" 'eg;
         next unless -e;
         $path = $_;
         last;
