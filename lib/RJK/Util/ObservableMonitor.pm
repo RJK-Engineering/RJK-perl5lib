@@ -3,11 +3,12 @@ use parent 'RJK::Util::Monitor';
 use parent 'RJK::Util::Observable';
 
 sub poll {
-    my $self = shift;
-    return if ! @{$self->{observers}};
-    $self->doPoll();
+    return if ! @{$_[0]{observers}};
+    $_[0]->doPoll();
 }
 
 sub doPoll { ... }
+
+sub observers { $_[0]{observers} //= [] }
 
 1;
