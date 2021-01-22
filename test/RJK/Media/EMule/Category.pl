@@ -1,15 +1,15 @@
 use strict;
 use warnings;
 
+use RJK::Env;
 use RJK::Media::EMule::Category;
-use RJK::File::PathFinder;
 
 my %opts;
 $opts{categoryIni} = '';
 
 if (! $opts{categoryIni}) {
     my $file = 'eMule\config\Category.ini';
-    $opts{categoryIni} = RJK::File::PathFinder::FindLocalFile($file)
+    $opts{categoryIni} = RJK::Env->findLocalFile($file)
         or die "Category.ini not found";
 }
 

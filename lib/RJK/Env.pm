@@ -1,13 +1,12 @@
 ###############################################################################
 =begin TML
 
----+ package RJK::File::PathFinder
-Find paths to files.
+---+ package RJK::Env
 
 =cut
 ###############################################################################
 
-package RJK::File::PathFinder;
+package RJK::Env;
 
 use strict;
 use warnings;
@@ -15,14 +14,26 @@ use warnings;
 ###############################################################################
 =pod
 
----++ FindPath(@paths) -> $path
+---+++ subst($string) -> $newString
+
+=cut
+###############################################################################
+
+sub subst {
+    $_[1] =~ s'%(.*?)%' $ENV{$1} // $1 && "%$1%" || "%" 'egr;
+}
+
+###############################################################################
+=pod
+
+---+++ findPath(@paths) -> $path
 Find first existing path.
 With environment variable substitution.
 
 =cut
 ###############################################################################
 
-sub FindPath {
+sub findPath {
     my @paths = @_;
     my $path;
     foreach (@paths) {
@@ -37,7 +48,7 @@ sub FindPath {
 ###############################################################################
 =pod
 
----+++ FindLocalFile($relativeFilePath) -> $path
+---+++ findLocalFile($relativeFilePath) -> $path
 Find file stored in local data directory =$ENV{LOCALAPPDATA}= or
 =$ENV{APPDATA}= (in order of precedence).
    * =$relativeFilePath= - path to file relative to local data directory
@@ -45,7 +56,7 @@ Find file stored in local data directory =$ENV{LOCALAPPDATA}= or
 =cut
 ###############################################################################
 
-sub FindLocalFile {
+sub findLocalFile {
     my $relativeFilePath = shift;
 
     # local conf, overrules roaming conf
@@ -60,13 +71,13 @@ sub FindLocalFile {
 ###############################################################################
 =pod
 
----+++ FindProgramDir($relativeDirPath) -> $path
+---+++ findProgramDir($relativeDirPath) -> $path
 Find program directory.
 
 =cut
 ###############################################################################
 
-sub FindProgramDir {
+sub findProgramDir {
     my $relativeDirPath = shift;
 
     my $path = "$ENV{ProgramW6432}/$relativeDirPath";

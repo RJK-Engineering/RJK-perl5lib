@@ -19,7 +19,7 @@ use Exception::Class (
 
 use Try::Tiny;
 
-use RJK::File::PathFinder;
+use RJK::Env;
 use RJK::TotalCmd::ItemList::ButtonBar;
 use RJK::TotalCmd::Settings::Inc;
 use RJK::TotalCmd::Settings::Ini;
@@ -84,7 +84,7 @@ sub getTotalCmdInc {
 }
 
 sub loadTotalCmdInc {
-    my $path = shift || RJK::File::PathFinder::FindPath(
+    my $path = shift || RJK::Env->findPath(
         "%COMMANDER_PATH%/TOTALCMD.INC",
         "%APPDATA%/GHISLER/TOTALCMD.INC",
         "%LOCALAPPDATA%/TOTALCMD.INC",
@@ -112,7 +112,7 @@ sub getTotalCmdIni {
 }
 
 sub loadTotalCmdIni {
-    my $path = shift || RJK::File::PathFinder::FindPath(
+    my $path = shift || RJK::Env->findPath(
         "%COMMANDER_INI%",
         "%APPDATA%/GHISLER/wincmd.ini",
         "%LOCALAPPDATA%/wincmd.ini",
@@ -142,7 +142,7 @@ sub getUsercmdIni {
 }
 
 sub loadUsercmdIni {
-    my $path = shift || RJK::File::PathFinder::FindPath(
+    my $path = shift || RJK::Env->findPath(
         "%COMMANDER_PATH%/usercmd.ini",
         "%APPDATA%/GHISLER/usercmd.ini",
         "%LOCALAPPDATA%/usercmd.ini",
