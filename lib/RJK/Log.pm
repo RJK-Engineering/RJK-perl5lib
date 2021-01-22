@@ -12,7 +12,7 @@ sub init {
 }
 
 sub logWarnings {
-    my ($self, $loggerName, $rewarn) = @_;
+    my ($self, $loggerName, $quiet) = @_;
     if (! $Log::Log4perl::Logger::INITIALIZED) {
         Log::Log4perl::Logger->init_warn;
         return;
@@ -22,7 +22,7 @@ sub logWarnings {
     $SIG{__WARN__} = sub {
         local $Log::Log4perl::caller_depth = $Log::Log4perl::caller_depth + 1;
         $logger->warn($_[0]);
-        warn $_[0] if $rewarn;
+        warn $_[0] unless $quiet;
     };
 }
 
