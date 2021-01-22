@@ -73,14 +73,19 @@ sub getDirectories {
 sub getFile {
     my ($self, $path) = @_;
     my ($dir, $file) = $self->_splitFile($path);
-    return undef if ! $self->_fileExists($dir, $file);
+    return if ! $self->fileExists($dir, $file);
     return $self->{files}{$dir}{$file};
 }
 
 sub getDir {
     my ($self, $path) = @_;
     my $dir = $self->_splitDir($path);
-    return undef if ! $self->_dirExists($dir);
+    return if ! $self->dirExists($dir);
+    $self->_getDir($dir);
+}
+
+sub _getDir {
+    my ($self, $dir) = @_;
     foreach (@{$self->{directories}}) {
         return $_ if $_->[0] eq $dir;
     }
@@ -95,7 +100,7 @@ sub hasFile {
 sub hasDir {
     my ($self, $path) = @_;
     my $dir = $self->_splitDir($path);
-    return $self->_dirExists($dir);
+    return $self->dirExists($dir);
 }
 
 sub setFile {
@@ -103,7 +108,7 @@ sub setFile {
     my ($dir, $file) = $self->_splitFile($path);
 
     my $f = new RJK::IO::File($path);
-    if (! $self->_dirExists($dir)) {
+    if (! $self->dirExists($dir)) {
         $self->setDir($f->parent);
     }
     $stat //= $f->stat;
@@ -123,13 +128,9 @@ sub setDir {
     my $f = new RJK::IO::File($path);
     $stat //= $f->stat;
 
-    if ($self->_dirExists($dir)) {
-        foreach (@{$self->{directories}}) {
-            next if $_->[0] ne $dir;
-            # update stat
-            ($_->[2], $_->[3]) = format_datetime($stat->modified);
-            last;
-        }
+    if ($self->dirExists($dir)) {
+        my $dir = $self->_getDir($dir);
+        ($dir->[2], $dir->[3]) = format_datetime($stat->modified);
     } else {
         my $parent = $f->parent;
         if (! $self->{files}{$parent}) {
@@ -147,14 +148,14 @@ sub setDir {
 sub deleteFile {
     my ($self, $path) = @_;
     my ($dir, $file) = $self->_splitFile($path);
-    return 0 if ! $self->_fileExists($dir, $file);
+    return 0 if ! $self->fileExists($dir, $file);
     return delete $self->{files}{$dir}{$file};
 }
 
 sub deleteDir {
     my ($self, $path) = @_;
     my $dir = $self->_splitDir($path);
-    return 0 if ! $self->_dirExists($dir);
+    return 0 if ! $self->dirExists($dir);
     $self->{directories} = [ grep { $_->[0] ne $dir } @{$self->{directories}} ];
     return delete $self->{files}{$dir};
 }
@@ -241,15 +242,14 @@ sub _splitDir {
     return ($path =~ /^\Q$self->{root}\E\\(.*?)\\*$/i)[0] || $self->{root};
 }
 
-sub _fileExists {
+sub fileExists {
     my ($self, $dir, $file) = @_;
-    return $self->_dirExists($dir)
-        && exists $self->{files}{$dir}{$file};
+    return $self->dirExists($dir) && exists $self->{files}{$dir}{$file};
 }
 
-sub _dirExists {
+sub dirExists {
     my ($self, $dir) = @_;
-    return $dir && exists $self->{files}{$dir};
+    return exists $self->{files}{$dir};
 }
 
 sub parse_datetime {
