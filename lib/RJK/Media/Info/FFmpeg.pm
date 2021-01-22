@@ -67,7 +67,6 @@ sub info {
                         $s->{ars} = $3;
                         my @a = split / /, $s->{ars};
                         my $v;
-                    #~ print "!@a\n";
                         while ($v = shift @a) {
                             if ($v eq "DAR") {
                                 $s->{dar} = shift @a;
@@ -82,7 +81,7 @@ sub info {
                     }
                 } else {
                     if ($s->{$_}) {
-                        #~ print "\nDouble flag: $_\n";
+                        warn "Double flag: $_";
                     } else {
                         $s->{$_} = 1;
                     }
