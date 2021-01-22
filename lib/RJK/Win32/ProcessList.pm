@@ -18,35 +18,34 @@ our @fields = qw(
 sub getByPid {
     my ($self, $pid) = @_;
     my $proc;
-    _iterate(sub { $proc = shift; return 0 }, $pid, "PID");
+    findProcesses($pid, sub { $proc = shift; return 0 }, "PID");
     return $proc;
 }
 
 sub processExists {
     my ($self, $imageName) = @_;
     my $exists;
-    _iterate(sub { $exists = 1; return 0 }, $imageName);
+    findProcesses($imageName, sub { $exists = 1; return 0 });
     return $exists;
 }
 
 sub getProcessList {
     my ($self, $imageName) = @_;
-    my @list;
-    _iterate(sub { push @list, @_ }, $imageName);
-    return \@list;
+    return findProcesses($imageName);
 }
 
 sub getProcessHash {
     my ($self, $imageName, $key) = @_;
     $key //= "PID";
     my %hash;
-    _iterate(sub { my $proc = shift; $hash{$proc->{$key}} = $proc }, $imageName);
+    findProcesses($imageName, sub { my $proc = shift; $hash{$proc->{$key}} = $proc });
     return \%hash;
 }
 
-sub _iterate {
-    my ($callback, $value, $match) = @_;
+sub findProcesses {
+    my ($value, $callback, $match) = @_;
     $match //= "ImageName";
+    my @list;
     my $header = 1;
 
     my $cmd = "tasklist /v /fo csv";
@@ -66,8 +65,13 @@ sub _iterate {
         my %hash;
         @hash{@fields} = @values;
 
-        last unless $callback->(\%hash);
+        if ($callback) {
+            last unless $callback->(\%hash);
+        } else {
+            push @list, \%hash;
+        }
     }
+    return \@list;
 }
 
 1;
