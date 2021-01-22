@@ -11,8 +11,8 @@ use OpenFileException;
 use RJK::Exceptions;
 
 try {
-    #~ throw Exception("Uitzonderlijk");
-    throw OpenFileException(error => "Uitzonderlijk", file => "C:\\path");
+    throw Exception("Uitzonderlijk");
+    #~ throw OpenFileException(error => "Uitzonderlijk", file => "C:\\path");
 } catch {
     RJK::Exceptions->handle();
 

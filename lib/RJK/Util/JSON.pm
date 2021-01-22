@@ -6,17 +6,19 @@ use warnings;
 use JSON;
 use Try::Tiny;
 
-use RJK::File::Exceptions;
+use Exceptions;
+use FileException;
+use OpenFileException;
 
 sub read {
     my ($class, $file) = @_;
 
-    throw RJK::FileException(error => "Not a file", file => $file) if ! -f $file;
-    throw RJK::FileException(error => "File is empty", file => $file) if -z $file;
+    throw FileException(error => "Not a file", file => $file) if ! -f $file;
+    throw FileException(error => "File is empty", file => $file) if -z $file;
 
     local $/; # slurp entire file
     open my $fh, '<', $file
-        or throw RJK::OpenFileException(file => $file, error => "$!");
+        or throw OpenFileException(file => $file, error => "$!");
 
     my $data;
     try {
@@ -34,7 +36,7 @@ sub write {
     my ($class, $file, $data) = @_;
 
     open my $fh, '>', $file
-        or throw RJK::OpenFileException(file => $file, error => "$!");
+        or throw OpenFileException(file => $file, error => "$!");
 
     try {
         #~ print $fh JSON->new->allow_nonref->convert_blessed->canonical->pretty->encode($data);

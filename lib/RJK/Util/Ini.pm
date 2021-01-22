@@ -12,7 +12,8 @@ package RJK::Util::Ini;
 use strict;
 use warnings;
 
-use RJK::File::Exceptions;
+use Exceptions;
+use OpenFileException;
 use RJK::Util::PropertyList;
 
 ###############################################################################
@@ -255,7 +256,7 @@ sub read {
     $file //= $self->{file};
 
     open my $in, '<', $file
-        or throw RJK::OpenFileException(error => "$!", file => $file, mode => '<');
+        or throw OpenFileException(error => "$!", file => $file, mode => '<');
     $self->clear();
 
     my ($pl, $keys);
@@ -293,7 +294,7 @@ sub write {
         $fh = $file;
     } else {
         open $fh, '>', $file
-           or throw RJK::OpenFileException(error => "$!", file => $file, mode => '>');
+           or throw OpenFileException(error => "$!", file => $file, mode => '>');
     }
 
     my @sections = $sort ? sort @{$self->{sections}}

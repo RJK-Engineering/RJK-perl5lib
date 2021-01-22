@@ -11,7 +11,9 @@ package RJK::TotalCmd::DiskDirFiles;
 use strict;
 use warnings;
 
-use RJK::File::Exceptions;
+use Exceptions;
+use OpenFileException;
+
 use RJK::TotalCmd::DiskDirFile;
 use RJK::TotalCmd::DiskDirStat;
 use RJK::TreeVisitResult qw(matchesTreeVisitResult :constants);
@@ -35,7 +37,7 @@ sub traverse {
     my ($class, $path, $visitor, $opts) = @_;
 
     open my $fh, '<', $path
-        or throw RJK::OpenFileException(error => "$!", file => $path, mode => '<');
+        or throw OpenFileException(error => "$!", file => $path, mode => '<');
 
     my ($root, $dir, $result, $skip);
     my $stat = new RJK::TotalCmd::DiskDirStat;

@@ -13,7 +13,7 @@ use strict;
 use warnings;
 
 use Time::Local 'timelocal';
-use Exception::Class 'Exception';
+use Exceptions;
 
 use RJK::IO::File;
 

@@ -48,7 +48,7 @@ package RJK::TotalCmd::Deserialize::Search;
 use strict;
 use warnings;
 
-use RJK::Exception;
+use Exceptions;
 use RJK::TotalCmd::Search;
 
 sub create {
@@ -67,7 +67,7 @@ sub create {
         \|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)
         \|(?:(\d)(\d)(\d)(\d)(\d))?
         \|(\d)(\d)(\d)(\d)\|?(.*)/x
-    or throw RJK::Exception(
+    or throw Exception(
         "Error parsing SearchFlags: $search->{SearchFlags}"
     );
 
@@ -147,7 +147,7 @@ sub parseDate {
         return 0 + sprintf "%02d%02u%02u%02u%02u%02u", $year, $2, $1+$d, $4//0, $5//0, $6//0;
     }
 
-    throw RJK::Exception("Invalid date/time: $dateTime");
+    throw Exception("Invalid date/time: $dateTime");
 }
 
 1;

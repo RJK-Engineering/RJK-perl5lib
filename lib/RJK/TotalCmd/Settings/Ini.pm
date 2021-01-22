@@ -92,7 +92,7 @@ package RJK::TotalCmd::Settings::Ini;
 use strict;
 use warnings;
 
-use RJK::Exception;
+use Exceptions;
 use RJK::TotalCmd::Search;
 use RJK::TotalCmd::Deserialize::Search;
 use RJK::TotalCmd::Item::MenuItem;
@@ -114,7 +114,7 @@ Returns a new =RJK::TotalCmd::Settings::Ini= object.
 
 sub new {
     my $self = bless {}, shift;
-    $self->{path} = shift // $ENV{COMMANDER_INI} // throw RJK::Exception("No path to INI file");
+    $self->{path} = shift // $ENV{COMMANDER_INI} // throw Exception("No path to INI file");
     $self->{ini} = new RJK::Util::Ini($self->{path});
     return $self;
 }

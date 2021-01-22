@@ -1,16 +1,16 @@
 use strict;
 use warnings;
 
-use Try::Tiny;
+use Exceptions;
+use FileException;
+
 use RJK::Exceptions;
-use RJK::Exception;
-use RJK::File::Exceptions;
+use Try::Tiny;
 
 try {
     #~ $! = 2; # "No such file or directory"
     #~ throw Exception("uitzonderlijk");
-    #~ throw RJK::Exception("uitzonderlijk");
-    throw RJK::FileException(error => "uitzonderlijk", file => "asjdfhksjdfhksdjfh");
+    throw FileException(error => "uitzonderlijk", file => "asjdfhksjdfhksdjfh");
     #~ die "foutje";
 } catch {
     print "\n\n\n\n\n\n\n\n\n\n\n";
@@ -24,9 +24,9 @@ try {
     print "-------- Verbose\n";
     RJK::Exceptions->handleVerbose();
 
-    print "-------- Handle RJK::Exception\n";
+    print "-------- Handle Exception\n";
     RJK::Exceptions->handle(
-        'RJK::Exception' => sub { printf "%s: %s\n", ref, $_->error }
+        'Exception' => sub { printf "%s: %s\n", ref, $_->error }
     );
 
     print "-------- Default handler\n";

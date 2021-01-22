@@ -10,7 +10,11 @@ my $exceptionBaseClass = $Exception::Class::BASE_EXC_CLASS;
 my $verbose = 0;
 
 $SIG{__DIE__} = sub {
-    $exceptionBaseClass->throw(shift);
+    if (UNIVERSAL::can($_[0], "rethrow")) {
+        $_[0]->rethrow;
+    } else {
+        $exceptionBaseClass->throw(shift);
+    }
 };
 
 sub _handle {

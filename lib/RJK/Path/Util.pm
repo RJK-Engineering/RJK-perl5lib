@@ -4,13 +4,14 @@ use strict;
 use warnings;
 
 use File::Path ();
-use RJK::File::Exceptions;
+use Exceptions;
+use FileException;
 
 sub checkdir {
     my ($self, $dir) = @_;
     if (-e $dir) {
         return if -d $dir;
-        throw RJK::FileException(error => "Not a directory: $dir", file => $dir);
+        throw FileException(error => "Not a directory: $dir", file => $dir);
     }
 
     File::Path::make_path $dir, {error => \my $err};
@@ -18,7 +19,7 @@ sub checkdir {
 
     my ($file, $message) = %{$err->[0]};
     throw Exception($message) if $file eq '';
-    throw RJK::FileException(error => $message, file => $file);
+    throw FileException(error => $message, file => $file);
 }
 
 1;

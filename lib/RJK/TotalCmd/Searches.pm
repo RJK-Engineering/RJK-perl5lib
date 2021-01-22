@@ -11,7 +11,7 @@ package RJK::TotalCmd::Searches;
 use strict;
 use warnings;
 
-use RJK::Exception;
+use Exceptions;
 use RJK::Path;
 use RJK::IO::File;
 use RJK::TotalCmd::Search;
@@ -231,7 +231,7 @@ sub NotOlderThanTime {
 
     my $timeUnit = $flags->{timeUnit};
     if ($timeUnit < -1 || $timeUnit > 4) {
-        throw RJK::Exception("Invalid time unit: $timeUnit");
+        throw Exception("Invalid time unit: $timeUnit");
     }
 
     my $unit = $RJK::TotalCmd::Search::timeUnits[ $timeUnit + 3 ];
