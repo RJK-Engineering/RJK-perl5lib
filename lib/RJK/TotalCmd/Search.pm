@@ -181,8 +181,7 @@ sub update {
     my ($self, $search) = @_;
     foreach my $field (keys %$proto) {
         if ($field eq "flags") {
-            $self->{flags}{$_} //= $search->{flags}{$_}
-                foreach @flagNames;
+            $self->{flags}{$_} //= $search->{flags}{$_} for @flagNames;
         } else {
             $self->{$field} //= $search->{$field};
         }
@@ -202,8 +201,7 @@ sub defaults {
     my $self = shift;
     foreach my $field (keys %$proto) {
         if ($field eq "flags") {
-            $self->{flags}{$_} //= $flagsProto->{$_} // 0
-                foreach @flagNames;
+            $self->{flags}{$_} //= $flagsProto->{$_} // 0 for @flagNames;
         } else {
             $self->{$field} //= $proto->{$field} || "";
         }

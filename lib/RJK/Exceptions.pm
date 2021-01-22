@@ -52,6 +52,7 @@ sub handleUnknownErrors {
             $! && ". Internal error: $!",
             ".", $verbose > -1 && "\n";
     }
+    &printStackTrace if $verbose;
     return 1;
 }
 

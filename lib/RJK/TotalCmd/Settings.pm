@@ -369,8 +369,7 @@ sub getButtonBars {
 
     my @bars;
     foreach (@barDirs) {
-        opendir(my $dh, $_)
-            || throw RJK::TotalCmd::Exception("$_: $!");
+        opendir my $dh, $_ or throw RJK::TotalCmd::Exception("$_: $!");
         push @bars, (grep { s/\.bar$//i } readdir $dh);
     }
 

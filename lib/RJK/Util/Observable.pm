@@ -5,7 +5,6 @@ use warnings;
 
 sub addObserver {
     my ($self, @observers) = @_;
-
     $self->{observers} //= [];
     my $c = @{$self->{observers}};
 
@@ -59,16 +58,15 @@ sub hasObserver {
 
 sub notifyObservers {
     my ($self, $event) = @_;
-
     my $method = "handle" . $event->{type} . "Event";
 
-    foreach (@{$self->{observers}}) {
-        if ($_->can($method)) {
-            $_->$method($event->{payload}, $self);
-        } elsif ($_->can("update")) {
-            $_->update($event, $self);
+    foreach my $observer (@{$self->{observers}}) {
+        if ($observer->can($method)) {
+            $observer->$method($event->{payload}, $self);
+        } elsif ($observer->can("update")) {
+            $observer->update($event, $self);
         } else {
-            warn "No handler method for $event->{type} event in observer class " . ref();
+            warn "No handler method for $event->{type} event in observer class " . ref($observer);
         }
     }
 }

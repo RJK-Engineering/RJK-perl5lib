@@ -36,8 +36,8 @@ sub GetOptions {
         "$ENV{LOCALAPPDATA}/RJK-utils"
     );
 
-    foreach (@paths) {
-        loadConf("$_/$filename", \%options) if -e "$_/$filename";
+    foreach my $path (@paths) {
+        loadConf("$path/$filename", \%options) if -e "$path/$filename";
     }
 
     return wantarray ? %options : \%options;

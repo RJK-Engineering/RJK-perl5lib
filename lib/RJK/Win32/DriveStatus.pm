@@ -144,10 +144,10 @@ Returns a =$driveLetter => \%volume= hash reference in scalar context.
 sub online {
     my $self = shift;
     my %online;
-    foreach ($self->all) {
-        my $driveLetter = $_->{letter};
+    foreach my $drive ($self->all) {
+        my $driveLetter = $drive->{letter};
         next if $self->{ignore}{$driveLetter};
-        $online{$driveLetter} = $_ if $_->{online};
+        $online{$driveLetter} = $drive if $drive->{online};
     }
     return wantarray ? valuesSortedByKey(\%online) : \%online;
 }
@@ -166,10 +166,10 @@ Returns a =$driveLetter => \%volume= hash reference in scalar context.
 sub offline {
     my $self = shift;
     my %offline;
-    foreach ($self->all) {
-        my $driveLetter = $_->{letter};
+    foreach my $drive ($self->all) {
+        my $driveLetter = $drive->{letter};
         next if $self->{ignore}{$driveLetter};
-        $offline{$driveLetter} = $_ unless $_->{online};
+        $offline{$driveLetter} = $drive unless $drive->{online};
     }
     return wantarray ? valuesSortedByKey(\%offline) : \%offline;
 }
@@ -188,10 +188,10 @@ Returns a =$driveLetter => \%volume= hash reference in scalar context.
 sub active {
     my $self = shift;
     my %active;
-    foreach ($self->all) {
-        my $driveLetter = $_->{letter};
+    foreach my $drive ($self->all) {
+        my $driveLetter = $drive->{letter};
         next if $self->{ignore}{$driveLetter};
-        $active{$driveLetter} = $_ if $_->{active};
+        $active{$driveLetter} = $drive if $drive->{active};
     }
     return wantarray ? valuesSortedByKey(\%active) : \%active;
 }
@@ -210,10 +210,10 @@ Returns a =$driveLetter => \%volume= hash reference in scalar context.
 sub inactive {
     my $self = shift;
     my %inactive;
-    foreach ($self->all) {
-        my $driveLetter = $_->{letter};
+    foreach my $drive ($self->all) {
+        my $driveLetter = $drive->{letter};
         next if $self->{ignore}{$driveLetter};
-        $inactive{$driveLetter} = $_ unless $_->{active};
+        $inactive{$driveLetter} = $drive unless $drive->{active};
     }
     return wantarray ? valuesSortedByKey(\%inactive) : \%inactive;
 }

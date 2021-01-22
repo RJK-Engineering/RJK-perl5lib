@@ -314,8 +314,8 @@ sub getParams {
             throw RJK::TotalCmd::Command::NoTargetSelectionException(
                 "No target selection specified");
         }
-        foreach (@{$selection->{targetSelection}}) {
-            ($long, $short) = GetPaths($_);
+        foreach my $path (@{$selection->{targetSelection}}) {
+            ($long, $short) = GetPaths($path);
             ($dir, $file) = ParsePath($long);
 
             push @{$params{R}},
@@ -330,7 +330,7 @@ sub getParams {
             } elsif ($cmd->{param} =~ /%[$shortParams]/) {
                 throw RJK::TotalCmd::Command::NoTargetShortNameException(
                     error => "Target short name could not be determined",
-                    path => $_,
+                    path => $path,
                 );
             }
         }

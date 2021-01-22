@@ -120,9 +120,9 @@ sub getSubmenuItems {
     my $l = 0;
     for (my $i=$submenu->{number}; $i<@{$self->{items}}; $i++) {
         my $o = $self->{items}[$i];
-        if ($o->{menu} =~ /^--$/) {         # submenu end
+        if ($o->{menu} =~ /^--$/) {             # submenu end
             last if $l-- == 0;
-        } elsif ($o->{menu} =~ /^"?-(.*)/) {  # submenu start
+        } elsif ($o->{menu} =~ /^"?-(.*)/) {    # submenu start
             $l++;
         }
         push @items, $o;
@@ -136,9 +136,9 @@ sub getLastItemNumber {
     my $l = 0;
     for (my $i=$submenu->{number}; $i<@{$self->{items}}; $i++) {
         my $o = $self->{items}[$i];
-        if ($o->{menu} =~ /^--$/) {         # submenu end
+        if ($o->{menu} =~ /^--$/) {             # submenu end
             return $i if $l-- == 0;
-        } elsif ($o->{menu} =~ /^"?-(.*)/) {  # submenu start
+        } elsif ($o->{menu} =~ /^"?-(.*)/) {    # submenu start
             $l++;
         }
     }
@@ -147,11 +147,11 @@ sub getLastItemNumber {
 sub findSubmenus {
     my ($self, $searchFor) = @_;
     my @items;
-    foreach (@{$self->{items}}) {
-        my $title = $_->{menu} =~ s/&//gr; # remove access key indicator
+    foreach my $item (@{$self->{items}}) {
+        my $title = $item->{menu} =~ s/&//gr;   # remove access key indicator
         next if $title !~ /^"?-.*$searchFor/i;
-        $_->{items} = $self->getSubmenuItems($_);
-        push @items, $_;
+        $item->{items} = $self->getSubmenuItems($item);
+        push @items, $item;
     }
     return wantarray ? @items : \@items;
 }

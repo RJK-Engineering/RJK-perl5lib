@@ -315,9 +315,9 @@ sub getSearches {
     $filter //= sub {1};
     my %searches;
 
-    foreach (values %{$self->{ini}->getHashes('searches', { key => 'name' })}) {
-        next if ! $filter->($_);
-        $searches{$_->{name}} = RJK::TotalCmd::Deserialize::Search->deserialize($_);
+    foreach my $search (values %{$self->{ini}->getHashes('searches', { key => 'name' })}) {
+        next if ! $filter->($search);
+        $searches{$search->{name}} = RJK::TotalCmd::Deserialize::Search->deserialize($search);
         last if $first;
     }
     return wantarray ? %searches : \%searches;

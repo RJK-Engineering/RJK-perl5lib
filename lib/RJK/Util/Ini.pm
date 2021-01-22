@@ -382,13 +382,11 @@ containing the interpreted data.
 sub parseList {
     my ($self, $section, $name, $otherProps, $otherPropsKeys) = @_;
     $name //= '.*?';
-
     my $pl = $self->{properties}{$section} || return;
-    my $keys = $self->{keys}{$section};
     my $data;
 
-    foreach (@$keys) {
-        my $value = $pl->get($_);
+    foreach my $key (@{$self->{keys}{$section}}) {
+        my $value = $pl->get($key);
         if (/^ (?<name>$name) (?<index>\d+) $self->{delimiter}? (?<key>.*) $/x) {
             if ($+{name} || $+{key}) {
                 # 2) name => [ values ]
@@ -398,8 +396,8 @@ sub parseList {
                 $data->{array}[$+{index}] = $value;
             }
         } else {
-            $otherProps->{$_} = $value if $otherProps;
-            push @{$otherPropsKeys}, $_ if $otherPropsKeys;
+            $otherProps->{$key} = $value if $otherProps;
+            push @{$otherPropsKeys}, $key if $otherPropsKeys;
         }
     }
     return $data;
@@ -407,17 +405,13 @@ sub parseList {
 
 sub parseHash {
     my ($self, $section, $opts) = @_;
-
     $opts //= {};
-    my $key = $opts->{key};
     my $defaultHash = $opts->{defaultHash} || {};
-
     my $pl = $self->{properties}{$section} || return;
-    my $keys = $self->{keys}{$section};
     my $data;
 
-    foreach (@$keys) {
-        my $value = $pl->get($_);
+    foreach my $key (@{$self->{keys}{$section}}) {
+        my $value = $pl->get($key);
         if (/^ (.+) $self->{delimiter} (.+) $/x) {
             # 4) name => key => value
             if (! $data->{namedHashes}{$1} && $defaultHash) {
@@ -426,13 +420,12 @@ sub parseHash {
             }
             $data->{namedHashes}{$1}{$2} = $value;
             $data->{namedHashesLHS}{$2}{$1} = $value;
-            if ($key) {
-                $data->{namedHashes}{$1}{$key} = $1;
-                $data->{namedHashesLHS}{$2}{$key} = $2;
-            }
+            next if ! $opts->{key};
+            $data->{namedHashes}{$1}{$opts->{key}} = $1;
+            $data->{namedHashesLHS}{$2}{$opts->{key}} = $2;
         } else {
-            $opts->{otherProps}{$_} = $value if $opts->{otherProps};
-            push @{$opts->{otherPropsKeys}}, $_ if $opts->{otherPropsKeys};
+            $opts->{otherProps}{$key} = $value if $opts->{otherProps};
+            push @{$opts->{otherPropsKeys}}, $key if $opts->{otherPropsKeys};
         }
     }
     return $data;
@@ -440,28 +433,24 @@ sub parseHash {
 
 sub parseHashList {
     my ($self, $section, $opts) = @_;
-
     $opts //= {};
-    my $key = $opts->{key};
     my $defaultHash = $opts->{defaultHash} || {};
     my $defaultKey = $opts->{defaultKey} // '_default';
     my $name = $opts->{name} // '.*?';
-
     my $pl = $self->{properties}{$section} || return;
-    my $keys = $self->{keys}{$section};
     my $data;
 
-    foreach (@$keys) {
-        my $value = $pl->get($_);
+    foreach my $key (@{$self->{keys}{$section}}) {
+        my $value = $pl->get($key);
         if (/^ (?<name>$name) (?<index>\d+) $self->{delimiter}? (?<key>.*) $/x) {
             if ($+{name} || $+{key}) {
                 # 3) [ key => value ]
                 if (! $data->{hashList}[$+{index}]) {
                     $data->{hashList}[$+{index}] = {%$defaultHash};
                     $data->{hashListRHS}[$+{index}] = {%$defaultHash};
-                    if ($key) {
-                        $data->{hashList}[$+{index}]{$key} = $+{index};
-                        $data->{hashListRHS}[$+{index}]{$key} = $+{index};
+                    if ($opts->{key}) {
+                        $data->{hashList}[$+{index}]{$opts->{key}} = $+{index};
+                        $data->{hashListRHS}[$+{index}]{$opts->{key}} = $+{index};
                     }
                     if ($opts->{class}) {
                         bless $data->{hashList}[$+{index}], $opts->{class};
@@ -473,8 +462,8 @@ sub parseHashList {
                 $data->{hashListRHS}[$+{index}]{$key} = $value;
             }
         } else {
-            $opts->{otherProps}{$_} = $value if $opts->{otherProps};
-            push @{$opts->{otherPropsKeys}}, $_ if $opts->{otherPropsKeys};
+            $opts->{otherProps}{$key} = $value if $opts->{otherProps};
+            push @{$opts->{otherPropsKeys}}, $key if $opts->{otherPropsKeys};
         }
     }
     return $data;
@@ -601,7 +590,7 @@ sub setList {
 
     $pl->clear;
     for (my $i=0; $i<@$array; $i++) {
-        $pl->set($keys[$i], $array->[$i]) foreach @$array;
+        $pl->set($keys[$i], $array->[$i]);
     }
     return $pl;
 }
@@ -613,10 +602,10 @@ sub setHashList {
     my @propertyKeys;
     for (my $i=1; $i<=@$array; $i++) {
         my $hash = $array->[$i-1];
-        foreach ($keys ? @$keys : keys %$hash) {
-            $hash->{$_} // next;
-            $pl->set("$_$i", $hash->{$_});
-            push @propertyKeys, "$_$i";
+        foreach my $key ($keys ? @$keys : keys %$hash) {
+            $hash->{$key} // next;
+            $pl->set("$key$i", $hash->{$key});
+            push @propertyKeys, "$key$i";
         }
     }
     $self->{keys}{$section} = \@propertyKeys;
@@ -636,9 +625,9 @@ sub setHashListRHS {
 
     for (my $i=1; $i<=@$array; $i++) {
         my $hash = $array->[$i-1];
-        foreach (@keys ? @keys : keys %$hash) {
-            my $value = $hash->{$_} // next;
-            my $prop = /^$defaultKey$/i ? "$name$i" : "$name$i$_";      # ini prop names are case-insensitive
+        foreach my $key (@keys ? @keys : keys %$hash) {
+            my $value = $hash->{$key} // next;
+            my $prop = /^$defaultKey$/i ? "$name$i" : "$name$i$key";
             $pl->set($prop, $value);
             push @props, $prop;
         }

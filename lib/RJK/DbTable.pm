@@ -124,17 +124,17 @@ sub sync {
     my $changes = [];
     if ($objectInDb) {
         my $message;
-        foreach (@{$self->{cols}}) {
-            next if $_ eq $self->{pkCol};
-            if ($self->updateValue($_, $object->{$_}, $objectInDb->{$_}, $id, \$message)) {
+        foreach my $col (@{$self->{cols}}) {
+            next if $col eq $self->{pkCol};
+            if ($self->updateValue($col, $object->{$col}, $objectInDb->{$col}, $id, \$message)) {
                 push @$changes, {
                     update => 1,
-                    column => $_,
-                    value => $object->{$_},
-                    dbValue => $objectInDb->{$_},
+                    column => $col,
+                    value => $object->{$col},
+                    dbValue => $objectInDb->{$col},
                     message => $message,
                 };
-                $objectInDb->{$_} = $object->{$_};
+                $objectInDb->{$col} = $object->{$col};
             }
         }
         if (@$changes) {
@@ -145,12 +145,12 @@ sub sync {
             $self->{eventHandlers}{onIdentical}($id, $object, $objectInDb, $changes);
         }
     } else {
-        foreach (@{$self->{cols}}) {
-            if (defined $object->{$_}) {
+        foreach my $col (@{$self->{cols}}) {
+            if (defined $object->{$col}) {
                 push @$changes, {
                     insert => 1,
-                    column => $_,
-                    value => $object->{$_},
+                    column => $col,
+                    value => $object->{$col},
                 };
             }
         }

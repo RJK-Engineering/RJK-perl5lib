@@ -178,8 +178,8 @@ sub select {
     my %opts = @_;
 
     my $i = 0x31;
-    foreach (@$choices) {
-        $out->Write(chr($i) . ". $_\n");
+    foreach my $choice (@$choices) {
+        $out->Write(chr($i) . ". $choice\n");
         die if ++$i > 0x31 + 9; # 1-9
     }
 
@@ -292,8 +292,8 @@ sub itemFromList {
     my ($self, $list) = @_;
     my $i = 1;
     foreach (@$list) {
-        $out->Write($i++ . ") $_\n");
-        last if $i==9;
+        $out->Write("$i) $_\n");
+        last if ++$i==9;
     }
     my $n = &readKeyChar;
 
