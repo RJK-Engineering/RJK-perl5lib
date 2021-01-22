@@ -1,12 +1,12 @@
 use strict;
 use warnings;
 
-use RJK::HashToStringFormatter;
+use RJK::TableRowFormatter;
 
 my $format = '%size=5.5 %name';
-my $formatter = new RJK::HashToStringFormatter($format);
+my $formatter = new RJK::TableRowFormatter($format);
 my $hash = {
     size => '4M',
-    name => 'name'
+    name => 'str'
 };
 print $formatter->format($hash), "\n";
