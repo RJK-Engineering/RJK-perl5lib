@@ -5,8 +5,6 @@ use warnings;
 
 use Log::Log4perl;
 
-my $init = 0;
-
 sub init {
     my ($self, $conf, $loggerName) = @_;
     _init($conf);
@@ -15,7 +13,10 @@ sub init {
 
 sub logWarnings {
     my ($self, $loggerName, $rewarn) = @_;
-    _init() if !$init;
+    if (! $Log::Log4perl::Logger::INITIALIZED) {
+        Log::Log4perl::Logger->init_warn;
+        return;
+    }
     my $logger = Log::Log4perl->get_logger($loggerName // 'warnings');
 
     $SIG{__WARN__} = sub {
@@ -27,7 +28,7 @@ sub logWarnings {
 
 sub logDie {
     my ($self, $loggerName, $replace) = @_;
-    _init() if !$init;
+    _init() if ! $Log::Log4perl::Logger::INITIALIZED;
     my $logger = Log::Log4perl->get_logger($loggerName // 'die');
     my $existingHandler = $SIG{__DIE__};
 
@@ -41,7 +42,7 @@ sub logDie {
 sub logger {
     my ($self, $loggerName) = @_;
     $loggerName //= caller;
-    _init() if !$init;
+    _init() if ! $Log::Log4perl::Logger::INITIALIZED;
     return Log::Log4perl->get_logger($loggerName);
 }
 
@@ -53,7 +54,6 @@ sub _init {
         log4perl.appender.StdErr.layout=Log::Log4perl::Layout::SimpleLayout
     );
     Log::Log4perl::init($conf);
-    $init = 1;
 }
 
 1;
