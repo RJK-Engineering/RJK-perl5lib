@@ -14,9 +14,9 @@ use warnings;
 use Exceptions;
 use OpenFileException;
 
+use FileVisitResult;
 use RJK::TotalCmd::DiskDirFile;
 use RJK::TotalCmd::DiskDirStat;
-use RJK::TreeVisitResult qw(matchesTreeVisitResult :constants);
 use RJK::Path;
 use RJK::Paths;
 
@@ -55,17 +55,17 @@ sub traverse {
             if ($dir) {
                 $result = $visitor->postVisitFiles($dir, $stat);
 
-                if (matchesTreeVisitResult($result, TERMINATE)) {
+                if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
                     return 1;
-                } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
+                } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
                     $skip = quotemeta($dir->parent || $dir->{path});
                 }
 
                 $result = $visitor->postVisitDir($dir, $stat);
 
-                if (matchesTreeVisitResult($result, TERMINATE)) {
+                if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
                     return 1;
-                } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
+                } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
                     $skip = quotemeta($dir->parent || $dir->{path});
                 }
             }
@@ -82,11 +82,11 @@ sub traverse {
 
             $result = $visitor->preVisitDir($dir, $stat);
 
-            if (matchesTreeVisitResult($result, TERMINATE)) {
+            if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
                 return 1;
-            } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
+            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SUBTREE)) {
                 $skip = quotemeta $dir->{path};
-            } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
+            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
                 $skip = quotemeta($dir->parent || $dir->{path});
                 $dir = undef; # don't postVisitFiles()
                 next;
@@ -94,11 +94,11 @@ sub traverse {
 
             $result = $visitor->preVisitFiles($dir, $stat);
 
-            if (matchesTreeVisitResult($result, TERMINATE)) {
+            if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
                 return 1;
-            } elsif (matchesTreeVisitResult($result, SKIP_SUBTREE)) {
+            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SUBTREE)) {
                 $skip = quotemeta $dir->{path};
-            } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
+            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
                 $skip = quotemeta($dir->parent || $dir->{path});
                 $dir = undef; # don't postVisitFiles()
             }
@@ -117,9 +117,9 @@ sub traverse {
 
             $result = $visitor->visitFile($file, $stat);
 
-            if (matchesTreeVisitResult($result, TERMINATE)) {
+            if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
                 return 1;
-            } elsif ($dir && matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
+            } elsif ($dir && FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
                 $skip = quotemeta $dir->{path};
             }
         }
@@ -129,7 +129,7 @@ sub traverse {
         $result = $visitor->postVisitFiles($dir, $stat);
         $result = $visitor->postVisitDir($dir, $stat);
     }
-    return matchesTreeVisitResult($result, TERMINATE);
+    return FileVisitResult->matches($result, FileVisitResult::TERMINATE);
 }
 
 1;

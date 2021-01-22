@@ -3,9 +3,9 @@ package RJK::Files;
 use strict;
 use warnings;
 
+use FileVisitResult;
 use RJK::Paths;
 use RJK::Stat;
-use RJK::File::TreeVisitResult qw(matchesTreeVisitResult :constants);
 
 ###############################################################################
 =begin TML
@@ -65,11 +65,12 @@ sub traverse {
     } else {
         $result = &_traverse;
     }
-    return matchesTreeVisitResult($result, TERMINATE);
+    return FileVisitResult->matches($result, FileVisitResult::TERMINATE);
 }
 
 sub _traverse {
     my ($self, $path, $visitor, $opts) = @_;
+    $visitor = createSimpleFileVisitor($visitor) if ref $visitor eq 'HASH';
     $path = RJK::Paths->get($path);
     my $stat = RJK::Stat->get($path->{path});
 
@@ -80,6 +81,11 @@ sub _traverse {
     } elsif ($stat->isFile) {
         return $visitor->visitFile($path, $stat);
     }
+}
+
+sub createSimpleFileVisitor {
+    require RJK::SimpleFileVisitor;
+    return new RJK::SimpleFileVisitor(%{$_[0]});
 }
 
 sub traverseWithStats {
@@ -98,11 +104,13 @@ sub traverseDir {
 
     if (my $entries = $self->getEntries($dir->{path})) {
         $result = $visitor->preVisitDir($dir, $dirStat);
-        if (matchesTreeVisitResult($result, TERMINATE, SKIP_SUBTREE, SKIP_SIBLINGS)) {
+        if (FileVisitResult->matches($result,
+            FileVisitResult::TERMINATE, FileVisitResult::SKIP_SUBTREE, FileVisitResult::SKIP_SIBLINGS
+        )) {
             return $result;
-        } elsif (matchesTreeVisitResult($result, SKIP_FILES)) {
+        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_FILES)) {
             $skipFiles = 1;
-        } elsif (matchesTreeVisitResult($result, SKIP_DIRS)) {
+        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
             $skipDirs = 1;
         }
 
@@ -132,32 +140,32 @@ sub traverseDir {
             } else {
                 $result = $visitor->visitFileFailed($file, "Stat failed");
             }
-            if (matchesTreeVisitResult($result, TERMINATE)) {
-                return TERMINATE;
-            } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
+            if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
+                return FileVisitResult::TERMINATE;
+            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
                 return $visitor->postVisitDir($dir, $dirStat);
-            } elsif (matchesTreeVisitResult($result, SKIP_DIRS)) {
+            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
                 @dirs = ();
-            } elsif (matchesTreeVisitResult($result, SKIP_FILES)) {
+            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_FILES)) {
                 last;
             }
         }
 
         $result = $visitor->postVisitFiles($dir, $dirStat);
-        if (matchesTreeVisitResult($result, TERMINATE)) {
-            return TERMINATE;
-        } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
+        if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
+            return FileVisitResult::TERMINATE;
+        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
             return $visitor->postVisitDir($dir, $dirStat);
-        } elsif (matchesTreeVisitResult($result, SKIP_DIRS)) {
+        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
             @dirs = ();
         }
 
         foreach (@dirs) {
             my ($dir, $stat) = @$_;
             $result = $self->traverseDir($dir, $visitor, $opts, $stat);
-            if (matchesTreeVisitResult($result, TERMINATE)) {
-                return TERMINATE;
-            } elsif (matchesTreeVisitResult($result, SKIP_SIBLINGS)) {
+            if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
+                return FileVisitResult::TERMINATE;
+            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
                 last;
             }
         }

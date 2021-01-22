@@ -1,45 +1,45 @@
 use strict;
 use warnings;
 
+use FileVisitResult;
 use RJK::Files;
 use RJK::SimpleFileVisitor;
-use RJK::File::TreeVisitResult;
 
 my $visitor = new RJK::SimpleFileVisitor(
     visitFileFailed => sub {
         my ($file, $error) = @_;
         print "$error: $file->{path}\n";
-        #~ return TERMINATE;
+        #~ return FileVisitResult::TERMINATE;
     },
     preVisitDir => sub {
         my ($dir, $stat) = @_;
         printf ">D %s\n", $dir->{path};
-        #~ return TERMINATE;
-        #~ return SKIP_SUBTREE if $dir->{name} eq 'dir1';
-        #~ return SKIP_SIBLINGS if $dir->{name} eq 'dir1';
-        #~ return SKIP_FILES if $dir->{name} eq 'dir1';
-        #~ return SKIP_DIRS if $dir->{name} eq 'dir1';
+        #~ return FileVisitResult::TERMINATE;
+        #~ return FileVisitResult::SKIP_SUBTREE if $dir->{name} eq 'dir1';
+        #~ return FileVisitResult::SKIP_SIBLINGS if $dir->{name} eq 'dir1';
+        #~ return FileVisitResult::SKIP_FILES if $dir->{name} eq 'dir1';
+        #~ return FileVisitResult::SKIP_DIRS if $dir->{name} eq 'dir1';
     },
     postVisitDir => sub {
         my ($dir, $stat) = @_;
         printf "<D %s\n", $dir->{path};
-        #~ return TERMINATE;
-        #~ return SKIP_SIBLINGS if $dir->{name} eq 'dir1';
+        #~ return FileVisitResult::TERMINATE;
+        #~ return FileVisitResult::SKIP_SIBLINGS if $dir->{name} eq 'dir1';
     },
     postVisitFiles => sub {
         my ($dir, $stat) = @_;
         printf "<F %s\n", $dir->{path};
-        #~ return TERMINATE;
-        #~ return SKIP_SIBLINGS if $dir->{name} eq 'dir1';
-        #~ return SKIP_DIRS if $dir->{name} eq 'dir1';
+        #~ return FileVisitResult::TERMINATE;
+        #~ return FileVisitResult::SKIP_SIBLINGS if $dir->{name} eq 'dir1';
+        #~ return FileVisitResult::SKIP_DIRS if $dir->{name} eq 'dir1';
     },
     visitFile => sub {
         my ($file, $stat) = @_;
         print "   $file->{path}\n";
-        #~ return TERMINATE;
-        #~ return SKIP_SIBLINGS if $file->{name} eq 'file1';
-        #~ return SKIP_SIBLINGS if $file->{name} eq 'file2';
-        #~ return SKIP_FILES if $file->{name} eq 'file1';
+        #~ return FileVisitResult::TERMINATE;
+        #~ return FileVisitResult::SKIP_SIBLINGS if $file->{name} eq 'file1';
+        #~ return FileVisitResult::SKIP_SIBLINGS if $file->{name} eq 'file2';
+        #~ return FileVisitResult::SKIP_FILES if $file->{name} eq 'file1';
     }
 );
 
