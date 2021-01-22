@@ -3,7 +3,9 @@ use warnings;
 
 use RJK::Log;
 
-my $logger = RJK::Log->logger(); # gets logger for current package or rootlogger if not defined
+RJK::Log->logWarnings(); # prints warning, only works after initialization
+
+my $logger = RJK::Log->logger(); # gets logger for current package, auto-initializes
 $logger->fatal("1");
 
 $logger = RJK::Log->init(\q(
