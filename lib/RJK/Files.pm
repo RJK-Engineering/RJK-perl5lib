@@ -1,3 +1,11 @@
+###############################################################################
+=begin TML
+
+---+ package RJK::Files
+
+=cut
+###############################################################################
+
 package RJK::Files;
 
 use strict;
@@ -10,7 +18,9 @@ use RJK::Stat;
 ###############################################################################
 =begin TML
 
----+++ RJK::Files->traverse($path, $visitor, %opts) -> $terminated
+---++ Class methods
+
+---+++ traverse($path, $visitor, %opts) -> $terminated
    * =$path= - path to dir or file.
    * =$visitor= - =RJK::FileVisitor= object.
    * =%opts= - option hash.

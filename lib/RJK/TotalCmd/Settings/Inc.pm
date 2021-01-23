@@ -24,7 +24,7 @@ use Exception::Class (
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
 ---+++ new($path) -> $inc
 Returns a new =RJK::TotalCmd::Settings::Inc= object.
@@ -40,6 +40,8 @@ sub new {
 
 ###############################################################################
 =pod
+
+---++ Object methods
 
 ---+++ read($path) -> $inc
 Read data from file. Returns false on failure, callee on success.

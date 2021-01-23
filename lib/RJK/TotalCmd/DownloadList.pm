@@ -37,11 +37,12 @@ use warnings;
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
 ---+++ new($file) -> $downloadList
-   * =$file= - Path to list file.
 Returns a new =RJK::TotalCmd::DownloadList= object.
+
+---++ Object methods
 
 ---+++ list() -> @list or \@list
 Returns download list as a list of strings.

@@ -48,7 +48,7 @@ use Exception::Class (
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
 ---+++ new($path) -> $usercmdIni
 Returns a new =RJK::TotalCmd::Settings::UsercmdIni= object.
@@ -64,6 +64,8 @@ sub new {
 
 ###############################################################################
 =pod
+
+---++ Object methods
 
 ---+++ read($path) -> $self
 Read data from file. Returns false on failure, callee on success.

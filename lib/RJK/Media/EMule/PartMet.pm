@@ -20,6 +20,8 @@ use constant {
 ###############################################################################
 =pod
 
+---++ Class methods
+
 ---+++ read($filename) -> \%data
 Read =.part.met= file and return contents.
    * =%data= - keys: ok, filename, size, hash, utf8

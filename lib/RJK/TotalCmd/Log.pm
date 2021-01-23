@@ -48,6 +48,8 @@ our @errors = (
 ###############################################################################
 =pod
 
+---++ Class methods
+
 ---+++ traverse($file, %opts)
    * =$file= - path to log file.
    * =$opts{visitEntry}= - traversal is stopped if this sub returns a true value.

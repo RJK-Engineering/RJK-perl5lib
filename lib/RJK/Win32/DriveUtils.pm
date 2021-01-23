@@ -22,6 +22,8 @@ our @EXPORT_OK = qw(
 ###############################################################################
 =pod
 
+---++ Class methods
+
 ---+++ GetDriveLetter($path)
 Get drive letter.
 

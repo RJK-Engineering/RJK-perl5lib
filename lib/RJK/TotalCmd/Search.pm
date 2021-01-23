@@ -160,6 +160,17 @@ my $flagsProto = {
     depth => 99,
 };
 
+###############################################################################
+=pod
+
+---++ Constructor
+
+---+++ new() -> $search
+Returns a new =RJK::TotalCmd::Search= object.
+
+=cut
+###############################################################################
+
 sub new {
     my $self = bless \%$proto, shift;
     $self->{flags} = \%$flagsProto;

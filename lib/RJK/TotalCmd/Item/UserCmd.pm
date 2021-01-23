@@ -4,10 +4,12 @@
 ---+ package RJK::TotalCmd::Item::UserCmd
 A Total Commander user command item.
 
----++ Object methods
+---++ Constructor
 
 ---+++ new(%attrs) -> $userCmd
 Returns a new =RJK::TotalCmd::Item::UserCmd= object.
+
+---++ Object methods
 
 ---+++ name($name) -> $name
 Name (=em_*=).

@@ -20,7 +20,7 @@ use Win32API::File qw(
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Class methods
 
 ---+++ getVolumes() -> \%volumes or @volumes
 

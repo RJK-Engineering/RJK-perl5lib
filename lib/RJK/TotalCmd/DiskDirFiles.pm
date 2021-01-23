@@ -23,7 +23,9 @@ use RJK::Paths;
 ###############################################################################
 =pod
 
----+++ RJK::TotalCmd::DiskDirFiles::traverse($path, $visitor, %opts) -> $terminated
+---++ Class methods
+
+---+++ traverse($path, $visitor, %opts) -> $terminated
    * =$path= - path to DiskDirFile.
    * =$visitor= - =RJK::FileVisitor= object.
    * =%opts= - option hash.

@@ -15,7 +15,7 @@ use warnings;
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
 ---+++ new($path) -> $catalogMakerFile
 Returns a new =RJK::TotalCmd::CatalogMakerFile= object.
@@ -60,6 +60,8 @@ sub files {
 
 ###############################################################################
 =pod
+
+---++ Object methods
 
 ---+++ read() -> $self
 Read data from file. Returns false on failure, callee on success.

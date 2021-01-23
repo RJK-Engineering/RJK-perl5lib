@@ -4,6 +4,11 @@
 ---+ package RJK::TotalCmd::ItemList::ItemList
 List of =RJK::TotalCmd::Item::Item= objects.
 
+---++ Constructor
+
+---+++ new(\@items) -> $itemList
+Returns a new =RJK::TotalCmd::ItemList::ItemList= object.
+
 =cut
 ###############################################################################
 

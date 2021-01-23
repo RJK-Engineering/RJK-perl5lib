@@ -18,7 +18,7 @@ use RJK::Util::Ini;
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
 ---+++ new($path) -> $ftpIni
 Returns a new =RJK::TotalCmd::Settings::FtpIni= object.
@@ -35,6 +35,8 @@ sub new {
 
 ###############################################################################
 =pod
+
+---++ Object methods
 
 ---+++ read($path) -> $self
 Read data from file. Returns false on failure, callee on success.

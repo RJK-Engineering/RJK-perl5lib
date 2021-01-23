@@ -104,7 +104,7 @@ my $UserMenuNumberStart = 700;
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
 ---+++ new($path) -> $ini
 Returns a new =RJK::TotalCmd::Settings::Ini= object.
@@ -123,6 +123,8 @@ sub filepath { $_[0]{path} }
 
 ###############################################################################
 =pod
+
+---++ Object methods
 
 ---+++ read($path) -> $self
 Read data from file. Returns nothing on failure, callee on success.

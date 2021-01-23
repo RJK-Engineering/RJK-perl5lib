@@ -20,7 +20,7 @@ use RJK::IO::File;
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
 ---+++ new($root) -> $diskDirFile
 Returns a new =RJK::TotalCmd::DiskDirFile= object.
@@ -37,6 +37,8 @@ sub new {
 
 ###############################################################################
 =pod
+
+---++ Object methods
 
 ---+++ root() -> $root
 ---+++ directories() -> \@directories

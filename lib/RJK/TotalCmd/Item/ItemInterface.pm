@@ -3,6 +3,8 @@
 
 ---+ interface RJK::TotalCmd::Item::ItemInterface
 
+---++ Methods
+
 ---+++ isButton() -> $boolean
 ==cmd= and =button= are not empty.
 

@@ -100,7 +100,7 @@ use Exception::Class (
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
 ---+++ new() -> $commandExecutor
 Returns a new =RJK::TotalCmd::CommandExecutor= object.
@@ -129,6 +129,8 @@ my $modifierParams = 'ZzX';
 
 ###############################################################################
 =pod
+
+---++ Object methods
 
 ---+++ execute($cmd, $selection, $callback)
 

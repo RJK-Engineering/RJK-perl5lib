@@ -1,7 +1,9 @@
 ###############################################################################
 =begin TML
 
----+ package RJK::TotalCmd::Item::MenuItemInterface
+---+ interface RJK::TotalCmd::Item::MenuItemInterface
+
+---++ Methods
 
 ---+++ isSeparator() -> $boolean
 Title = '-'.

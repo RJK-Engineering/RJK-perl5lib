@@ -4,10 +4,12 @@
 ---+ package RJK::TotalCmd::Item::Button
 A Total Commander button bar item.
 
----++ Object methods
+---++ Constructor
 
 ---+++ new(%attrs) -> $button
 Returns a new =RJK::TotalCmd::Item::Button= object.
+
+---++ Object methods
 
 ---+++ button($button) -> $iconResource
 Icon resource string.

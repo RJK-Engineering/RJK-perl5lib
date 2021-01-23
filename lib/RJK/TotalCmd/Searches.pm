@@ -49,7 +49,9 @@ my $_stringRuleMatchers = {
 ###############################################################################
 =pod
 
----+++ RJK::TotalCmd::Searches->match($search, $path, $stat) -> \%result
+---++ Class methods
+
+---+++ match($search, $path, $stat) -> \%result
    * =$search= - =RJK::TotalCmd::Search= object.
    * =$path= - =RJK::Path= object.
    * =$stat= - =RJK::Stat= object.

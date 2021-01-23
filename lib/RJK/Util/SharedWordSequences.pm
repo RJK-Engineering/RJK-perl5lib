@@ -14,6 +14,8 @@ use warnings;
 ###############################################################################
 =pod
 
+---++ Class methods
+
 ---+++ get($w1 or \@w1, $w2 or \@w2, [$minLength]) -> \@sequences
    * =$w1= or =@w1= - sentence to extract words from or a list of words.
    * =$w2= or =@w2= - sentence to extract words from or a list of words.

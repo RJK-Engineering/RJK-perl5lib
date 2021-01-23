@@ -3,6 +3,8 @@
 
 ---+ interface RJK::TotalCmd::Item::ButtonInterface
 
+---++ Methods
+
 ---+++ isSeparator() -> $boolean
 ==cmd= or =button= is empty.
 

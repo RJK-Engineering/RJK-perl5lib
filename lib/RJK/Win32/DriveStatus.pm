@@ -22,13 +22,15 @@ use NoVolumeInfoException;
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
----+++ new(%opts)
+---+++ new(%opts) -> $driveStatus
 Create a new =RJK::Win32::DriveStatus= object.
    * =%opts=
     * =$opts{ignore}=
     * =$opts{status}=
+
+---++ Object methods
 
 ---+++ status() -> %status or \%status
 ---+++ ignore() -> %ignore or \%ignore

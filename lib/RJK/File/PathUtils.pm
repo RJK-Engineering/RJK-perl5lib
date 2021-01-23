@@ -23,6 +23,8 @@ our @EXPORT_OK = qw(
 ###############################################################################
 =pod
 
+---++ Class methods
+
 ---+++ CompletePath($partialPath)
 Returns existing file path starting with =$partialPath=.
 Returns first read entry if multiple file paths are found.

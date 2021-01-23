@@ -3,6 +3,8 @@
 
 ---+ interface RJK::TotalCmd::Item::CommandInterface
 
+---++ Methods
+
 ---+++ getCommandName() -> $name
 Internal or user command from cmd (cm_*, em_*).
 

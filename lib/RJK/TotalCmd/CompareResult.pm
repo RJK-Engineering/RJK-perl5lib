@@ -20,11 +20,13 @@ use Exception::Class (
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
 ---+++ new($path) -> $compareResult
 Returns a new =RJK::TotalCmd::CompareResult= object for compare results
 stored in text file =$path=.
+
+---++ Object methods
 
 ---+++ dirs($dirs) -> $dirs
 ---+++ left($left) -> $left

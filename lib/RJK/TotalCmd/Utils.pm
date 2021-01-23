@@ -15,7 +15,7 @@ use warnings;
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Class methods
 
 ---+++ sendCommand($commandName)
    * http://ahkscript.org - https://autohotkey.com

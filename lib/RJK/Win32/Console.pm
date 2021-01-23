@@ -18,7 +18,7 @@ use Win32::Console;
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
 ---+++ new() -> $console
 Returns a new =Console= object.
@@ -41,6 +41,8 @@ sub new {
 
 ###############################################################################
 =pod
+
+---++ Object methods
 
 ---+++ columns()
 First element in array returned by

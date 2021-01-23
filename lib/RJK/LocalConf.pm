@@ -17,6 +17,8 @@ use RJK::Util::Properties;
 ###############################################################################
 =pod
 
+---++ Class methods
+
 ---+++ GetOptions($filename, %defaultOptions) -> %options or \%options
 Load options from config file(s) stored in local data directories.
    * =$filename= - path to config file relative to local data directory

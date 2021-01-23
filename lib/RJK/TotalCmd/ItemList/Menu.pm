@@ -23,10 +23,12 @@ use Exception::Class (
 ###############################################################################
 =pod
 
----++ Object methods
+---++ Constructor
 
 ---+++ new(title => $title, items => \@items) -> $menu
 Returns a new =RJK::TotalCmd::ItemList::Menu= object.
+
+---++ Object methods
 
 ---+++ appendItems($items)
 
