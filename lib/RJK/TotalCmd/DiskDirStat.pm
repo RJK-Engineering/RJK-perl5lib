@@ -20,8 +20,5 @@ sub modified     { $_[0]{modified} }
 sub created      {}
 sub isDir        { $_[0]{isDir} }
 sub isFile       {}
-sub isRegular    {}
-sub isBlock      {}
-sub isCharacter  {}
 
 1;
