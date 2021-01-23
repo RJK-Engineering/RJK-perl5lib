@@ -3,6 +3,7 @@ package RJK::Log;
 use strict;
 use warnings;
 
+use File::Basename qw(fileparse);
 use Log::Log4perl;
 
 sub init {
@@ -44,6 +45,10 @@ sub logDie {
 sub logger {
     my ($self, $loggerName) = @_;
     $loggerName //= caller;
+    if ($loggerName eq 'main') {
+        my $currExecProgFilename = fileparse($0);
+        $loggerName = $currExecProgFilename =~ s/\.\w+$//r if $currExecProgFilename;
+    }
     _init() if ! $Log::Log4perl::Logger::INITIALIZED;
     return Log::Log4perl->get_logger($loggerName);
 }
