@@ -11,15 +11,14 @@ package RJK::LocalConf;
 use strict;
 use warnings;
 
+use RJK::Env;
 use RJK::Util::Properties;
 
 ###############################################################################
 =pod
 
 ---+++ GetOptions($filename, %defaultOptions) -> %options or \%options
-Load options from config file(s) in local directories using environment variables.
-Directory paths in order of precedence:
-subdirectory "RJK-utils" of LOCALAPPDATA, LOCALAPPDATA, APPDATA.
+Load options from config file(s) stored in local data directories.
    * =$filename= - path to config file relative to local data directory
    * =%defaultOptions= - default options to return if not present in local config
    * =%options= - option key/values
@@ -28,19 +27,9 @@ subdirectory "RJK-utils" of LOCALAPPDATA, LOCALAPPDATA, APPDATA.
 ###############################################################################
 
 sub GetOptions {
-    my $filename = shift;
-    my %options = @_;
-
-    my @paths = (
-        $ENV{APPDATA},      # roaming conf
-        $ENV{LOCALAPPDATA}, # local conf
-        "$ENV{LOCALAPPDATA}/RJK-utils"
-    );
-
-    foreach my $path (@paths) {
-        loadConf("$path/$filename", \%options) if -e "$path/$filename";
-    }
-
+    my ($filename, %options) = @_;
+    my @paths = RJK::Env->findLocalFiles($filename);
+    loadConf($_, \%options) for @paths;
     return wantarray ? %options : \%options;
 }
 
