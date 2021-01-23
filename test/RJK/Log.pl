@@ -3,15 +3,21 @@ use warnings;
 
 use RJK::Log;
 
-RJK::Log->logWarnings(); # prints warning, only works after initialization
+RJK::Log->logWarnings();         # prints warning, only works after initialization
 
 my $logger = RJK::Log->logger(); # gets logger for current package, auto-initializes
+print "$RJK::Log::conf\n";       # auto-resolved path to local conf if available, default config otherwise
 $logger->fatal("1");
+RJK::Log->logWarnings(
+    logger => 'warnings',        # defaults
+    quiet => 0,
+    replaceHandler => 0
+);
+warn("2");
 
 $logger = RJK::Log->init(\q(
     log4perl.rootLogger=DEBUG, root
-    ; default logger name for package "main" is filename of current executing program without file extension
-    log4perl.logger.Log=DEBUG, default
+    log4perl.logger.main=DEBUG, default
     log4perl.logger.A=DEBUG, A
     log4perl.logger.B=DEBUG, B
     log4perl.logger.warnings=DEBUG, default
@@ -29,24 +35,18 @@ $logger = RJK::Log->init(\q(
     log4perl.appender.B.layout=Log::Log4perl::Layout::PatternLayout
     log4perl.appender.B.layout.ConversionPattern=[%r] %F %L %c - %m%n
 ));
-$logger->warn("2");
+$logger->warn("3");
 
 package A;
 $logger = RJK::Log->logger();
-$logger->warn("3");
+$logger->warn("4");
 
 package B;
 push our @ISA, 'A';
 $logger = RJK::Log->logger();
-$logger->warn("4");
+$logger->warn("5");
 
 package main;
-RJK::Log->logWarnings(
-    logger => 'warnings',  # defaults
-    quiet => 0,
-    replaceHandler => 0
-);
-warn "5";
 RJK::Log->logWarnings(
     quiet => 1,
     replaceHandler => 1
