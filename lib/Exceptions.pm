@@ -1,8 +1,16 @@
 package Exceptions;
 
 BEGIN {
-    my $base = (grep { /RJK-perl5lib/ } @INC)[0];
-    push @INC, "$base/RJK/Exceptions";
+    my @dirs;
+
+    foreach (@INC) {
+        next if /Exceptions$/;
+        my $dir = "$_/Exceptions";
+        push @dirs, $dir if -e $dir;
+    }
+
+    push @INC, @dirs;
+
     require Exception;
 }
 
