@@ -10,7 +10,8 @@ $logger->fatal("1");
 
 $logger = RJK::Log->init(\q(
     log4perl.rootLogger=DEBUG, root
-    log4perl.logger.main=DEBUG, default
+    ; default logger name for package "main" is filename of current executing program without file extension
+    log4perl.logger.Log=DEBUG, default
     log4perl.logger.A=DEBUG, A
     log4perl.logger.B=DEBUG, B
     log4perl.logger.warnings=DEBUG, default
