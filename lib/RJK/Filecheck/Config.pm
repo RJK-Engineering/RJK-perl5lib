@@ -3,6 +3,7 @@ package RJK::Filecheck::Config;
 use strict;
 use warnings;
 
+use RJK::Env;
 use RJK::Util::Properties;
 
 my $config;
@@ -19,7 +20,7 @@ sub loadConfig {
     if ($ENV{FILECHECK_CONF_FILE}) {
         $config->load($ENV{FILECHECK_CONF_FILE});
     } else {
-        $config->load("$ENV{LOCALAPPDATA}/filecheck.properties");
+        $config->load($_) for RJK::Env->findLocalFiles("filecheck.properties");
     }
 }
 
