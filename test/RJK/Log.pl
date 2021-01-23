@@ -39,17 +39,32 @@ push our @ISA, 'A';
 $logger = RJK::Log->logger();
 $logger->warn("4");
 
-RJK::Log->logWarnings();
+package main;
+RJK::Log->logWarnings(
+    logger => 'warnings',  # defaults
+    quiet => 0,
+    replaceHandler => 0
+);
 warn "5";
+RJK::Log->logWarnings(
+    quiet => 1,
+    replaceHandler => 1
+);
+warn "6";
 
 eval {
     $SIG{__DIE__} = sub { print "this will still be called, after logging FATAL message" };
-    RJK::Log->logDie();
-    die "6";
+    RJK::Log->logDie(
+        logger => 'die',    # defaults
+        replaceHandler => 0
+    );
+    die "7";
 };
 
 eval {
     $SIG{__DIE__} = sub { print "this will NOT be called" };
-    RJK::Log->logDie(undef, 1); # replace handler
-    die "7";
+    RJK::Log->logDie(
+        replaceHandler => 1
+    );
+    die "8";
 };
