@@ -20,9 +20,9 @@ use RJK::IO::File;
 ###############################################################################
 =pod
 
----++ Object creation
+---++ Object methods
 
----+++ new(%attrs) -> $diskDirFile
+---+++ new($root) -> $diskDirFile
 Returns a new =RJK::TotalCmd::DiskDirFile= object.
 
 =cut
@@ -38,11 +38,9 @@ sub new {
 ###############################################################################
 =pod
 
----++ Object attributes
-
----+++ root($root) -> $root
----+++ directories(\@directories) -> \@directories
----+++ files(\%files) -> \%files
+---+++ root() -> $root
+---+++ directories() -> \@directories
+---+++ files() -> \%files
 
 =cut
 ###############################################################################
@@ -162,8 +160,6 @@ sub deleteDir {
 
 ###############################################################################
 =pod
-
----++ File access
 
 ---+++ read($path)
 Read data from file.

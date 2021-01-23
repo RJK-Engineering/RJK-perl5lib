@@ -48,9 +48,9 @@ use Exception::Class (
 ###############################################################################
 =pod
 
----++ Object creation
+---++ Object methods
 
----+++ new([$path]) -> RJK::TotalCmd::Settings::UsercmdIni
+---+++ new($path) -> $usercmdIni
 Returns a new =RJK::TotalCmd::Settings::UsercmdIni= object.
 
 =cut
@@ -65,12 +65,10 @@ sub new {
 ###############################################################################
 =pod
 
----++ INI File
-
----+++ read([$path]) -> RJK::TotalCmd::Settings::UsercmdIni
+---+++ read($path) -> $self
 Read data from file. Returns false on failure, callee on success.
 
----+++ write([$path]) -> RJK::TotalCmd::Settings::UsercmdIni
+---+++ write($path) -> $self
 Write data to file. Returns false on failure, callee on succes.
 
 =cut

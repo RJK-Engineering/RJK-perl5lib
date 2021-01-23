@@ -11,31 +11,13 @@ package RJK::TotalCmd::CatalogMakerFile;
 use strict;
 use warnings;
 
-###############################################################################
-=pod
-
----++ Object attributes
-
-Return object attribute value if called with no arguments, set object
-attribute value and return the same value otherwise.
-
----+++ name([$name]) -> $name
-
-=cut
-###############################################################################
-
-#~ use Class::AccessorMaker {
-    #~ name => undef,
-#~ }, "no_new";
-#~ }, "new_init";
-#~ };
 
 ###############################################################################
 =pod
 
----++ Object creation
+---++ Object methods
 
----+++ new(%attrs) -> RJK::TotalCmd::CatalogMakerFile
+---+++ new($path) -> $catalogMakerFile
 Returns a new =RJK::TotalCmd::CatalogMakerFile= object.
 
 =cut
@@ -79,12 +61,10 @@ sub files {
 ###############################################################################
 =pod
 
----++ File access
-
----+++ read() -> RJK::TotalCmd::CatalogMakerFile
+---+++ read() -> $self
 Read data from file. Returns false on failure, callee on success.
 
----+++ write() -> RJK::TotalCmd::CatalogMakerFile
+---+++ write() -> $self
 Write data to file. Returns false on failure, callee on succes.
 
 =cut

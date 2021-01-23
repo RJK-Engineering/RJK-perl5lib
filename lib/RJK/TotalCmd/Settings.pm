@@ -28,16 +28,21 @@ use RJK::TotalCmd::Settings::UsercmdIni;
 ###############################################################################
 =pod
 
+---++ Constructor
+
+---+++ new(%attrs) -> $tcmd
+Returns a new =RJK::TotalCmd::Settings= object.
+
 ---++ Object attributes
 
 Return object attribute value if called with no arguments, set object
 attribute value and return the same value otherwise.
 
----+++ tcmdini([$tcmdini]) -> $tcmdini
+---+++ tcmdini($tcmdini) -> $tcmdini
 =RJK::TotalCmd::Settings::Ini= object.
----+++ tcmdinc([$tcmdinc]) -> $tcmdinc
+---+++ tcmdinc($tcmdinc) -> $tcmdinc
 =RJK::TotalCmd::Settings::Inc= object.
----+++ usercmd([$usercmd]) -> $usercmd
+---+++ usercmd($usercmd) -> $usercmd
 =RJK::TotalCmd::Settings::UsercmdIni= object.
 
 =cut
@@ -51,17 +56,6 @@ use Class::AccessorMaker {
 
 my @barDirs;
 
-###############################################################################
-=pod
-
----++ Object creation
-
----+++ new(%attrs) -> $tcmd
-Returns a new =RJK::TotalCmd::Settings= object.
-
-=cut
-###############################################################################
-
 sub init {
     my $self = shift;
     SetBarDirs($ENV{COMMANDER_INI});
@@ -70,9 +64,8 @@ sub init {
 ###############################################################################
 =pod
 
----+++ loadTotalCmdInc([$path]) -> RJK::TotalCmd::Settings::Inc
+---+++ loadTotalCmdInc() -> $inc
 Returns a =RJK::TotalCmd::Settings::Inc= object for =$path=.
-Tries to find the file in common locations if =$path= is undefined.
 Throws exception if file is not found.
 Loads file, throws exception on failure.
 
@@ -98,9 +91,8 @@ sub loadTotalCmdInc {
 ###############################################################################
 =pod
 
----+++ loadTotalCmdIni([$path]) -> RJK::TotalCmd::Settings::Ini
+---+++ loadTotalCmdIni() -> $ini
 Returns a =RJK::TotalCmd::Settings::Ini object for =$path=.
-Tries to find the file in common locations if =$path= is undefined.
 Throws exception if file is not found.
 Loads file, throws exception on failure.
 
@@ -128,9 +120,8 @@ sub loadTotalCmdIni {
 ###############################################################################
 =pod
 
----+++ loadUsercmdIni([$path]) -> RJK::TotalCmd::Settings::UsercmdIni
+---+++ loadUsercmdIni() -> $usercmdIni
 Returns a =RJK::TotalCmd::Settings::UsercmdIni object for =$path=.
-Tries to find the file in common locations if =$path= is undefined.
 Throws exception if file is not found.
 Loads file, throws exception on failure.
 

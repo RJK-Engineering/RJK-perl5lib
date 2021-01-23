@@ -24,7 +24,9 @@ use Exception::Class (
 ###############################################################################
 =pod
 
----+++ new([$path]) -> RJK::TotalCmd::Settings::Inc
+---++ Object methods
+
+---+++ new($path) -> $inc
 Returns a new =RJK::TotalCmd::Settings::Inc= object.
 
 =cut
@@ -102,7 +104,7 @@ sub write {
 ---+++ categories() -> @names or \@names
 Returns category names.
 
----++++ byCategory() -> \@commands
+---+++ byCategory() -> \@commands
 Returns commands hashed by category.
 
 =cut

@@ -4,9 +4,10 @@
 ---+ package RJK::TotalCmd::Item::StartMenuItem
 A Total Commander start menu item.
 
----++ Object creation
+---++ Object methods
 
----+++ new(%attrs) -> RJK::TotalCmd::Item::StartMenuItem
+---+++ new(%attrs) -> $startMenuItem
+Returns a new =RJK::TotalCmd::Item::StartMenuItem= object.
 
 =cut
 ###############################################################################

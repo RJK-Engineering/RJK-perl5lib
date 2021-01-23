@@ -4,13 +4,12 @@
 ---+ package RJK::TotalCmd::Item::InternalCmd
 A Total Commander internal command item.
 
----++ Object creation
+---++ Object methods
 
----+++ new(%attrs) -> RJK::TotalCmd::Item::InternalCmd
+---+++ new(%attrs) -> $internalCmd
+Returns a new =RJK::TotalCmd::Item::InternalCmd= object.
 
----++ Object attributes
-
----+++ name([$name]) -> $name
+---+++ name($name) -> $name
 Name (=cm_*=).
 
 =cut

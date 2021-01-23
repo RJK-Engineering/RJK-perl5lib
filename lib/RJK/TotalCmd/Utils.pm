@@ -15,7 +15,9 @@ use warnings;
 ###############################################################################
 =pod
 
----++ sendCommand($commandName)
+---++ Object methods
+
+---+++ sendCommand($commandName)
    * http://ahkscript.org - https://autohotkey.com
    * http://www.ghisler.ch/wiki/index.php/AutoHotkey:_Send_a_command_to_Total_Commander
    * =SendCommand.exe= cm_LoadSelectionFromClip
@@ -34,7 +36,7 @@ sub sendCommand {
 ###############################################################################
 =pod
 
----++ setPaths($left, $right)
+---+++ setPaths($left, $right)
 
 See topic "Command line parameters" in Total Commander help.
 
@@ -66,9 +68,9 @@ sub setPaths {
 ###############################################################################
 =pod
 
----++ tempFile([$extension]) -> ($handle, $filename, $error)
+---+++ tempFile($extension) -> ($handle, $filename, $error)
 Create a temp file in =$ENV{TEMP}= and return a file handle for it.
-   * =$extension= - temp file extension, defaults to "tmp"
+   * =$extension= - optional temp file extension, defaults to "tmp"
    * =$handle= - file handle for the temp file
    * =$filename= - path of the temp file
    * =$error= - contains error message if an error occurred
@@ -106,7 +108,7 @@ sub tempFile {
 ###############################################################################
 =pod
 
----++ setLeftRightPaths()
+---+++ setLeftRightPaths()
 
 =cut
 ###############################################################################
@@ -123,9 +125,9 @@ sub setLeftRightPaths {
 ###############################################################################
 =pod
 
----++ setSourcePath($path)
----++ setTargetPath($path)
----++ setSourceTargetPaths($source, $target)
+---+++ setSourcePath($path)
+---+++ setTargetPath($path)
+---+++ setSourceTargetPaths($source, $target)
 
 =cut
 ###############################################################################
@@ -151,7 +153,7 @@ sub setSourceTargetPaths {
 ###############################################################################
 =pod
 
----++ pauseInTotalCmdEnv($msg)
+---+++ pauseInTotalCmdEnv($msg)
 Pause if the environment variable COMMANDER_EXE is set, indicating the program
 was started from within Total Commander. Prints =$msg= if it is defined, prints
 no message if =$msg= is an empty string, prints a default message otherwise.
@@ -174,7 +176,7 @@ sub pauseInTotalCmdEnv {
 ###############################################################################
 =pod
 
----++ isListFile($listFilePath) -> $boolean
+---+++ isListFile($listFilePath) -> $boolean
 
 =cut
 ###############################################################################

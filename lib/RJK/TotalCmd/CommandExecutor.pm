@@ -102,7 +102,8 @@ use Exception::Class (
 
 ---++ Object methods
 
----+++ new() -> RJK::TotalCmd::CommandExecutor
+---+++ new() -> $commandExecutor
+Returns a new =RJK::TotalCmd::CommandExecutor= object.
 
 =cut
 ###############################################################################

@@ -20,9 +20,9 @@ my $section = 'Buttonbar';
 ###############################################################################
 =pod
 
----++ Object creation
+---++ Object methods
 
----+++ new($path) -> RJK::TotalCmd::ItemList::ButtonBar
+---+++ new($path) -> $buttonBar
 Returns a new =RJK::TotalCmd::ItemList::ButtonBar= object.
    * =$path= - Path to bar path.
 
@@ -40,8 +40,6 @@ sub new {
 
 ###############################################################################
 =pod
-
----++ Object methods
 
 ---+++ addButton($self, $command)
 Add button.

@@ -18,9 +18,9 @@ use RJK::Util::Ini;
 ###############################################################################
 =pod
 
----++ Object creation
+---++ Object methods
 
----+++ new(%attrs) -> RJK::TotalCmd::Settings::FtpIni
+---+++ new($path) -> $ftpIni
 Returns a new =RJK::TotalCmd::Settings::FtpIni= object.
 
 =cut
@@ -36,12 +36,10 @@ sub new {
 ###############################################################################
 =pod
 
----++ File access
-
----+++ read([$path]) -> RJK::TotalCmd::Settings::FtpIni
+---+++ read($path) -> $self
 Read data from file. Returns false on failure, callee on success.
 
----+++ write([$path]) -> RJK::TotalCmd::Settings::FtpIni
+---+++ write($path) -> $self
 Write data to file. Returns false on failure, callee on succes.
 
 =cut

@@ -22,7 +22,7 @@ use NoVolumeInfoException;
 ###############################################################################
 =pod
 
----++ Object creation
+---++ Object methods
 
 ---+++ new(%opts)
 Create a new =RJK::Win32::DriveStatus= object.
@@ -30,10 +30,8 @@ Create a new =RJK::Win32::DriveStatus= object.
     * =$opts{ignore}=
     * =$opts{status}=
 
----++ Object attributes
-
----+++ status([$status]) -> $status
----+++ ignore([$ignore]) -> $ignore
+---+++ status() -> %status or \%status
+---+++ ignore() -> %ignore or \%ignore
 
 =cut
 ###############################################################################
@@ -60,8 +58,6 @@ sub ignore {
 
 ###############################################################################
 =pod
-
----++ Other methods
 
 ---+++ update() -> $status
 Get online volumes, newly online volumes are set to active.

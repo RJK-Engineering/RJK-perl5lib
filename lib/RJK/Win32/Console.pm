@@ -18,7 +18,7 @@ use Win32::Console;
 ###############################################################################
 =pod
 
----++ Object creation
+---++ Object methods
 
 ---+++ new() -> $console
 Returns a new =Console= object.
@@ -42,8 +42,6 @@ sub new {
 ###############################################################################
 =pod
 
----++ Info
-
 ---+++ columns()
 First element in array returned by
 =[[http://search.cpan.org/~jdb/Win32-Console-0.10/Console.pm][Win32::Console]]::Info=.
@@ -63,8 +61,6 @@ sub getEvents {  $in->GetEvents()   }
 
 ###############################################################################
 =pod
-
----++ Write
 
 ---+++ write()
 See =[[http://search.cpan.org/~jdb/Win32-Console-0.10/Console.pm][Win32::Console]]::Write=.
@@ -283,7 +279,7 @@ sub question {
 ###############################################################################
 =pod
 
----++ itemFromList($list) -> $answer
+---+++ itemFromList($list) -> $answer
 
 =cut
 ###############################################################################
@@ -401,7 +397,7 @@ sub updateLine {
 ###############################################################################
 =pod
 
----+++ lineUp([$nrOfLines])
+---+++ lineUp($nrOfLines)
 Move cursor up. Defaults to 1 line.
 
 =cut

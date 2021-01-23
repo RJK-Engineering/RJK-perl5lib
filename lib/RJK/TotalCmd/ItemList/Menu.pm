@@ -23,12 +23,10 @@ use Exception::Class (
 ###############################################################################
 =pod
 
----++ Object Creation
+---++ Object methods
 
----+++ RJK::TotalCmd::ItemList::Menu->new(title => $title, items => \@items) -> RJK::TotalCmd::ItemList::Menu
+---+++ new(title => $title, items => \@items) -> $menu
 Returns a new =RJK::TotalCmd::ItemList::Menu= object.
-
----++ Items
 
 ---+++ appendItems($items)
 
@@ -81,8 +79,6 @@ sub createItem {
 
 ###############################################################################
 =pod
-
----++ Submenus
 
 ---+++ getSubmenu($nr) -> $submenu
 

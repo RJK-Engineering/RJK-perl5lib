@@ -19,7 +19,7 @@ use RJK::Util::PropertyList;
 ###############################################################################
 =pod
 
----++ Object Creation
+---++ Constructor
 
 ---+++ new($path) -> $ini
    * =$path= - path to ini file

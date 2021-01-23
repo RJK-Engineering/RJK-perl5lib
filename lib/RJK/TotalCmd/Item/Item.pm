@@ -5,12 +5,12 @@
 Abstract class.
 A Total Commander menu item, button bar item, user command item or internal command item.
 
----++ Object attributes
+---++ Object methods
 
----+++ number([$number]) -> $number
+---+++ number($number) -> $number
 Number.
 
----+++ menu([$menu]) -> $menu
+---+++ menu($menu) -> $menu
 Description/tooltip/title.
 
 =cut
@@ -25,6 +25,6 @@ use warnings;
 use Class::AccessorMaker {
     number => undef,    # number
     menu => undef,      # description/tooltip/title
-};
+}, "no_new";
 
 1;

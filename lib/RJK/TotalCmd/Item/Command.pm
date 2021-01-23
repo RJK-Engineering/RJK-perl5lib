@@ -5,24 +5,24 @@
 Abstract class.
 A Total Commander command.
 
----++ Object attributes
+---++ Object methods
 
----+++ cmd([$cmd]) -> $cmd
+---+++ cmd($cmd) -> $cmd
 Command string.
 
----+++ param([$param]) -> $param
+---+++ param($param) -> $param
 Parameter string.
 
----+++ path([$path]) -> $path
+---+++ path($path) -> $path
 Start path.
 
----+++ iconic([$iconic]) -> $iconic
+---+++ iconic($iconic) -> $iconic
 Window size: 1 = minimize, -1 = maximize.
 
----+++ key([$key]) -> $key
+---+++ key($key) -> $key
 Shortcut key defined with a command.
 
----+++ shortcuts([\@shortcuts]) -> \@shortcuts
+---+++ shortcuts(\@shortcuts) -> \@shortcuts
 Shortcut keys defined in Options > Misc.
 
 =cut
@@ -42,6 +42,6 @@ use Class::AccessorMaker {
     iconic => undef,    # 1 = minimize, -1 = maximize
     key => undef,       # shortcut key (command config)
     shortcuts => [],    # shortcut keys (Options > Misc)
-};
+}, "no_new";
 
 1;

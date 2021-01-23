@@ -20,7 +20,9 @@ use Win32API::File qw(
 ###############################################################################
 =pod
 
----++ getVolumes() -> \%volumes or @volumes
+---++ Object methods
+
+---+++ getVolumes() -> \%volumes or @volumes
 
 Volume type value reference: https://metacpan.org/pod/Win32API::File#GetDriveType
 
@@ -52,7 +54,7 @@ sub getVolumes {
 ###############################################################################
 =pod
 
----++ getUsage($volume) -> ($free, $total, $available) or { free => $free, total => $total, available => $available }
+---+++ getUsage($volume) -> ($free, $total, $available) or { free => $free, total => $total, available => $available }
 
 Free/total/available bytes.
 

@@ -4,9 +4,13 @@
 ---+ package RJK::TotalCmd::Item::DirMenuItem
 A Total Commander directory menu item.
 
----++ Object creation
+---++ Object methods
 
----+++ new(%attrs) -> RJK::TotalCmd::Item::DirMenuItem
+---+++ new(%attrs) -> $dirMenuItem
+Returns a new =RJK::TotalCmd::Item::DirMenuItem= object.
+
+---+++ cmd($cmd) -> $cmd
+---+++ path($path) -> $path
 
 =cut
 ###############################################################################

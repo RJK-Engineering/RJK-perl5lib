@@ -104,9 +104,9 @@ my $UserMenuNumberStart = 700;
 ###############################################################################
 =pod
 
----++ Object Creation
+---++ Object methods
 
----+++ new($path) -> RJK::TotalCmd::Settings::Ini
+---+++ new($path) -> $ini
 Returns a new =RJK::TotalCmd::Settings::Ini= object.
 
 =cut
@@ -124,12 +124,10 @@ sub filepath { $_[0]{path} }
 ###############################################################################
 =pod
 
----++ INI file
-
----+++ read([$path]) -> RJK::TotalCmd::Settings::Ini
+---+++ read($path) -> $self
 Read data from file. Returns nothing on failure, callee on success.
 
----+++ write([$path]) -> RJK::TotalCmd::Settings::Ini
+---+++ write($path) -> $self
 Write data to file. Returns nothing on failure, callee on success.
 
 =cut
@@ -153,8 +151,8 @@ sub write {
 ###############################################################################
 =pod
 
----++ Menus
-Total Commander start and directory menus.
+---+++ getStartMenu() -> $menu
+Gets =RJK::TotalCmd::ItemList::Menu= object.
 
 =cut
 ###############################################################################
@@ -198,17 +196,15 @@ sub setDirMenu {
 ###############################################################################
 =pod
 
----++ Other object methods
-
 ---+++ getSection($section) -> $hash or %hash
 
 ---+++ getShortcuts() -> %shortcuts or \%shortcuts
 Returns =$keyCombo => $commandName= hash.
 
----++++ getColors() -> \@colors
+---+++ getColors() -> \@colors
    * =@colors= - List of { Color => $color, Search => $search }
 
----++++ setColors(\@colors)
+---+++ setColors(\@colors)
    * =@colors= - List of { Color => $color, Search => $search }
 
 =cut
@@ -280,9 +276,9 @@ sub setColors {
 =pod
 
 ---+++ history($section) -> @history or \@history
----+++ addToHistory($section, $text) -> ProperyList
----+++ getSearch([$name]) -> $search
-Get stored search by name. Returns an empty search object if =$name= is undefined.
+---+++ addToHistory($section, $text) -> $properyList
+---+++ getSearch($name) -> $search
+Gets stored search by name. Returns an empty search object if =$name= is undefined.
 ---+++ getSearches() -> %searches or \%searches
 ---+++ report()
 

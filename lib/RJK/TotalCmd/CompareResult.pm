@@ -20,10 +20,11 @@ use Exception::Class (
 ###############################################################################
 =pod
 
----++ Object attributes
+---++ Object methods
 
-Return object attribute value if called with no arguments, set object
-attribute value and return the same value otherwise.
+---+++ new($path) -> $compareResult
+Returns a new =RJK::TotalCmd::CompareResult= object for compare results
+stored in text file =$path=.
 
 ---+++ dirs($dirs) -> $dirs
 ---+++ left($left) -> $left
@@ -47,11 +48,6 @@ use Class::AccessorMaker {
 ###############################################################################
 =pod
 
----++ Object creation
-
----+++ new($path) -> $compareResult
-Returns a new =RJK::TotalCmd::CompareResult= object for compare results
-stored in text file =$path=.
 
 =cut
 ###############################################################################
@@ -64,8 +60,6 @@ sub new {
 
 ###############################################################################
 =pod
-
----++ File access
 
 ---+++ read() -> $diskDirFile
 Read data from file. Returns false on failure, callee on success.

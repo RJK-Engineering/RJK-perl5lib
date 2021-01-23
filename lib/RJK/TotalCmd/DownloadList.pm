@@ -37,9 +37,9 @@ use warnings;
 ###############################################################################
 =pod
 
----++ Object creation
+---++ Object methods
 
----+++ new($file) -> RJK::TotalCmd::DownloadList
+---+++ new($file) -> $downloadList
    * =$file= - Path to list file.
 Returns a new =RJK::TotalCmd::DownloadList= object.
 
@@ -109,12 +109,10 @@ sub addClearFlags {
 ###############################################################################
 =pod
 
----++ File access
-
----+++ read([$path]) -> RJK::TotalCmd::DownloadList
+---+++ read($path) -> $self
 Read data from file. Returns false on failure, callee on success.
 
----+++ write([$path]) -> RJK::TotalCmd::DownloadList
+---+++ write($path) -> $self
 Write data to file. Returns false on failure, callee on succes.
 
 ---+++ append($file)
