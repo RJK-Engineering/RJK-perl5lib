@@ -12,30 +12,32 @@ sub init {
 }
 
 sub logWarnings {
-    my ($self, $loggerName, $quiet) = @_;
+    my ($self, %opts) = @_;
     if (! $Log::Log4perl::Logger::INITIALIZED) {
         Log::Log4perl::Logger->init_warn;
         return;
     }
-    my $logger = Log::Log4perl->get_logger($loggerName // 'warnings');
+    my $logger = Log::Log4perl->get_logger($opts{logger} // 'warnings');
+    my $existingHandler = $SIG{__WARN__} unless $opts{replaceHandler};
 
     $SIG{__WARN__} = sub {
         local $Log::Log4perl::caller_depth = $Log::Log4perl::caller_depth + 1;
         $logger->warn($_[0]);
-        warn $_[0] unless $quiet;
+        warn $_[0] unless $opts{quiet};
+        $existingHandler->(@_) if $existingHandler;
     };
 }
 
 sub logDie {
-    my ($self, $loggerName, $replace) = @_;
+    my ($self, %opts) = @_;
     _init() if ! $Log::Log4perl::Logger::INITIALIZED;
-    my $logger = Log::Log4perl->get_logger($loggerName // 'die');
-    my $existingHandler = $SIG{__DIE__};
+    my $logger = Log::Log4perl->get_logger($opts{logger} // 'die');
+    my $existingHandler = $SIG{__DIE__} unless $opts{replaceHandler};
 
     $SIG{__DIE__} = sub {
         local $Log::Log4perl::caller_depth = $Log::Log4perl::caller_depth + 1;
         $logger->fatal($_[0]);
-        $existingHandler->(@_) unless $replace;
+        $existingHandler->(@_) if $existingHandler;
     };
 }
 
