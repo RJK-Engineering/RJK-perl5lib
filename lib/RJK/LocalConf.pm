@@ -28,14 +28,12 @@ Load options from config file(s) stored in local data directories.
 
 sub GetOptions {
     my ($filename, %options) = @_;
-    my @paths = RJK::Env->findLocalFiles($filename);
-    loadConf($_, \%options) for @paths;
+    loadProperties($_, \%options) for RJK::Env->findLocalFiles($filename);
     return wantarray ? %options : \%options;
 }
 
-sub loadConf {
+sub loadProperties {
     my ($path, $options) = @_;
-
     my $props = new RJK::Util::Properties();
     $props->load($path);
 
