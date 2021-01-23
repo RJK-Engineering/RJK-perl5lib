@@ -9,4 +9,7 @@ my $byRef1 = "1 %TEMP%";
 my $byRef2 = "2 %TEMP%";
 RJK::Env->subst(\$byRef1, \$byRef2);
 print $byRef1, "\n";
-print $byRef2, "\n";
+print $byRef2, "\n\n";
+
+my @p = RJK::Env->findLocalFiles("filecheck.properties");
+print join("\n", @p), "\n";
