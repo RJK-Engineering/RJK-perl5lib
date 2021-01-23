@@ -3,13 +3,19 @@ package RJK::Log;
 use strict;
 use warnings;
 
-use File::Basename qw(fileparse);
+use RJK::Env;
 use Log::Log4perl;
+
+our $conf;
 
 sub init {
     my ($self, $conf, $loggerName) = @_;
     _init($conf);
     return $self->logger($loggerName // caller);
+}
+
+sub config {
+    $Log::Log4perl::Config::OLD_CONFIG;
 }
 
 sub logWarnings {
@@ -44,23 +50,22 @@ sub logDie {
 
 sub logger {
     my ($self, $loggerName) = @_;
-    $loggerName //= caller;
-    if ($loggerName eq 'main') {
-        my $currExecProgFilename = fileparse($0);
-        $loggerName = $currExecProgFilename =~ s/\.\w+$//r if $currExecProgFilename;
-    }
     _init() if ! $Log::Log4perl::Logger::INITIALIZED;
-    return Log::Log4perl->get_logger($loggerName);
+    return Log::Log4perl->get_logger($loggerName // caller);
 }
 
 sub _init {
-    my $conf = shift // \q(
+    $conf = shift // &localConfFile // \q(
         log4perl.rootLogger=DEBUG, StdErr
         log4perl.appender.StdErr=Log::Log4perl::Appender::Screen
         log4perl.appender.StdErr.stderr=1
         log4perl.appender.StdErr.layout=Log::Log4perl::Layout::SimpleLayout
     );
     Log::Log4perl::init($conf);
+}
+
+sub localConfFile {
+    (RJK::Env->findLocalFiles('log4perl.conf'))[0];
 }
 
 1;
