@@ -41,6 +41,7 @@ With environment variable substitution.
 ###############################################################################
 
 sub findPath {
+    shift;
     my @paths = @_;
     my $path;
     foreach (@paths) {
@@ -55,43 +56,45 @@ sub findPath {
 ###############################################################################
 =pod
 
----+++ findLocalFile($relativeFilePath) -> $path
-Find file stored in local data directory =$ENV{LOCALAPPDATA}= or
-=$ENV{APPDATA}= (in order of precedence).
+---+++ findLocalFiles($relativeFilePath) -> @paths
    * =$relativeFilePath= - path to file relative to local data directory
+   * =@paths= - list of existing paths
+
+Find files stored in local data directories:
+   * APPDATA
+   * LOCALAPPDATA
+   * Subdirectory "RJK-utils" of LOCALAPPDATA
 
 =cut
 ###############################################################################
 
-sub findLocalFile {
-    my $relativeFilePath = shift;
-
-    # local conf, overrules roaming conf
-    my $path = "$ENV{LOCALAPPDATA}/$relativeFilePath";
-    return $path if -e $path;
-
-    # roaming conf
-    $path = "$ENV{APPDATA}/$relativeFilePath";
-    return $path if -e $path;
+sub findLocalFiles {
+    my ($self, $relativeFilePath) = @_;
+    my @paths = (
+        $ENV{APPDATA},      # roaming conf
+        $ENV{LOCALAPPDATA}, # local conf
+        "$ENV{LOCALAPPDATA}/RJK-utils"
+    );
+    return grep { -e ($_ = "$_/$relativeFilePath") } @paths;
 }
 
 ###############################################################################
 =pod
 
----+++ findProgramDir($relativeDirPath) -> $path
+---+++ findProgramDirs($relativeDirPath) -> @paths
 Find program directory.
 
 =cut
 ###############################################################################
 
-sub findProgramDir {
-    my $relativeDirPath = shift;
+sub findProgramDirs {
+    my ($self, $relativeDirPath) = @_;
+    my @paths = (
+        $ENV{ProgramW6432},
+        $ENV{ProgramFiles},
+    );
+    return grep { -e ($_ = "$_/$relativeDirPath") } @paths;
 
-    my $path = "$ENV{ProgramW6432}/$relativeDirPath";
-    return $path if -e $path;
-
-    $path = "$ENV{ProgramFiles}/$relativeDirPath";
-    return $path if -e $path;
 }
 
 1;
