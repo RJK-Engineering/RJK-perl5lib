@@ -4,44 +4,31 @@ use strict;
 use warnings;
 
 sub addObserver {
-    my ($self, @observers) = @_;
+    my ($self, $observer) = @_;
     $self->{observers} //= [];
-    my $c = @{$self->{observers}};
 
-    push @{$self->{observers}}, map {
-        if (ref ne "CODE") {
-            $_;
-        } elsif (eval "require RJK::Util::SimpleObserver") {
-            new RJK::Util::SimpleObserver($_);
-        } else {
-            print STDERR "$@\n";
-            die "$!";
-        }
-    } @observers;
-
-    $self->resume() unless $c;
+    if (ref $observer ne "CODE") {
+        push @{$self->{observers}}, $observer;
+    } elsif (eval "require RJK::Util::SimpleObserver") {
+        push @{$self->{observers}}, new RJK::Util::SimpleObserver($observer);
+    } else {
+        print STDERR "$@\n";
+        die "$!";
+    }
 }
 
 sub removeObserver {
-    my ($self, @observers) = @_;
+    my ($self, $observer) = @_;
     $self->{observers} // return;
 
-    my $c = @{$self->{observers}};
-
-    foreach my $observer (@observers) {
-        $self->{observers} = [ grep {
-            $observer != (ref eq "RJK::Util::SimpleObserver" ? $_->{sub} : $_)
-        } @{$self->{observers}} ];
-    }
-
-    $self->pause() if $c && ! @{$self->{observers}};
-
-    return $c - @{$self->{observers}};
-
+    $self->{observers} = [ grep {
+        $observer != (ref eq "RJK::Util::SimpleObserver" ? $_->{sub} : $_)
+    } @{$self->{observers}} ];
 }
 
-sub pause {}
-sub resume {}
+sub observers {
+    $_[0]{observers} //= [];
+}
 
 sub hasObservers {
     my $self = shift;
