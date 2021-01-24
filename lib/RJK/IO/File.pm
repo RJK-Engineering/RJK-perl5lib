@@ -5,6 +5,7 @@ use warnings;
 
 use Exceptions;
 use FileException;
+use OpenDirException;
 use OpenFileException;
 use RJK::Path;
 use RJK::Paths;
@@ -50,7 +51,7 @@ sub filenames {
     my ($self, $filter) = @_;
 
     opendir my $dh, $self->{path}
-        or throw OpenFileException(error => "$!", file => $self->{path});
+        or throw OpenDirException(error => "$!", file => $self->{path});
     my @names = readdir $dh;
     closedir $dh;
 
