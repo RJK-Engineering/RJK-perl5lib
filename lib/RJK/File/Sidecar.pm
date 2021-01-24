@@ -12,11 +12,10 @@ sub getSidecarFiles {
     my ($dir, $filename, $basename) = $file =~ /(.+)\\((.+)\.\w+)$/;
     my $basenameRegex = qr/^\Q$basename\E/i;
 
-    my $names = RJK::Files->getEntries($dir) // [];
-    foreach my $name (@$names) {
-        next unless /$basenameRegex/ and $name ne $filename;
-        push @sidecar, $name;
-        $callback->($name, $dir, $filename, $basename);
+    foreach (@{RJK::Files->getEntries($dir)}) {
+        next unless /$basenameRegex/ and $_ ne $filename;
+        push @sidecar, $_;
+        $callback->($_, $dir, $filename, $basename);
     }
     return \@sidecar, $dir, $filename, $basename;
 }
