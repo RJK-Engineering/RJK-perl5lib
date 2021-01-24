@@ -9,6 +9,4 @@ sub poll {
 
 sub doPoll { ... }
 
-sub observers { $_[0]{observers} //= [] }
-
 1;
