@@ -5,7 +5,6 @@ use Try::Tiny;
 
 use Exceptions;
 use FileException;
-use NoVolumeInfoException;
 use OpenFileException;
 
 use RJK::Exceptions;
@@ -19,7 +18,6 @@ try {
     print "--------\n";
     RJK::Exceptions->handle(
         sub { printf "Unhandled %s: %s\n", ref, $_->error },
-        NoVolumeInfoException => sub {},
         #~ FileException => sub { printf "Handles subtype OpenFileException, OpenFileException handler will never be reached. %s: %s\n", ref, $_->error },
         OpenFileException => sub { printf "Handled OpenFileException %s: %s\n", ref, $_->error },
         FileException => sub { printf "Handled FileException %s: %s\n", ref, $_->error },
