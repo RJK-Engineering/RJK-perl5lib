@@ -6,12 +6,26 @@ use warnings;
 
 sub new {
     my $self = bless {}, shift;
-    my %opts = @_;
+    my %opts = &getOpts;
     for (qw(preVisitDir postVisitDir preVisitFiles postVisitFiles visitFile visitFileFailed)) {
         $self->{$_} = $opts{$_} || sub {};
     }
     return $self;
-};
+}
+
+sub getOpts {
+    my %opts;
+    if (@_ == 1) {
+        if (ref $_[0] eq 'CODE') {
+            $opts{visitFile} = $_[0];
+        } elsif (ref $_[0] eq 'HASH') {
+            %opts = %{$_[0]};
+        }
+    } elsif (@_ % 2 == 0) {
+        %opts = @_;
+    }
+    return %opts;
+}
 
 sub preVisitDir {
     my $self = shift;
