@@ -2,7 +2,9 @@ package RJK::Util::ObservableMonitor;
 use parent 'RJK::Util::Monitor';
 use parent 'RJK::Util::Observable';
 
-sub poll {
+# only polls if observers registered
+
+sub poll { # FINAL
     return if ! @{$_[0]{observers}};
     $_[0]->doPoll();
 }
