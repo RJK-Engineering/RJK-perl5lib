@@ -80,10 +80,11 @@ sub traverse {
 
 sub _traverse {
     my ($self, $path, $visitor, $opts) = @_;
-    $visitor = createSimpleFileVisitor($visitor) if ref $visitor eq 'HASH';
+    $visitor = createSimpleFileVisitor($visitor) if ! UNIVERSAL::isa($visitor, 'RJK::FileVisitor');
     $path = RJK::Paths->get($path);
     my $stat = RJK::Stat->get($path->{path});
 
+    $_ = $path->{path};
     if (! $stat) {
         return $visitor->visitFileFailed($path, "Stat failed");
     } elsif ($stat->isDir) {
@@ -95,7 +96,7 @@ sub _traverse {
 
 sub createSimpleFileVisitor {
     require RJK::SimpleFileVisitor;
-    return new RJK::SimpleFileVisitor(%{$_[0]});
+    return new RJK::SimpleFileVisitor($_[0]);
 }
 
 sub traverseWithStats {
@@ -145,6 +146,7 @@ sub traverseDir {
 
         foreach (@files) {
             my ($file, $stat) = @$_;
+            $_ = $file->{path};
             if ($stat) {
                 $result = $visitor->visitFile($file, $stat);
             } else {
@@ -161,6 +163,7 @@ sub traverseDir {
             }
         }
 
+        $_ = $dir->{path};
         $result = $visitor->postVisitFiles($dir, $dirStat);
         if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
             return FileVisitResult::TERMINATE;
@@ -172,6 +175,7 @@ sub traverseDir {
 
         foreach (@dirs) {
             my ($dir, $stat) = @$_;
+            $_ = $dir->{path};
             $result = $self->traverseDir($dir, $visitor, $opts, $stat);
             if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
                 return FileVisitResult::TERMINATE;
@@ -180,6 +184,7 @@ sub traverseDir {
             }
         }
 
+        $_ = $dir->{path};
         return $visitor->postVisitDir($dir, $dirStat);
     } else {
         return $visitor->visitFileFailed($dir, "Readdir failed");
