@@ -9,4 +9,20 @@ sub poll {
 
 sub doPoll { ... }
 
+sub enable {}
+
+sub disable {}
+
+sub addObserver {
+    my $self = shift;
+    $self->SUPER::addObserver(@_);
+    $self->enable() if @{$self->{observers}} == 1;
+}
+
+sub removeObserver {
+    my $self = shift;
+    $self->SUPER::removeObserver(@_);
+    $self->disable() if ! @{$self->{observers}};
+}
+
 1;
