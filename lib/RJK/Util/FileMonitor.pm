@@ -4,21 +4,22 @@ use parent 'RJK::Util::ObservableMonitor';
 use strict;
 use warnings;
 
+use RJK::Stat;
+
 sub setFile {
     my $self = shift;
     $self->{file} = shift;
-    $self->{modified} = -M $self->{file};
+    $self->{modified} = RJK::Stat->get($self->{file})->modified;
 }
 
 sub doPoll {
     my $self = shift;
-
-    my $modified = -M $self->{file};
+    my $modified = RJK::Stat->get($self->{file})->modified;
 
     if ($self->{modified} && $modified != $self->{modified}) {
         $self->notifyObservers({
             type => "FileChanged",
-            payload => { file => $self->{file} }
+            payload => $self->{file}
         });
     }
     $self->{modified} = $modified;
