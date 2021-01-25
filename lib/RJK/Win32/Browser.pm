@@ -6,21 +6,28 @@ use warnings;
 use RJK::Win32::ProcessList;
 
 my $browsers = {
-    default => 'firefox',
-    chrome => 'c:\Program Files\Google\Chrome\Application\chrome.exe',
+    default => 'chrome',
+    chrome => 'c:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
     firefox => 'c:\Program Files\Mozilla Firefox\firefox.exe'
 };
 
+# $browser == -1       use default browser
+# $browser == 0        detect browser, do not open new browser if none found
+# $browser == 1        detect browser, open default browser if none found
+# $browser == undef    same as $browser == 1
+# $browser == "name"   use browser "name"
 sub openUrl {
     my ($self, $url, $browser) = @_;
-    $browser ||= $browsers->{default} || 'detect';
-    if ($browser eq 'detect') {
+    if (not defined $browser or $browser =~ /^1$/) {
         $browser = &detect;
-        if (! $browser) {
-            warn "Can't find browser";
-            return;
-        }
+        $browser //= $browsers->{default};
+    } elsif ($browser =~ /^-1$/) {
+        $browser = $browsers->{default};
+    } elsif ($browser =~ /^0?$/) {
+        $browser = &detect;
+        $browser // return;
     }
+
     if (! $browsers->{$browser}) {
         warn "Unknown browser: $browser";
         return;
@@ -34,6 +41,8 @@ sub detect {
     } elsif (RJK::Win32::ProcessList->processExists('chrome.exe')) {
         return 'chrome';
     }
+    warn "Can't find browser";
+    return undef;
 }
 
 1;
