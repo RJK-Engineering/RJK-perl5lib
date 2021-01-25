@@ -69,11 +69,12 @@ sub setPaths {
 =pod
 
 ---+++ tempFile($extension) -> ($handle, $filename, $error)
-Create a temp file in =$ENV{TEMP}= and return a file handle for it.
    * =$extension= - optional temp file extension, defaults to "tmp"
    * =$handle= - file handle for the temp file
    * =$filename= - path of the temp file
    * =$error= - contains error message if an error occurred
+
+Create a temp file in =$ENV{TEMP}= and return a file handle for it.
 
 =cut
 ###############################################################################

@@ -23,8 +23,9 @@ my $section = 'Buttonbar';
 ---++ Constructor
 
 ---+++ new($path) -> $buttonBar
-Returns a new =RJK::TotalCmd::ItemList::ButtonBar= object.
    * =$path= - Path to bar path.
+
+Returns a new =RJK::TotalCmd::ItemList::ButtonBar= object.
 
 =cut
 ###############################################################################

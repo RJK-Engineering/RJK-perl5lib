@@ -62,10 +62,8 @@ sub findPath {
    * =$relativeFilePath= - path to file relative to local data directory
    * =@paths= - list of existing paths
 
-Find files stored in local data directories:
-   * APPDATA
-   * LOCALAPPDATA
-   * Subdirectory "RJK-utils" of LOCALAPPDATA
+Find files in directories set in =APPDATA= and =LOCALAPPDATA=
+environment variables.
 
 =cut
 ###############################################################################
@@ -75,7 +73,6 @@ sub findLocalFiles {
     my @paths = (
         $ENV{APPDATA},      # roaming conf
         $ENV{LOCALAPPDATA}, # local conf
-        "$ENV{LOCALAPPDATA}/RJK-utils"
     );
     return grep { -e ($_ = "$_/$relativeFilePath") } @paths;
 }
@@ -84,7 +81,8 @@ sub findLocalFiles {
 =pod
 
 ---+++ findProgramDirs($relativeDirPath) -> @paths
-Find program directory.
+Find program directory in directories set in =ProgramW6432= and =ProgramFiles=
+environment variables.
 
 =cut
 ###############################################################################

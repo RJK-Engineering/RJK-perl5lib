@@ -25,10 +25,11 @@ use NoVolumeInfoException;
 ---++ Constructor
 
 ---+++ new(%opts) -> $driveStatus
-Create a new =RJK::Win32::DriveStatus= object.
    * =%opts=
-    * =$opts{ignore}=
-    * =$opts{status}=
+      * =$opts{ignore}=
+      * =$opts{status}=
+
+Create a new =RJK::Win32::DriveStatus= object.
 
 ---++ Object methods
 

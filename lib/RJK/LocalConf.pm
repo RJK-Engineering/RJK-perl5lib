@@ -20,10 +20,11 @@ use RJK::Util::Properties;
 ---++ Class methods
 
 ---+++ GetOptions($filename, %defaultOptions) -> %options or \%options
-Load options from config file(s) stored in local data directories.
    * =$filename= - path to config file relative to local data directory
    * =%defaultOptions= - default options to return if not present in local config
    * =%options= - option key/values
+
+Load options from config file(s) stored in local data directories.
 
 =cut
 ###############################################################################

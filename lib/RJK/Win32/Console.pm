@@ -88,14 +88,16 @@ Wait for keyboard key press.
 Returns true if "y" or "Y" key is pressed.
 
 ---+++ ask($question, \@choices) -> $choice
-Waits for choice selection.
    * =$choices= - Array containing choices: [ $key, $displayValue, $returnValue ]
       * If no $returnValue is given $displayValue will be returned.
       * If no $displayValue is given $key will be displayed and returned.
 
+Waits for choice selection.
+
 ---+++ select($choices) -> $choice
-Prints lists of choices and waits for choice selection.
    * =$choices= - Array containing list of choices
+
+Prints lists of choices and waits for choice selection.
 
 ---+++ question($question, $value)
 

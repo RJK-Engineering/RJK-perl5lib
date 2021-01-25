@@ -39,8 +39,9 @@ sub GetDriveLetter {
 =pod
 
 ---+++ ConnectDrive($path)
+    * =$path= - complete path or drive letter.
+
 Connect network drive.
-=$path= can be a complete path or a drive letter.
 Drive host must be set in =RJK_NETWORK_DRIVE_HOST= environment variable.
 
 =cut
@@ -64,8 +65,9 @@ sub ConnectDrive {
 =pod
 
 ---+++ DisconnectDrive($path)
+    * =$path= - complete path or drive letter.
+
 Disconnect network drive.
-=$path= can be a complete path or a drive letter.
 
 =cut
 ###############################################################################
