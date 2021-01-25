@@ -96,7 +96,7 @@ sub _traverse {
 
 sub createSimpleFileVisitor {
     require RJK::SimpleFileVisitor;
-    return new RJK::SimpleFileVisitor($_[0]);
+    new RJK::SimpleFileVisitor($_[0]);
 }
 
 sub traverseWithStats {
@@ -113,82 +113,81 @@ sub traverseDir {
     my ($self, $dir, $visitor, $opts, $dirStat) = @_;
     my ($result, $skipFiles, $skipDirs);
 
-    if (my $entries = $self->getEntries($dir->{path})) {
-        $result = $visitor->preVisitDir($dir, $dirStat);
-        if (FileVisitResult->matches($result,
-            FileVisitResult::TERMINATE, FileVisitResult::SKIP_SUBTREE, FileVisitResult::SKIP_SIBLINGS
-        )) {
-            return $result;
-        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_FILES)) {
-            $skipFiles = 1;
-        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
-            $skipDirs = 1;
-        }
+    my $entries = $self->getEntries($dir->{path});
+    return $visitor->visitFileFailed($dir, "$!") if not defined $entries;
 
-        my (@dirs, @files);
-        foreach (@$entries) {
-            my $child = RJK::Paths->get($dir->{path}, $_);
-            my $stat = RJK::Stat->get($child->{path});
-            if (! $stat) {
-                push @files, [ $child ] unless $skipFiles;
-            } elsif ($stat->isDir) {
-                push @dirs, [ $child, $stat ] unless $skipDirs;
-            } elsif ($stat->isFile) {
-                push @files, [ $child, $stat ] unless $skipFiles;
-            }
-        }
+    $result = $visitor->preVisitDir($dir, $dirStat);
+    if (FileVisitResult->matches($result,
+        FileVisitResult::TERMINATE, FileVisitResult::SKIP_SUBTREE, FileVisitResult::SKIP_SIBLINGS
+    )) {
+        return $result;
+    } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_FILES)) {
+        $skipFiles = 1;
+    } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
+        $skipDirs = 1;
+    }
 
-        if ($opts->{sort}) {
-            @files = sort {
-                $a->[0]{name} cmp $b->[0]{name};
-            } @files;
+    my (@dirs, @files);
+    foreach (@$entries) {
+        my $child = RJK::Paths->get($dir->{path}, $_);
+        my $stat = RJK::Stat->get($child->{path});
+        if (! $stat) {
+            push @files, [ $child ] unless $skipFiles;
+        } elsif ($stat->isDir) {
+            push @dirs, [ $child, $stat ] unless $skipDirs;
+        } elsif ($stat->isFile) {
+            push @files, [ $child, $stat ] unless $skipFiles;
         }
+    }
 
-        foreach (@files) {
-            my ($file, $stat) = @$_;
-            $_ = $file->{path};
-            if ($stat) {
-                $result = $visitor->visitFile($file, $stat);
-            } else {
-                $result = $visitor->visitFileFailed($file, "Stat failed");
-            }
-            if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
-                return FileVisitResult::TERMINATE;
-            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
-                return $visitor->postVisitDir($dir, $dirStat);
-            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
-                @dirs = ();
-            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_FILES)) {
-                last;
-            }
+    if ($opts->{sort}) {
+        @files = sort {
+            $a->[0]{name} cmp $b->[0]{name};
+        } @files;
+    }
+
+    foreach (@files) {
+        my ($file, $stat) = @$_;
+        $_ = $file->{path};
+        if ($stat) {
+            $result = $visitor->visitFile($file, $stat);
+        } else {
+            $result = $visitor->visitFileFailed($file, "Stat failed");
         }
-
-        $_ = $dir->{path};
-        $result = $visitor->postVisitFiles($dir, $dirStat);
         if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
             return FileVisitResult::TERMINATE;
         } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
             return $visitor->postVisitDir($dir, $dirStat);
         } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
             @dirs = ();
+        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_FILES)) {
+            last;
         }
-
-        foreach (@dirs) {
-            my ($dir, $stat) = @$_;
-            $_ = $dir->{path};
-            $result = $self->traverseDir($dir, $visitor, $opts, $stat);
-            if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
-                return FileVisitResult::TERMINATE;
-            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
-                last;
-            }
-        }
-
-        $_ = $dir->{path};
-        return $visitor->postVisitDir($dir, $dirStat);
-    } else {
-        return $visitor->visitFileFailed($dir, "Readdir failed");
     }
+
+    $_ = $dir->{path};
+    $result = $visitor->postVisitFiles($dir, $dirStat);
+    if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
+        return FileVisitResult::TERMINATE;
+    } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
+        return $visitor->postVisitDir($dir, $dirStat);
+    } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
+        @dirs = ();
+    }
+
+    foreach (@dirs) {
+        my ($dir, $stat) = @$_;
+        $_ = $dir->{path};
+        $result = $self->traverseDir($dir, $visitor, $opts, $stat);
+        if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
+            return FileVisitResult::TERMINATE;
+        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
+            last;
+        }
+    }
+
+    $_ = $dir->{path};
+    return $visitor->postVisitDir($dir, $dirStat);
 }
 
 sub getEntries {
