@@ -57,7 +57,7 @@ sub new {
 
 Set reference to a section in another =RJK::Util::Ini= object.
 
----+++ allSections() -> %hash or \%hash
+---+++ allSections() -> \%hash
    * =%hash= - section => property => value
 
 Return all sections as a hash.
@@ -104,10 +104,10 @@ sub setSection {
 sub allSections {
     my ($self, $type) = @_;
     my %all;
-    foreach my $section (@{$self->{sections}}) {
-        $all{$section} = $self->{properties}{$section}->hash;
+    foreach (@{$self->{sections}}) {
+        $all{$_} = $self->{properties}{$_}->hash;
     }
-    return wantarray ? %all : \%all;
+    return \%all;
 }
 
 ###############################################################################
@@ -120,15 +120,15 @@ Properties are key/value pairs.
    * =$section= - section name
    * =$propertyList= - =RJK::Util::PropertyList= object for the section
 
----+++ getPropertyNames($section) -> @array or \@array
+---+++ getPropertyNames($section) -> \@array
    * =$section= - section name
    * =@array= - key array
 
----+++ getValues($section) -> @array or \@array
+---+++ getValues($section) -> \@array
    * =$section= - section name
    * =@array= - value array
 
----+++ getSection($section) -> %hash or \%hash
+---+++ getSection($section) -> \%hash
    * =$section= - section name
    * =%hash= - property hash
 
@@ -150,17 +150,22 @@ sub getPropertyList {
 sub getPropertyNames {
     my $props = $_[0]{propertyNames};
     exists $props->{$_[1]} || return;
-    return wantarray ? @{$props->{$_[1]}} : $props->{$_[1]};
+    return $props->{$_[1]};
+}
+
+sub getKeys {
+    my $pl = $_[0]->{properties}{$_[1]} || return;
+    return $pl->names;
 }
 
 sub getValues {
     my $pl = $_[0]->{properties}{$_[1]} || return;
-    return wantarray ? $pl->values : [ $pl->values ];
+    return $pl->values;
 }
 
 sub getSection {
     my $pl = $_[0]->{properties}{$_[1]} || return;
-    return wantarray ? %{$pl->hash} : $pl->hash;
+    return $pl->hash;
 }
 
 sub get {
@@ -303,8 +308,8 @@ sub write {
     foreach my $section (@sections) {
         my $pl = $self->{properties}{$section} || return;
         print $fh "[$section]\n" or return;
-        foreach my $name (@{$self->{keys}{$section}}) {
-            printf $fh "%s=%s\n", $name, $pl->get($name) or return;
+        foreach (@{$self->{keys}{$section}}) {
+            printf $fh "%s=%s\n", $_, $pl->get($_) or return;
         }
     }
     return $self;
@@ -382,14 +387,14 @@ containing the interpreted data.
 
 sub parseList {
     my ($self, $section, $name, $otherProps, $otherPropsKeys) = @_;
-    $name //= '.*?';
+    $name = $name ? quotemeta $name : '.*?';
     my $pl = $self->{properties}{$section} || return;
     my $data;
 
-    foreach my $key (@{$self->{keys}{$section}}) {
-        my $value = $pl->get($key);
-        if (/^ (?<name>$name) (?<index>\d+) $self->{delimiter}? (?<key>.*) $/x) {
-            if ($+{name} || $+{key}) {
+    foreach (@{$self->{keys}{$section}}) {
+        my $value = $pl->get($_);
+        if (/^ (?<name>$name) \ ? (?<index>\d+) $/x) {
+            if ($+{name}) {
                 # 2) name => [ values ]
                 $data->{namedLists}{$+{name}}[$+{index}] = $value;
             } else {
@@ -397,8 +402,8 @@ sub parseList {
                 $data->{array}[$+{index}] = $value;
             }
         } else {
-            $otherProps->{$key} = $value if $otherProps;
-            push @{$otherPropsKeys}, $key if $otherPropsKeys;
+            $otherProps->{$_} = $value if $otherProps;
+            push @{$otherPropsKeys}, $_ if $otherPropsKeys;
         }
     }
     return $data;
@@ -411,8 +416,8 @@ sub parseHash {
     my $pl = $self->{properties}{$section} || return;
     my $data;
 
-    foreach my $key (@{$self->{keys}{$section}}) {
-        my $value = $pl->get($key);
+    foreach (@{$self->{keys}{$section}}) {
+        my $value = $pl->get($_);
         if (/^ (.+) $self->{delimiter} (.+) $/x) {
             # 4) name => key => value
             if (! $data->{namedHashes}{$1} && $defaultHash) {
@@ -425,8 +430,8 @@ sub parseHash {
             $data->{namedHashes}{$1}{$opts->{key}} = $1;
             $data->{namedHashesLHS}{$2}{$opts->{key}} = $2;
         } else {
-            $opts->{otherProps}{$key} = $value if $opts->{otherProps};
-            push @{$opts->{otherPropsKeys}}, $key if $opts->{otherPropsKeys};
+            $opts->{otherProps}{$_} = $value if $opts->{otherProps};
+            push @{$opts->{otherPropsKeys}}, $_ if $opts->{otherPropsKeys};
         }
     }
     return $data;
@@ -437,12 +442,12 @@ sub parseHashList {
     $opts //= {};
     my $defaultHash = $opts->{defaultHash} || {};
     my $defaultKey = $opts->{defaultKey} // '_default';
-    my $name = $opts->{name} // '.*?';
+    my $name = $opts->{name} ? quotemeta $opts->{name} : '.*?';
     my $pl = $self->{properties}{$section} || return;
     my $data;
 
-    foreach my $key (@{$self->{keys}{$section}}) {
-        my $value = $pl->get($key);
+    foreach (@{$self->{keys}{$section}}) {
+        my $value = $pl->get($_);
         if (/^ (?<name>$name) (?<index>\d+) $self->{delimiter}? (?<key>.*) $/x) {
             if ($+{name} || $+{key}) {
                 # 3) [ key => value ]
@@ -463,8 +468,8 @@ sub parseHashList {
                 $data->{hashListRHS}[$+{index}]{$key} = $value;
             }
         } else {
-            $opts->{otherProps}{$key} = $value if $opts->{otherProps};
-            push @{$opts->{otherPropsKeys}}, $key if $opts->{otherPropsKeys};
+            $opts->{otherProps}{$_} = $value if $opts->{otherProps};
+            push @{$opts->{otherPropsKeys}}, $_ if $opts->{otherPropsKeys};
         }
     }
     return $data;
@@ -473,7 +478,7 @@ sub parseHashList {
 ###############################################################################
 =pod
 
----+++ getList($section, $name) -> @array or \@array
+---+++ getList($section, $name) -> \@array
    * =$section= - section name
    * =$name= - list name
    * =@array= - the list
@@ -482,25 +487,25 @@ Get values from a section containing an anonymous or a named list.%BR%
 Get values from a named list if =$name= is defined.%BR%
 Returns a list of values.%BR%
 
----+++ getLists($section) -> ( $name => $array ) or { $name => $array }
+---+++ getLists($section) -> { $name => $array }
 Returns a hash of lists.%BR%
 
----+++ getHashList($section) -> ( $hash ) or [ $hash ]
+---+++ getHashList($section) -> [ $hash ]
 Returns a list of hashes.%BR%
 
----+++ getHashListRHS($section) -> ( $hash ) or [ $hash ]
+---+++ getHashListRHS($section) -> [ $hash ]
 Returns a list of hashes.%BR%
 
----+++ getHash($section, $opts) -> %hash or \%hash
+---+++ getHash($section, $opts) -> \%hash
 Returns a hash of values.%BR%
 
----+++ getHashLHS($section, $opts) -> %hash or \%hash
+---+++ getHashLHS($section, $opts) -> \%hash
 Returns a hash of values.%BR%
 
----+++ getHashes($section, $opts) -> ( $name => $hash ) or { $name => $hash }
+---+++ getHashes($section, $opts) -> { $name => $hash }
 Returns a hash of hashes.%BR%
 
----+++ getHashesLHS($section, $opts) -> ( $name => $hash ) or { $name => $hash }
+---+++ getHashesLHS($section, $opts) -> { $name => $hash }
 Returns a hash of hashes.%BR%
 
 ---+++ setList($section, $array, $name) -> $propertyList
@@ -521,64 +526,55 @@ sub getList {
     my $data = $self->parseList($section, $name) || return;
     if ($name) {
         exists $data->{namedLists}{$name} || return;
-        $data = $data->{namedLists}{$name};
-    } else {
-        $data = $data->{array};
+        return $data->{namedLists}{$name};
     }
-    return wantarray ? @$data : $data;
+    return $data->{array};
 }
 
 sub getLists {
     my ($self, $section) = @_;
     my $data = $self->parseList($section) || return;
-    $data = $data->{namedLists};
-    return wantarray ? @$data : $data;
+    return $data->{namedLists};
 }
 
 sub getHashList {
     my ($self, $section, $opts) = @_;
     my $data = $self->parseHashList($section, $opts) || return;
     $data = $data->{hashList};
-    shift @$data unless defined $data->[0]; # when list starts at 1
-    return wantarray ? @$data : $data;
+    return $data unless defined $data->[0]; # when list starts at 1
 }
 
 sub getHashListRHS {
     my ($self, $section, $opts) = @_;
     my $data = $self->parseHashList($section, $opts) || return;
     $data = $data->{hashListRHS};
-    shift @$data unless defined $data->[0]; # when list starts at 1
-    return wantarray ? @$data : $data;
+    return $data unless defined $data->[0]; # when list starts at 1
 }
 
 sub getHash {
     my ($self, $section, $name) = @_;
     my $data = $self->parseHash($section) || return;
     exists $data->{namedHashes}{$name} || return;
-    $data = $data->{namedHashes}{$name};
-    return wantarray ? %$data : $data;
+    return $data->{namedHashes}{$name};
 }
 
 sub getHashLHS {
     my ($self, $section, $name) = @_;
     my $data = $self->parseHash($section) || return;
     exists $data->{namedHashesLHS}{$name} || return;
-    $data = $data->{namedHashesLHS}{$name};
-    return wantarray ? %$data : $data;
+    return $data->{namedHashesLHS}{$name};
 }
 
 sub getHashes {
     my ($self, $section, $opts) = @_;
     my $data = $self->parseHash($section, $opts) || return;
-    $data = $data->{namedHashes};
-    return wantarray ? %$data : $data;
+    return $data->{namedHashes};
 }
 
 sub getHashesLHS {
     my ($self, $section, $opts) = @_;
     my $data = $self->parseHash($section, $opts) || return;
-    $data = $data->{namedHashesLHS};
-    return wantarray ? %$data : $data;
+    return $data->{namedHashesLHS};
 }
 
 sub setList {
@@ -603,10 +599,10 @@ sub setHashList {
     my @propertyKeys;
     for (my $i=1; $i<=@$array; $i++) {
         my $hash = $array->[$i-1];
-        foreach my $key ($keys ? @$keys : keys %$hash) {
-            $hash->{$key} // next;
-            $pl->set("$key$i", $hash->{$key});
-            push @propertyKeys, "$key$i";
+        foreach ($keys ? @$keys : keys %$hash) {
+            $hash->{$_} // next;
+            $pl->set("$_$i", $hash->{$_});
+            push @propertyKeys, "$_$i";
         }
     }
     $self->{keys}{$section} = \@propertyKeys;
@@ -626,9 +622,9 @@ sub setHashListRHS {
 
     for (my $i=1; $i<=@$array; $i++) {
         my $hash = $array->[$i-1];
-        foreach my $key (@keys ? @keys : keys %$hash) {
-            my $value = $hash->{$key} // next;
-            my $prop = /^$defaultKey$/i ? "$name$i" : "$name$i$key";
+        foreach (@keys ? @keys : keys %$hash) {
+            my $value = $hash->{$_} // next;
+            my $prop = /^$defaultKey$/i ? "$name$i" : "$name$i$_";
             $pl->set($prop, $value);
             push @props, $prop;
         }
