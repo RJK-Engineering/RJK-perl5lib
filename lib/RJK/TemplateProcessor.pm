@@ -6,23 +6,28 @@ use warnings;
 sub new {
     my $self = bless {}, shift;
     $self->{conf} = shift;
+    $self->_init();
     return $self;
 }
 
+sub _init {
+    my ($self) = @_;
+    my $replace = $self->{conf}{replace};
+    foreach (keys %$replace) {
+        $replace->{$_} = [$replace->{$_}] if ! ref $replace->{$_}[0];
+    }
+}
+
 sub getString {
-    my ($self, $name, $args) = @_;
-    if (! ref $args) {
-        $args = [$args];
-    }
-    if (ref $args eq 'ARRAY') {
-        $args = $self->getArgs($name, @$args);
-    }
-    return $self->processString($name, $args);
+    my ($self, $args) = @_;
+    $args = [$args] if ! ref $args;
+    $args = $self->getArgs(@$args) if ref $args eq 'ARRAY';
+    return $self->processString($args);
 }
 
 sub getArgs {
-    my ($self, $name, @args) = @_;
-    my $string = $self->{conf}{$name}{string};
+    my ($self, @args) = @_;
+    my $string = $self->{conf}{string};
     my @fields = $string =~ /{(\w+)}/g;
     my (%fields, %args);
     foreach my $f (@fields) {
@@ -34,9 +39,9 @@ sub getArgs {
 }
 
 sub processString {
-    my ($self, $name, $args) = @_;
-    my $string = $self->{conf}{$name}{string};
-    my $replace = $self->{conf}{$name}{replace};
+    my ($self, $args) = @_;
+    my $string = $self->{conf}{string};
+    my $replace = $self->{conf}{replace};
     my @fields = keys %$args;
     foreach my $f (@fields) {
         my $arg = $args->{$f};
