@@ -20,7 +20,7 @@ sub loadConfig {
     if ($ENV{FILECHECK_CONF_FILE}) {
         $config->load($ENV{FILECHECK_CONF_FILE});
     } else {
-        $config->load($_) for RJK::Env->findLocalFiles("filecheck.properties");
+        $config->load($_) for RJK::Env->findLocalFiles("RJK-utils/filecheck.properties");
     }
 }
 

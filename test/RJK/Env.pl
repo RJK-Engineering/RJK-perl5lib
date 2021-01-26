@@ -11,5 +11,5 @@ RJK::Env->subst(\$byRef1, \$byRef2);
 print $byRef1, "\n";
 print $byRef2, "\n\n";
 
-my @p = RJK::Env->findLocalFiles("filecheck.properties");
+my @p = RJK::Env->findLocalFiles("RJK-utils/filecheck.properties");
 print join("\n", @p), "\n";
