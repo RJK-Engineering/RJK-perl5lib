@@ -12,9 +12,10 @@ my $splitPathRegex = qr{ ^ (?: (\w): )? (?: (.*)$sep(.+) )? $ }x;
 
 sub get {
     my $self = shift;
-    my $path = join $separator, grep {$_ ne ''} @_;
-    $path =~ s/$separatorsRegex/$separator/g;
-    my $trailingSeparator = $path =~ s/$separatorsRegex$//;
+    my $path = join($separator, grep {$_ ne ''} @_)
+        =~ s|/|$separator|gr
+        =~ s|$separatorsRegex|$separator|gr;
+    my $trailingSeparator = $path =~ s|$sep$||;
 
     my ($volume, $directories, $file) = $path =~ /$splitPathRegex/;
     if (not defined $file) {
