@@ -264,18 +264,29 @@ sub read {
         or throw OpenFileException(error => "$!", file => $file, mode => '<');
     $self->clear();
 
-    my ($pl, $keys);
+    my ($pl, $keys, $section, $comment);
     while (<$in>) {
+        if (! $self->{bom} && s/^(\xEF\xBB\xBF)//) {
+            $self->{bom} = $1;
+        }
         chomp;
-        if (/^\[(.+)\]/) {
-            $pl = $self->_newSection($1);
-            $keys = $self->{keys}{$1};
-        } else {
-            if (/^(.+?)=(.*)/) {
-                # scalar property
-                $pl->set($1, $2);
-                push @$keys, $1;
+        if (/^([;#].*)/) {
+            $comment .= "$1\n";
+        } elsif (/^(.+?)=(.*)/) {
+            if ($comment) {
+                $self->{comments}{$section}{$1} = $comment;
+                $comment = undef;
             }
+            $pl->set($1, $2);
+            push @$keys, $1;
+        } elsif (/^\[(.+)\]/) {
+            $section = $1;
+            if ($comment) {
+                $self->{sectionComments}{$section} = $comment;
+                $comment = undef;
+            }
+            $pl = $self->_newSection($section);
+            $keys = $self->{keys}{$section};
         }
     }
     close $in;
@@ -302,14 +313,14 @@ sub write {
            or throw OpenFileException(error => "$!", file => $file, mode => '>');
     }
 
-    my @sections = $sort ? sort @{$self->{sections}}
-                         : @{$self->{sections}};
-
-    foreach my $section (@sections) {
-        my $pl = $self->{properties}{$section} || return;
+    print $fh $self->{bom} if $self->{bom};
+    foreach my $section ($sort ? sort @{$self->{sections}} : @{$self->{sections}}) {
+        my $pl = $self->{properties}{$section};
+        print $fh $self->{sectionComments}{$section}//"";
         print $fh "[$section]\n" or return;
         foreach (@{$self->{keys}{$section}}) {
-            printf $fh "%s=%s\n", $_, $pl->get($_) or return;
+            printf $fh "%s=%s\n", $_, $pl->get($_);
+            print $fh $self->{comments}{$section}{$_}//"";
         }
     }
     return $self;
