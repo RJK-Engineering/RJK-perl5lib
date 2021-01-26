@@ -88,7 +88,7 @@ sub _traverse {
     if (! $stat) {
         return $visitor->visitFileFailed($path, "Stat failed");
     } elsif ($stat->isDir) {
-        return $self->traverseDir($path, $visitor, $opts, $stat);
+        return $self->traverseDir($path, $visitor, $opts, $stat, 0);
     } elsif ($stat->isFile) {
         return $visitor->visitFile($path, $stat);
     }
@@ -110,8 +110,9 @@ sub createStats {
 }
 
 sub traverseDir {
-    my ($self, $dir, $visitor, $opts, $dirStat) = @_;
+    my ($self, $dir, $visitor, $opts, $dirStat, $depth) = @_;
     my ($result, $skipFiles, $skipDirs);
+    $skipDirs = 1 if defined $opts->{maxDepth} && $depth == $opts->{maxDepth};
 
     my $entries = $self->getEntries($dir->{path});
     return $visitor->visitFileFailed($dir, "$!") if not defined $entries;
@@ -178,7 +179,7 @@ sub traverseDir {
     foreach (@dirs) {
         my ($dir, $stat) = @$_;
         $_ = $dir->{path};
-        $result = $self->traverseDir($dir, $visitor, $opts, $stat);
+        $result = $self->traverseDir($dir, $visitor, $opts, $stat, $depth+1);
         if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
             return FileVisitResult::TERMINATE;
         } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
