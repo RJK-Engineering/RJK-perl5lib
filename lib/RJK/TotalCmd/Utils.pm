@@ -154,36 +154,13 @@ sub setSourceTargetPaths {
 ###############################################################################
 =pod
 
----+++ pauseInTotalCmdEnv($msg)
-Pause if the environment variable COMMANDER_EXE is set, indicating the program
-was started from within Total Commander. Prints =$msg= if it is defined, prints
-no message if =$msg= is an empty string, prints a default message otherwise.
-
-=cut
-###############################################################################
-
-sub pauseInTotalCmdEnv {
-    my ($self, $msg) = @_;
-
-    if (defined $msg) {
-        print "$msg\n" if $msg ne "";
-    } else {
-        print "Press enter to continue.\n";
-    }
-
-    <STDIN> if $ENV{COMMANDER_EXE};
-}
-
-###############################################################################
-=pod
-
 ---+++ isListFile($listFilePath) -> $boolean
 
 =cut
 ###############################################################################
 
 sub isListFile {
-    $_[1] =~ /^(.*[\\\/])?CMD\w{3,4}.tmp$/;
+    defined $_[1] and $_[1] =~ /^(.*[\\\/])?CMD\w{3,4}.tmp$/;
 }
 
 1;
