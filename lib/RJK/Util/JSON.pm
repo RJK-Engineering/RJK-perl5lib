@@ -11,7 +11,7 @@ use FileException;
 use OpenFileException;
 
 sub read {
-    my ($class, $file) = @_;
+    my ($self, $file) = @_;
 
     throw FileException(error => "Not a file", file => $file) if ! -f $file;
     throw FileException(error => "File is empty", file => $file) if -z $file;
@@ -33,7 +33,7 @@ sub read {
 }
 
 sub write {
-    my ($class, $file, $data) = @_;
+    my ($self, $file, $data) = @_;
 
     open my $fh, '>', $file
         or throw OpenFileException(file => $file, error => "$!");
