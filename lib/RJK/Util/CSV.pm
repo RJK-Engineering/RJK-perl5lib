@@ -30,7 +30,7 @@ sub read {
 sub write {
     my ($self, $file, $rows) = @_;
     open my $fh, '>', $file or throw OpenFileException(file => $file, error => "$!");
-    print $fh join $delimeter, @$_ for @$rows;
+    print $fh join($delimeter, @$_), "\n" for @$rows;
     close $fh;
 }
 
