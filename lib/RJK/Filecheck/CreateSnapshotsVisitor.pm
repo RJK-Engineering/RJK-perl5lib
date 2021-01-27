@@ -7,7 +7,7 @@ use warnings;
 use FileVisitResult;
 use RJK::Path;
 use RJK::File::Sidecar;
-use RJK::Filecheck::Dirs;
+use RJK::Filecheck::Dir;
 
 my $opts;
 
@@ -25,8 +25,8 @@ sub visitFileFailed {
 sub preVisitDir {
     my ($self, $dir, $stat) = @_;
     print "=> $dir\n";
-    my $p = RJK::Filecheck::Dirs->getProperties($dir);
-    return FileVisitResult::SKIP_FILES if $p->get('no.snapshots');
+    my $d = new RJK::Filecheck::Dir($dir);
+    return FileVisitResult::SKIP_FILES if $d->hasProperty('no.snapshots');
 }
 
 sub visitFile {
