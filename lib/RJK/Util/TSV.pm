@@ -4,6 +4,6 @@ use parent 'RJK::Util::CSV';
 use strict;
 use warnings;
 
-$RJK::Util::CSV::delimeter = "\t";
+$RJK::Util::CSV::delimiter = "\t";
 
 1;
