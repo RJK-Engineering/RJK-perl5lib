@@ -17,19 +17,21 @@ use warnings;
 ---++ Class methods
 
 ---+++ subst($string) -> $newString
+---+++ subst(@stringsRefs)
+   * =$string= - string to perform environment variable substitution on
+   * =$newString= - string after environment variable substitution
+   * =@stringsRefs= - list of references to strings to perform environment variable substitution on
 
 =cut
 ###############################################################################
 
 sub subst {
     shift;
-    map {
-        if (ref) {
-            $$_ =~ s'%(.*?)%' $ENV{$1} // $1 && "%$1%" || "%" 'eg;
-        } else {
-            s'%(.*?)%' $ENV{$1} // $1 && "%$1%" || "%" 'egr;
-        }
-    } @_;
+    if (ref $_[0]) {
+        map { $$_ =~ s'%(.*?)%' $ENV{$1} // $1 && "%$1%" || "%" 'eg } @_;
+    } else {
+        $_[0] =~ s'%(.*?)%' $ENV{$1} // $1 && "%$1%" || "%" 'egr;
+    }
 }
 
 ###############################################################################
