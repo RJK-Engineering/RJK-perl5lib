@@ -7,7 +7,7 @@ use Exceptions;
 use FileException;
 use OpenFileException;
 
-our $delimeter = ",";
+our $delimiter = ",";
 
 sub read {
     my ($self, $file, $callback) = @_;
@@ -18,7 +18,7 @@ sub read {
     open my $fh, '<', $file or throw OpenFileException(file => $file, error => "$!");
     while (<$fh>) {
         chomp;
-        my $row = [split /$delimeter/];
+        my $row = [split /\Q$delimiter\E/];
         push @rows, $row;
         last if $callback->($row);
     }
@@ -30,7 +30,7 @@ sub read {
 sub write {
     my ($self, $file, $rows) = @_;
     open my $fh, '>', $file or throw OpenFileException(file => $file, error => "$!");
-    print $fh join($delimeter, @$_), "\n" for @$rows;
+    print $fh join($delimiter, @$_), "\n" for @$rows;
     close $fh;
 }
 
