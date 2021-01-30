@@ -24,6 +24,8 @@ use RJK::Stat;
    * =$path= - path to dir or file.
    * =$visitor= - =RJK::FileVisitor= object.
    * =%opts= - option hash.
+      * =$opts{chdir}= - change working directory after =preVisitDir()=.
+      * =$opts{maxDepth}= - subdir search depth, 0 = current dir only.
       * =$opts{sort}= - sort by name if set to true.
    * =$terminated= - true if traversal was terminated, false otherwise.
 
@@ -127,6 +129,8 @@ sub traverseDir {
     } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
         $skipDirs = 1;
     }
+
+    chdir $_ if $opts->{chdir};
 
     my (@dirs, @files);
     foreach (@$entries) {
