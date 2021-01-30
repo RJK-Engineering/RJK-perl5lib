@@ -15,7 +15,7 @@ sub get {
     my $path = join($separator, grep {$_ ne ''} @_)
         =~ s|/|$separator|gr
         =~ s|$separatorsRegex|$separator|gr;
-    my $trailingSeparator = $path =~ s|$sep$||;
+    my $trailingSeparator = $path =~ s|[$sep\s]+$||;
 
     my ($volume, $directories, $file) = $path =~ /$splitPathRegex/;
     if (not defined $file) {
