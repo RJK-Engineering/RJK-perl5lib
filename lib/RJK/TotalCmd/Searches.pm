@@ -51,37 +51,33 @@ my $_stringRuleMatchers = {
 
 ---++ Class methods
 
----+++ match($search, $path, $stat) -> \%result
+---+++ match($search, $path, $stat) -> $result
    * =$search= - =RJK::TotalCmd::Search= object.
    * =$path= - =RJK::Path= object.
    * =$stat= - =RJK::Stat= object.
-   * =%result= - result hash.
-      * =$result{matched}= true if matched, false otherwise.
-      * =$result{captured}= reference to captured regex groups.
+   * =$result= - true if matched, array ref containing matched groups if regex search.
 
 =cut
 ###############################################################################
 
 sub match {
     my ($class, $search, $path, $stat) = @_;
-    my $result = {};
+    my $result = 1;
     my $flags = $search->{flags};
 
     # name
     my $name = $path->{name};
-    $name =~ s|.*[\\/]||;
-
-    if ($search->{SearchFor}) {
+    if ($search->{for}) {
         if ($flags->{regex}) {
-            return $result if $name !~ /$search->{SearchFor}/i;
-            $result->{captured} = [ $name =~ /$search->{SearchFor}/i ];
+            return if $name !~ /$search->{for}/i;
+            $result = [ $name =~ /$search->{for}/i ];
         } else {
-            return $result if $name !~ /\Q$search->{SearchFor}\E/i;
+            return if $name !~ /\Q$search->{for}\E/i;
         }
     } else {
-        #~ return $result if $search->{searchRegex} &&
+        #~ return if $search->{searchRegex} &&
         #~     $name !~ /^(?:$search->{searchRegex})$/i;
-        #~ return $result if $search->{searchNotRegex} &&
+        #~ return if $search->{searchNotRegex} &&
         #~     $name =~ /^(?:$search->{searchNotRegex})$/i;
     }
 
@@ -94,34 +90,34 @@ sub match {
 
     # size
     if ($stat->isFile) {
-        return $result if $search->{size} && $stat->size != $search->{size};
-        return $result if $search->{minsize} && $stat->size < $search->{minsize};
-        return $result if $search->{maxsize} && $stat->size > $search->{maxsize};
+        return if $search->{size} && $stat->size != $search->{size};
+        return if $search->{minsize} && $stat->size < $search->{minsize};
+        return if $search->{maxsize} && $stat->size > $search->{maxsize};
     }
 
     # date
     my $date = $stat->modified;
     if (defined $date) {
-        return $result if $search->{mindate} && $date < $search->{mindate};
-        return $result if $search->{maxdate} && $date > $search->{maxdate};
+        return if $search->{mindate} && $date < $search->{mindate};
+        return if $search->{maxdate} && $date > $search->{maxdate};
         my $not = NotOlderThanTime($flags);
-        return $result if $not && $date < $not;
+        return if $not && $date < $not;
     }
 
     foreach (@{$search->{rules}}) {
-        next if _matchRule($result, $_, $path, $stat);
-        return $result;
+        next if _matchRule($_, $path, $stat);
+        return;
     }
 
     # text
-    if ($search->{SearchText} && $search->{SearchText} ne "") {
+    if ($search->{text} && $search->{text} ne "") {
         my $file = new RJK::IO::File($path);
 
         my $fh = $file->open;
 
         my $re = $search->{textRegex} ?
-            qr/$search->{SearchText}/ :
-            qr/\Q$search->{SearchText}\E/;
+            qr/$search->{text}/ :
+            qr/\Q$search->{text}\E/;
 
         my $match;
         while (<$fh>) {
@@ -131,23 +127,22 @@ sub match {
         }
         close $fh;
 
-        return $result unless $match;
+        return unless $match;
     }
 
-    $result->{matched} = 1;
     return $result;
 }
 
 sub _matchRule {
-    my ($result, $rule, $path, $stat) = @_;
+    my ($rule, $path, $stat) = @_;
     my $matcher = $_pluginMatchers->{$rule->{plugin}}
         or die "Unsupported plugin: $rule->{plugin}";
-    return $matcher->($result, $rule, $path, $stat);
+    return $matcher->($rule, $path, $stat);
 }
 
 # rules not available in totalcmd
 sub _matchPerlRule {
-    my ($result, $rule, $path, $stat) = @_;
+    my ($rule, $path, $stat) = @_;
     my $prop = $rule->{property};
 
     if ($prop eq "text") {
@@ -165,7 +160,7 @@ sub _matchPerlRule {
 }
 
 sub _matchTcRule {
-    my ($result, $rule, $path, $stat) = @_;
+    my ($rule, $path, $stat) = @_;
 
     my $prop = $rule->{property};
     my $matchVal;
