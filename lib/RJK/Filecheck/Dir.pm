@@ -26,7 +26,7 @@ sub hasProperty {
         $hasProperty = defined $self->{tsv}{$key} &&
             (not defined $value or $value eq $self->{tsv}{$key});
     } else {
-        $self->_loadTsv(sub {
+        $self->_getTsv(sub {
             $hasProperty = $_[0] eq $key && (not defined $value or $value eq $_[1]);
         });
     }
@@ -46,7 +46,7 @@ sub getProperty {
 
 sub setProperty {
     my ($self, $key, $value) = @_;
-    my $props = $self->_loadTsv();
+    my $props = $self->_getTsv();
 
     if ($value eq "") {
         return if not defined $props->{$key};
@@ -56,7 +56,7 @@ sub setProperty {
     } elsif ($value =~ /\v/) {
         $props->{$key} = "";
         $self->{tsvIsDirty} = 1;
-        my $json = $self->_loadJson;
+        my $json = $self->_getJson;
         $json->{$key} = $value;
         $self->{jsonIsDirty} = 1;
     } else {
@@ -68,7 +68,7 @@ sub setProperty {
 
 sub _deleteJsonProp {
     my ($self, $key) = @_;
-    my $json = $self->_loadJson;
+    my $json = $self->_getJson;
     $self->{jsonIsDirty} //= defined delete $json->{$key};
 }
 
@@ -91,12 +91,12 @@ sub traverseProperties {
     if (my $tsv = $self->{tsv}) {
         foreach (keys %{$self->{tsv}}) {
             my $value = $tsv->{$_};
-            $value = $self->_loadJson->{$_} if _isJsonPropValue($value);
+            $value = $self->_getJson->{$_} if _isJsonPropValue($value);
             return if $callback->($_, $value);
         }
     } else {
-        $self->_loadTsv(sub {
-            $_[1] = $self->_loadJson->{$_[0]} if _isJsonPropValue($_[1]);
+        $self->_getTsv(sub {
+            $_[1] = $self->_getJson->{$_[0]} if _isJsonPropValue($_[1]);
             $callback->(@_);
         });
     }
@@ -126,7 +126,7 @@ sub saveDirProperties {
     }
 }
 
-sub _loadTsv {
+sub _getTsv {
     my ($self, $callback) = @_;
     return $self->{tsv} if $self->{tsv};
     my $break = not defined $callback;
@@ -142,7 +142,7 @@ sub _loadTsv {
     return $self->{tsv} //= {};
 }
 
-sub _loadJson {
+sub _getJson {
     my ($self) = @_;
     return $self->{json} if $self->{json};
     try {
@@ -168,7 +168,7 @@ sub getFileProperty {
 
 sub setFileProperty {
     my ($self, $filename, $key, $value) = @_;
-    my $props = $self->_loadFileTsv()->{$filename} //= {};
+    my $props = $self->_getFileTsv()->{$filename} //= {};
 
     if ($value eq "") {
         return if not defined $props->{$key};
@@ -179,7 +179,7 @@ sub setFileProperty {
     } elsif ($value =~ /\v/) {
         $props->{$key} = "";
         $self->{fileTsvIsDirty} = 1;
-        my $json = $self->_loadFileJSON;
+        my $json = $self->_getFileJson;
         $json->{$filename}{$key} = $value;
         $self->{fileJsonIsDirty} = 1;
     } else {
@@ -191,7 +191,7 @@ sub setFileProperty {
 
 sub _deleteFileJsonProp {
     my ($self, $filename, $key) = @_;
-    my $json = $self->_loadFileJSON;
+    my $json = $self->_getFileJson;
     return if not defined delete $json->{$filename}{$key};
     $self->{fileJsonIsDirty} = 1;
     delete $json->{$filename} if ! keys %{$json->{$filename}};
@@ -227,7 +227,7 @@ sub traverseFileProperties {
             }
         }
     } else {
-        $self->_loadFileTsv(sub {
+        $self->_getFileTsv(sub {
             $_[2] = $self->_getJsonFilePropValue(@_) if _isJsonPropValue($_[2]);
             $callback->(@_);
         });
@@ -236,7 +236,7 @@ sub traverseFileProperties {
 
 sub _getJsonFilePropValue {
     my ($self, $filename, $key) = @_;
-    my $f = $self->_loadFileJSON->{$filename};
+    my $f = $self->_getFileJson->{$filename};
     return $f->{$key} if $f;
 }
 
@@ -262,7 +262,7 @@ sub saveFileProperties {
     }
 }
 
-sub _loadFileTsv {
+sub _getFileTsv {
     my ($self, $callback) = @_;
     return $self->{fileTsv} if $self->{fileTsv};
     my $break = not defined $callback;
@@ -283,7 +283,7 @@ sub _loadFileTsv {
     return $self->{fileTsv} //= {};
 }
 
-sub _loadFileJSON {
+sub _getFileJson {
     my ($self) = @_;
     return $self->{fileJson} if $self->{fileJson};
     try {
