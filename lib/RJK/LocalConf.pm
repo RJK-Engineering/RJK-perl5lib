@@ -12,6 +12,7 @@ use strict;
 use warnings;
 
 use RJK::Env;
+use RJK::Util::JSON;
 use RJK::Util::Properties;
 
 ###############################################################################
@@ -31,7 +32,13 @@ Load options from config file(s) stored in local data directories.
 
 sub GetOptions {
     my ($filename, %options) = @_;
-    loadProperties($_, \%options) for RJK::Env->findLocalFiles($filename);
+    if ($filename =~ /\.properties$/) {
+        loadProperties($_, \%options) for RJK::Env->findLocalFiles($filename);
+    } elsif ($filename =~ /\.json$/) {
+        loadJson($_, \%options) for RJK::Env->findLocalFiles($filename);
+    } else {
+        die "Unsupported file type: $filename";
+    }
     return wantarray ? %options : \%options;
 }
 
@@ -42,6 +49,15 @@ sub loadProperties {
 
     while (my ($k, $v) = each %{$props->hash}) {
         $k =~ s/\.(\w?)/\U$1/g; # make camelCase
+        $options->{$k} = $v;
+    }
+}
+
+sub loadJson {
+    my ($path, $options) = @_;
+    my $json = RJK::Util::JSON->read($path);
+
+    while (my ($k, $v) = each %$json) {
         $options->{$k} = $v;
     }
 }
