@@ -19,7 +19,7 @@ $SIG{__DIE__} = sub {
 
 sub _handle {
     return 0 if handleUnknownErrors();
-    my $self = shift;
+    shift;
     my $default = shift if @_ % 2;
     my @exceptions = (@_, $exceptionBaseClass => $default || \&printException);
 
@@ -31,6 +31,20 @@ sub _handle {
 
     &printException;
     return 0;
+}
+
+sub ignore {
+    shift;
+    foreach my $exceptionClass (@_) {
+        $_->rethrow unless $_->isa($exceptionClass);
+    }
+}
+
+sub rethrow {
+    shift;
+    foreach my $exceptionClass (@_) {
+        $_->rethrow if $_->isa($exceptionClass);
+    }
 }
 
 sub handle {
@@ -89,7 +103,7 @@ sub printException {
 }
 
 sub printExceptionOneline {
-    print STDERR ref, " ", $_->error, " at ", $_->trace->frame(1)->subroutine,
+    print STDERR ref, " ", $_->error//"", " at ", $_->trace->frame(1)->subroutine,
         " line ", $_->trace->frame(0)->line;
 }
 
