@@ -33,16 +33,6 @@ sub hasProperty {
     return $hasProperty;
 }
 
-sub getProperties {
-    my ($self) = @_;
-    my $props;
-    $self->traverseProperties(sub {
-        $props->{$_[1]} = $_[2];
-        return 0;
-    });
-    return $props;
-}
-
 sub getProperty {
     my ($self, $key) = @_;
     my $value;
@@ -84,6 +74,16 @@ sub _deleteJsonProp {
 
 sub _isJsonPropValue {
     defined $_[0] && $_[0] eq ""
+}
+
+sub getProperties {
+    my ($self) = @_;
+    my $props;
+    $self->traverseProperties(sub {
+        $props->{$_[1]} = $_[2];
+        return 0;
+    });
+    return $props;
 }
 
 sub traverseProperties {
@@ -155,19 +155,6 @@ sub _loadJson {
 # File Properties
 ################################################################################
 
-sub getFileProperties {
-    my ($self, $filename) = @_;
-    my $props;
-    my $hit;
-    $self->traverseFileProperties(sub {
-        return $hit if $_[0] ne $filename;
-        $hit = 1;
-        $props->{$_[1]} = $_[2];
-        return 0;
-    });
-    return $props;
-}
-
 sub getFileProperty {
     my ($self, $filename, $key) = @_;
     my $value;
@@ -177,11 +164,6 @@ sub getFileProperty {
         return 1;
     });
     return $value;
-}
-
-sub setFileProperties {
-    my ($self, $filename, $props) = @_;
-    $self->setFileProperty($filename, $_, $props->{$_}) for keys %$props;
 }
 
 sub setFileProperty {
@@ -213,6 +195,24 @@ sub _deleteFileJsonProp {
     return if not defined delete $json->{$filename}{$key};
     $self->{fileJsonIsDirty} = 1;
     delete $json->{$filename} if ! keys %{$json->{$filename}};
+}
+
+sub getFileProperties {
+    my ($self, $filename) = @_;
+    my $props;
+    my $hit;
+    $self->traverseFileProperties(sub {
+        return $hit if $_[0] ne $filename;
+        $hit = 1;
+        $props->{$_[1]} = $_[2];
+        return 0;
+    });
+    return $props;
+}
+
+sub setFileProperties {
+    my ($self, $filename, $props) = @_;
+    $self->setFileProperty($filename, $_, $props->{$_}) for keys %$props;
 }
 
 sub traverseFileProperties {
