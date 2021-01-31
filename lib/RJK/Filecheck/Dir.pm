@@ -33,22 +33,25 @@ sub hasProperty {
     return $hasProperty;
 }
 
+sub getProperties {
+    my ($self) = @_;
+    my $props;
+    $self->traverseProperties(sub {
+        $props->{$_[1]} = $_[2];
+        return 0;
+    });
+    return $props;
+}
+
 sub getProperty {
     my ($self, $key) = @_;
     my $value;
-
-    if ($self->{tsv}) {
-        $value = $self->{tsv}{$key};
-    } else {
-        $self->_loadTsv(sub {
-            return if $_[0] ne $key;
-            defined($value = $_[1]);
-        });
-    }
-    return $value if not defined $value or $value ne "";
-
-    my $json = $self->_loadJson;
-    return $json->{$key} if $json;
+    $self->traverseProperties(sub {
+        return if $_[0] ne $key;
+        $value = $_[1];
+        return 1;
+    });
+    return $value;
 }
 
 sub setProperty {
@@ -59,6 +62,7 @@ sub setProperty {
         return if not defined $props->{$key};
         $self->_deleteJsonProp($key) if _isJsonPropValue($props->{$key});
         delete $props->{$key};
+        $self->{tsvIsDirty} = 1;
     } elsif ($value =~ /\v/) {
         $props->{$key} = "";
         $self->{tsvIsDirty} = 1;
@@ -84,32 +88,17 @@ sub _isJsonPropValue {
 
 sub traverseProperties {
     my ($self, $callback) = @_;
-    my $skipJson = 1;
-
     if (my $tsv = $self->{tsv}) {
         foreach (keys %{$self->{tsv}}) {
-            if (_isJsonPropValue($tsv->{$_})) {
-                $skipJson = 0;
-            } elsif ($callback->($_, $tsv->{$_})) {
-                $skipJson = 1;
-                last;
-            }
+            my $value = $tsv->{$_};
+            $value = $self->_loadJson->{$_} if _isJsonPropValue($value);
+            return if $callback->($_, $value);
         }
     } else {
         $self->_loadTsv(sub {
-            if (_isJsonPropValue($_[1])) {
-                $skipJson = 0;
-            } else {
-                $callback->(@_) || return;
-                $skipJson = 1;
-            }
+            $_[1] = $self->_loadJson->{$_[0]} if _isJsonPropValue($_[1]);
+            $callback->(@_);
         });
-    }
-    return if $skipJson;
-
-    my $json = $self->_loadJson;
-    foreach (keys %$json) {
-        last if $callback->($_, $json->{$_});
     }
 }
 
@@ -140,7 +129,7 @@ sub saveDirProperties {
 sub _loadTsv {
     my ($self, $callback) = @_;
     return $self->{tsv} if $self->{tsv};
-    my $break = ! defined $callback;
+    my $break = not defined $callback;
     try {
         RJK::Util::TSV->read("$self->{path}/.dir.tsv", sub {
             my $row = shift;
@@ -166,23 +155,33 @@ sub _loadJson {
 # File Properties
 ################################################################################
 
+sub getFileProperties {
+    my ($self, $filename) = @_;
+    my $props;
+    my $hit;
+    $self->traverseFileProperties(sub {
+        return $hit if $_[0] ne $filename;
+        $hit = 1;
+        $props->{$_[1]} = $_[2];
+        return 0;
+    });
+    return $props;
+}
+
 sub getFileProperty {
     my ($self, $filename, $key) = @_;
     my $value;
+    $self->traverseFileProperties(sub {
+        return if $_[0] ne $filename || $_[1] ne $key;
+        $value = $_[2];
+        return 1;
+    });
+    return $value;
+}
 
-    if ($self->{fileTsv}) {
-        $value = $self->{fileTsv}{$filename}{$key};
-    } else {
-        $self->_loadFileTsv(sub {
-            return if $_[0] ne $filename;
-            return if $_[1] ne $key;
-            defined($value = $_[2]);
-        });
-    }
-    return $value if not defined $value or $value ne "";
-
-    my $json = $self->_loadFileJSON;
-    return $json->{$filename}{$key} if $json;
+sub setFileProperties {
+    my ($self, $filename, $props) = @_;
+    $self->setFileProperty($filename, $_, $props->{$_}) for keys %$props;
 }
 
 sub setFileProperty {
@@ -194,6 +193,7 @@ sub setFileProperty {
         $self->_deleteFileJsonProp($filename, $key) if _isJsonPropValue($props->{$key});
         delete $props->{$key};
         delete $self->{fileTsv}{$filename} if ! keys %$props;
+        $self->{fileTsvIsDirty} = 1;
     } elsif ($value =~ /\v/) {
         $props->{$key} = "";
         $self->{fileTsvIsDirty} = 1;
@@ -217,37 +217,27 @@ sub _deleteFileJsonProp {
 
 sub traverseFileProperties {
     my ($self, $callback) = @_;
-    my $skipJson = 1;
 
     if (my $tsv = $self->{fileTsv}) {
-        FILES: foreach my $filename (keys %$tsv) {
+        foreach my $filename (keys %$tsv) {
             foreach (keys %{$tsv->{$filename}}) {
-                if (_isJsonPropValue($tsv->{$filename}{$_})) {
-                    $skipJson = 0;
-                } elsif ($callback->($filename, $_, $tsv->{$filename}{$_})) {
-                    $skipJson = 1;
-                    last FILES;
-                }
+                my $value = $tsv->{$filename}{$_};
+                $value = $self->_getJsonFilePropValue($filename, $_) if _isJsonPropValue($value);
+                return if $callback->($filename, $_, $value);
             }
         }
     } else {
         $self->_loadFileTsv(sub {
-            if (_isJsonPropValue($_[1])) {
-                $skipJson = 0;
-            } else {
-                $callback->(@_) || return;
-                $skipJson = 1;
-            }
+            $_[2] = $self->_getJsonFilePropValue(@_) if _isJsonPropValue($_[2]);
+            $callback->(@_);
         });
     }
-    return if $skipJson;
+}
 
-    my $json = $self->_loadFileJSON;
-    FILES: foreach my $filename (keys %$json) {
-        foreach (keys %{$json->{$filename}}) {
-            last FILES if $callback->($filename, $_, $json->{$filename}{$_});
-        }
-    }
+sub _getJsonFilePropValue {
+    my ($self, $filename, $key) = @_;
+    my $f = $self->_loadFileJSON->{$filename};
+    return $f->{$key} if $f;
 }
 
 sub saveFileProperties {
@@ -275,12 +265,12 @@ sub saveFileProperties {
 sub _loadFileTsv {
     my ($self, $callback) = @_;
     return $self->{fileTsv} if $self->{fileTsv};
-    my $break = ! defined $callback;
+    my $break = not defined $callback;
     try {
         my $filename;
         RJK::Util::TSV->read("$self->{path}/.files.tsv", sub {
             my $row = shift;
-            if (! defined $row->[1]) {
+            if (not defined $row->[1]) {
                 $filename = $row->[0];
                 return;
             }
