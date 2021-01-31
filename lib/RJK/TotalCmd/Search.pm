@@ -182,6 +182,20 @@ sub new {
 
 ---++ Object methods
 
+---+++ match($path, $stat) -> \%result
+
+=cut
+###############################################################################
+
+sub match {
+    my ($self, $path, $stat) = @_;
+    require RJK::TotalCmd::Searches;
+    RJK::TotalCmd::Searches->match($self, $path, $stat);
+}
+
+###############################################################################
+=pod
+
 ---+++ update($search)
 Copy unset parameters from other =$search=.
 
