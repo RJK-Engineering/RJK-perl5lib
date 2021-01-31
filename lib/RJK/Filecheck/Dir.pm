@@ -20,17 +20,18 @@ sub new {
 sub hasProperty {
     my ($self, $key, $value) = @_;
     $value = undef if _isJsonPropValue($value);
-    my $hasProperty;
 
     if ($self->{tsv}) {
-        $hasProperty = defined $self->{tsv}{$key} &&
+        return 1 if defined $self->{tsv}{$key} &&
             (not defined $value or $value eq $self->{tsv}{$key});
     } else {
+        my $hasProperty;
         $self->_getTsv(sub {
-            $hasProperty = $_[0] eq $key && (not defined $value or $value eq $_[1]);
+            $hasProperty = $_[0] eq $key &&
+                (not defined $value or $value eq $_[1]);
         });
+        return $hasProperty;
     }
-    return $hasProperty;
 }
 
 sub getProperty {
@@ -154,6 +155,27 @@ sub _getJson {
 ################################################################################
 # File Properties
 ################################################################################
+
+sub hasFileProperty {
+    my ($self, $filename, $key, $value) = @_;
+    $value = undef if _isJsonPropValue($value);
+
+    if ($self->{tsv}) {
+        return 1 if
+            defined $self->{tsv}{$filename} &&
+            defined $self->{tsv}{$filename}{$key} &&
+            (not defined $value or $value eq $self->{tsv}{$filename}{$key});
+    } else {
+        my $hasProperty;
+        $self->_getFileTsv(sub {
+            $hasProperty =
+                $_[0] eq $filename &&
+                $_[1] eq $key &&
+                (not defined $value or $value eq $_[2]);
+        });
+        return $hasProperty;
+    }
+}
 
 sub getFileProperty {
     my ($self, $filename, $key) = @_;
