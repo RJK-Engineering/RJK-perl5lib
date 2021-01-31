@@ -41,4 +41,8 @@ $dir->traverseFileProperties(sub {
     return 0;
 });
 
+my $props = $dir->getFileProperties('file.ext');
+use Data::Dump;
+dd $props;
+
 $dir->saveProperties();
