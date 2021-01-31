@@ -51,28 +51,29 @@ use warnings;
 use Exceptions;
 use RJK::TotalCmd::Search;
 
-sub create {
+sub deserialize {
     my ($class, $conf) = @_;
     $conf //= {};
-    my $search = new RJK::TotalCmd::Search(%$conf);
-    $search->{name} or return $search;
+    my $search = new RJK::TotalCmd::Search();
+    $search->{for} = $conf->{SearchFor};
+    $search->{text} = $conf->{SearchText};
 
     # SearchIn split on ";"
-    $search->{paths} = [ split /\s*;\s*/, $search->{SearchIn} ];
+    $search->{paths} = [ split /\s*;\s*/, $conf->{SearchIn} ];
 
     # flag array
-    my @flags = $search->{SearchFlags} =~
+    my @flags = $conf->{SearchFlags} =~
         /^(\d)
         \|(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)
         \|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)
         \|(?:(\d)(\d)(\d)(\d)(\d))?
         \|(\d)(\d)(\d)(\d)\|?(.*)/x
     or throw Exception(
-        "Error parsing SearchFlags: $search->{SearchFlags}"
+        "Error parsing SearchFlags: $conf->{SearchFlags}"
     );
 
     # flag hash
-    my %flags; @flags{@RJK::TotalCmd::Search::flagNames} = @flags;
+    my %flags; @flags{@RJK::TotalCmd::Search::flagNames} = map { $_//0 } @flags;
     $search->{flags} = \%flags;
 
     # Calculated from flags
@@ -90,15 +91,12 @@ sub create {
         }
     }
 
-    if ($flags{regex}) {
-        $search->{regex} = $search->{SearchFor};
-
     # SearchFor contains wildcards
-    } elsif ($search->{SearchFor} =~ /[?*]/) {
-        my @s = split /\s*\|\s*/, $search->{SearchFor};
+    if (! $flags{regex} && $conf->{SearchFor} =~ /[?*]/) {
+        my @s = split /\s*\|\s*/, $conf->{SearchFor};
         $search->{search} = $s[0] // "";
         $search->{searchNot} = $s[1] // "";
-        warn "Ignoring part after second \"|\": $search->{SearchFor}" if @s > 2;
+        warn "Ignoring part after second \"|\": $conf->{SearchFor}" if @s > 2;
 
         for (qw(search searchNot)) {
             my $re = $search->{$_};
