@@ -172,9 +172,7 @@ Returns a new =RJK::TotalCmd::Search= object.
 ###############################################################################
 
 sub new {
-    my $self = bless \%$proto, shift;
-    $self->{flags} = \%$flagsProto;
-    return $self;
+    return bless {}, shift;
 }
 
 ###############################################################################
