@@ -53,7 +53,6 @@ use RJK::TotalCmd::Search;
 
 sub deserialize {
     my ($class, $conf) = @_;
-    $conf //= {};
     my $search = new RJK::TotalCmd::Search();
     $search->{for} = $conf->{SearchFor};
     $search->{text} = $conf->{SearchText};
