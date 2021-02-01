@@ -69,8 +69,9 @@ sub parseMetadata {
 
 sub parseStreams {
     while (&readLine) {
+        my $stream;
         if (s/^\s*(\w+) #(\d+).(\d+)(?:\((.+)\)|\[.+?\])?: //) {
-            my $stream = { pid => $2, sid => $3, language => $4 };
+            $stream = { pid => $2, sid => $3, language => $4 };
             if ($1 eq 'Stream') {
                 parseStream($stream);
             } elsif ($1 eq 'Chapter') {
@@ -79,6 +80,8 @@ sub parseStreams {
                 $stream->{description} = $_;
                 push @{$info->{otherInfo}}, $stream;
             }
+        } elsif (/^(\s*)Metadata:/) {
+            $stream->{metadata} = &parseMetadata($1);
         }
     }
 }
@@ -101,14 +104,15 @@ sub parseChapter {
     my ($stream) = @_;
     my $chapter = {};
 
-    &readLine;
-    if (/^(\s*)Metadata:/) {
-        $chapter = &parseMetadata($1);
-    }
-
     if (/start (\S+), end (\S+)/) {
         $chapter->{start} = $1+0;
         $chapter->{end} = $2+0;
+    }
+
+    &readLine;
+    if (/^(\s*)Metadata:/) {
+        my $md = &parseMetadata($1);
+        $chapter->{title} = $md->{title};
     }
     return $chapter;
 }
