@@ -49,12 +49,12 @@ sub setProperty {
     my ($self, $key, $value) = @_;
     my $props = $self->_getTsv();
 
-    if ($value eq "") {
+    if (($value //= "") eq "") {
         return if not defined $props->{$key};
         $self->_deleteJsonProp($key) if _isJsonPropValue($props->{$key});
         delete $props->{$key};
         $self->{tsvIsDirty} = 1;
-    } elsif ($value =~ /\v/) {
+    } elsif (ref $value or $value =~ /\v/) {
         $props->{$key} = "";
         $self->{tsvIsDirty} = 1;
         my $json = $self->_getJson;
@@ -192,13 +192,13 @@ sub setFileProperty {
     my ($self, $filename, $key, $value) = @_;
     my $props = $self->_getFileTsv()->{$filename} //= {};
 
-    if ($value eq "") {
+    if (($value //= "") eq "") {
         return if not defined $props->{$key};
         $self->_deleteFileJsonProp($filename, $key) if _isJsonPropValue($props->{$key});
         delete $props->{$key};
         delete $self->{fileTsv}{$filename} if ! keys %$props;
         $self->{fileTsvIsDirty} = 1;
-    } elsif ($value =~ /\v/) {
+    } elsif (ref $value or $value =~ /\v/) {
         $props->{$key} = "";
         $self->{fileTsvIsDirty} = 1;
         my $json = $self->_getFileJson;
