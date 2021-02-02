@@ -53,9 +53,10 @@ use RJK::TotalCmd::Search;
 
 sub deserialize {
     my ($class, $conf) = @_;
-    my $search = new RJK::TotalCmd::Search();
-    $search->{for} = $conf->{SearchFor};
-    $search->{text} = $conf->{SearchText};
+    my $search = bless {
+        for => $conf->{SearchFor},
+        text => $conf->{SearchText}
+    }, 'RJK::TotalCmd::Search';
 
     # SearchIn split on ";"
     $search->{paths} = [ split /\s*;\s*/, $conf->{SearchIn} ];
