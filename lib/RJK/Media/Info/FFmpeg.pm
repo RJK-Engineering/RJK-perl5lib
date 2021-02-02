@@ -120,7 +120,7 @@ sub parseChapter {
 sub parseAudioStream {
     my ($stream) = @_;
 
-    parseFormat($stream) || return;
+    parseFormat($stream);
 
     parseFrequency: {
         if (s/^, (\d+) Hz//) {
@@ -158,7 +158,7 @@ sub parseNote {
 sub parseVideoStream {
     my ($stream) = @_;
 
-    parseFormat($stream) || return;
+    parseFormat($stream);
 
     parseColorspace: {
         if (s/^, (\w+)(?: ?\(.+?\))?//) {
@@ -201,15 +201,15 @@ sub parseFormat {
 
 sub postProcessing {
     foreach my $vi (@{$info->{video}}) {
-        $info->{framerate} ||= $vi->{tbr};
+        $vi->{framerate} ||= $vi->{tbr};
         if ($vi->{dar}) {
-            $info->{aspect} = $vi->{dar};
+            $vi->{aspect} = $vi->{dar};
         } else {
             my $w = $vi->{width};
             my $h = $vi->{height};
             if ($w && $h) {
                 my $gcf = gcf($w, $h);
-                $info->{aspect} = $w/$gcf .":". $h/$gcf;
+                $vi->{aspect} = $w/$gcf .":". $h/$gcf;
             }
         }
     }
