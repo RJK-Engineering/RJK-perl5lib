@@ -200,6 +200,8 @@ sub parseFormat {
 }
 
 sub postProcessing {
+    $info->{audio} //= [];
+    $info->{video} //= [];
     foreach my $vi (@{$info->{video}}) {
         $vi->{framerate} ||= $vi->{tbr};
         if ($vi->{dar}) {
