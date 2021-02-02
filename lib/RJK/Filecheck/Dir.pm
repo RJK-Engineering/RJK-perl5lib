@@ -321,9 +321,11 @@ sub _getFileTsv {
 sub _getFileJson {
     my ($self) = @_;
     return $self->{fileJson} if $self->{fileJson};
+    my $file = "$self->{path}/.files.json";
     try {
-        $self->{fileJson} = RJK::Util::JSON->read("$self->{path}/.files.json");
+        $self->{fileJson} = RJK::Util::JSON->read($file);
     } catch {};
+    UNIVERSAL::isa($self->{fileJson}, "HASH") or die "Invalid data type in: $file";
     return $self->{fileJson} //= {};
 }
 
