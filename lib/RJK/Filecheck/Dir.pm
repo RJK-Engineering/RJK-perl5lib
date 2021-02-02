@@ -156,6 +156,18 @@ sub _getJson {
 # File Properties
 ################################################################################
 
+sub getFiles {
+    my ($self) = @_;
+    $self->_getFileTsv();
+    return [ keys %{$self->{fileTsv}} ];
+}
+
+sub removeFile {
+    my ($self, $filename) = @_;
+    $self->_getFileTsv();
+    my $removed = delete $self->{fileTsv}{$filename};
+}
+
 sub hasFileProperty {
     my ($self, $filename, $key, $value) = @_;
     $value = undef if _isJsonPropValue($value);
@@ -294,6 +306,7 @@ sub _getFileTsv {
             my $row = shift;
             if (not defined $row->[1]) {
                 $filename = $row->[0];
+                $self->{fileTsv}{$filename} = {};
                 return;
             }
             my $v = $row->[1] // "";
