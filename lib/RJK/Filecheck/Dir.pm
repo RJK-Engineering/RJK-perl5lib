@@ -325,7 +325,7 @@ sub _getFileJson {
     try {
         $self->{fileJson} = RJK::Util::JSON->read($file);
     } catch {};
-    UNIVERSAL::isa($self->{fileJson}, "HASH") or die "Invalid data type in: $file";
+    UNIVERSAL::isa($self->{fileJson} //= {}, "HASH") or die "Invalid data type in: $file";
     return $self->{fileJson} //= {};
 }
 
