@@ -93,7 +93,6 @@ use strict;
 use warnings;
 
 use Exceptions;
-use RJK::TotalCmd::Search;
 use RJK::TotalCmd::Deserialize::Search;
 use RJK::TotalCmd::Item::MenuItem;
 use RJK::TotalCmd::ItemList::Menu;
@@ -303,7 +302,7 @@ sub addToHistory {
 
 sub getSearch {
     my ($self, $name) = @_;
-    return new RJK::TotalCmd::Search if ! defined $name;
+    return bless {}, 'RJK::TotalCmd::Search' if ! defined $name;
     my $searches = $self->getSearches(sub {shift->{name} =~ /^\Q$name\E$/}, 1);
     return $searches->{$name};
 }
