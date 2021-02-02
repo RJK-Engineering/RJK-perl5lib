@@ -51,6 +51,7 @@ sub loadProperties {
         $k =~ s/\.(\w?)/\U$1/g; # make camelCase
         $options->{$k} = $v;
     }
+    push @{$options->{configFiles}}, $path;
 }
 
 sub loadJson {
@@ -60,6 +61,7 @@ sub loadJson {
     while (my ($k, $v) = each %$json) {
         $options->{$k} = $v;
     }
+    push @{$options->{configFiles}}, $path;
 }
 
 1;
