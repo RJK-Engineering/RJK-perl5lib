@@ -86,7 +86,7 @@ sub update {
 sub _setOffline {
     my ($self, $volumes, $changed) = @_;
     foreach my $vol (values %{$self->{status}}) {
-        my $l = $vol->{letter};
+        my $l = $vol->{drive};
         next if $self->{ignore}{$l};
         next if ! $vol->{online};
         next if $volumes->{$l};
@@ -100,7 +100,7 @@ sub _setOnline {
     my ($self, $volumes, $changed) = @_;
     my $status = $self->{status};
     foreach my $vol (values %$volumes) {
-        my $l = $vol->{letter};
+        my $l = $vol->{drive};
         next if $self->{ignore}{$l};
 
         if ($status->{$l}) {
@@ -118,8 +118,8 @@ sub _setOnline {
 
 ---+++ all() -> \%volumes or @volumes
 Returns all volumes.
-Returns a list of volumes sorted by drive letter in list context.
-Returns a =$driveLetter => \%volume= hash reference in scalar context.
+Returns a list of volumes sorted by drive name in list context.
+Returns a =$drive => \%volume= hash reference in scalar context.
 
 =cut
 ###############################################################################
@@ -134,8 +134,8 @@ sub all {
 
 ---+++ online() -> \%volumes or @volumes
 Returns online volumes.
-Returns a list of volumes sorted by drive letter in list context.
-Returns a =$driveLetter => \%volume= hash reference in scalar context.
+Returns a list of volumes sorted by drive name in list context.
+Returns a =$drive => \%volume= hash reference in scalar context.
 
 =cut
 ###############################################################################
@@ -143,10 +143,10 @@ Returns a =$driveLetter => \%volume= hash reference in scalar context.
 sub online {
     my $self = shift;
     my %online;
-    foreach my $drive ($self->all) {
-        my $driveLetter = $drive->{letter};
-        next if $self->{ignore}{$driveLetter};
-        $online{$driveLetter} = $drive if $drive->{online};
+    foreach my $vol ($self->all) {
+        my $drive = $vol->{drive};
+        next if $self->{ignore}{$drive};
+        $online{$drive} = $vol if $vol->{online};
     }
     return wantarray ? valuesSortedByKey(\%online) : \%online;
 }
@@ -156,8 +156,8 @@ sub online {
 
 ---+++ offline() -> \%volumes or @volumes
 Returns offline volumes.
-Returns a list of volumes sorted by drive letter in list context.
-Returns a =$driveLetter => \%volume= hash reference in scalar context.
+Returns a list of volumes sorted by drive name in list context.
+Returns a =$drive => \%volume= hash reference in scalar context.
 
 =cut
 ###############################################################################
@@ -165,10 +165,10 @@ Returns a =$driveLetter => \%volume= hash reference in scalar context.
 sub offline {
     my $self = shift;
     my %offline;
-    foreach my $drive ($self->all) {
-        my $driveLetter = $drive->{letter};
-        next if $self->{ignore}{$driveLetter};
-        $offline{$driveLetter} = $drive unless $drive->{online};
+    foreach my $vol ($self->all) {
+        my $drive = $vol->{drive};
+        next if $self->{ignore}{$drive};
+        $offline{$drive} = $vol unless $vol->{online};
     }
     return wantarray ? valuesSortedByKey(\%offline) : \%offline;
 }
@@ -178,8 +178,8 @@ sub offline {
 
 ---+++ active() -> \%volumes or @volumes
 Returns active volumes.
-Returns a list of volumes sorted by drive letter in list context.
-Returns a =$driveLetter => \%volume= hash reference in scalar context.
+Returns a list of volumes sorted by drive name in list context.
+Returns a =$drive => \%volume= hash reference in scalar context.
 
 =cut
 ###############################################################################
@@ -187,10 +187,10 @@ Returns a =$driveLetter => \%volume= hash reference in scalar context.
 sub active {
     my $self = shift;
     my %active;
-    foreach my $drive ($self->all) {
-        my $driveLetter = $drive->{letter};
-        next if $self->{ignore}{$driveLetter};
-        $active{$driveLetter} = $drive if $drive->{active};
+    foreach my $vol ($self->all) {
+        my $drive = $vol->{drive};
+        next if $self->{ignore}{$drive};
+        $active{$drive} = $vol if $vol->{active};
     }
     return wantarray ? valuesSortedByKey(\%active) : \%active;
 }
@@ -200,8 +200,8 @@ sub active {
 
 ---+++ inactive() -> \%volumes or @volumes
 Returns inactive volumes.
-Returns a list of volumes sorted by drive letter in list context.
-Returns a =$driveLetter => \%volume= hash reference in scalar context.
+Returns a list of volumes sorted by drive name in list context.
+Returns a =$drive => \%volume= hash reference in scalar context.
 
 =cut
 ###############################################################################
@@ -209,10 +209,10 @@ Returns a =$driveLetter => \%volume= hash reference in scalar context.
 sub inactive {
     my $self = shift;
     my %inactive;
-    foreach my $drive ($self->all) {
-        my $driveLetter = $drive->{letter};
-        next if $self->{ignore}{$driveLetter};
-        $inactive{$driveLetter} = $drive unless $drive->{active};
+    foreach my $vol ($self->all) {
+        my $drive = $vol->{drive};
+        next if $self->{ignore}{$drive};
+        $inactive{$drive} = $vol unless $vol->{active};
     }
     return wantarray ? valuesSortedByKey(\%inactive) : \%inactive;
 }
@@ -220,15 +220,15 @@ sub inactive {
 ###############################################################################
 =pod
 
----+++ toggleActive($driveLetter) -> $boolean
+---+++ toggleActive($drive) -> $boolean
 Returns new value.
 
 =cut
 ###############################################################################
 
 sub toggleActive {
-    my ($self, $driveLetter) = @_;
-    my $status = $self->{status}{$driveLetter} // return;
+    my ($self, $drive) = @_;
+    my $status = $self->{status}{$drive} // return;
     $status->{active} = $status->{active} ? 0 : 1;
     $self->commit();
     return $status->{active};
@@ -237,16 +237,16 @@ sub toggleActive {
 ###############################################################################
 =pod
 
----+++ isOnline($driveLetter) -> $boolean
+---+++ isOnline($drive) -> $boolean
 ---+++ str() -> $statusString
 
 =cut
 ###############################################################################
 
 sub isOnline {
-    my ($self, $driveLetter) = @_;
-    $self->{status}{$driveLetter} // return;
-    $self->{status}{$driveLetter}{online};
+    my ($self, $drive) = @_;
+    $self->{status}{$drive} // return;
+    $self->{status}{$drive}{online};
 }
 
 sub valuesSortedByKey {
