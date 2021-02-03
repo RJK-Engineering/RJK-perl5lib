@@ -126,22 +126,30 @@ sub read {
     my ($self, $file) = @_;
     $file //= $self->{file};
     open (my $fh, '<', $file) || return;
+
     while (<$fh>) {
+        $self->{bom} //= readUtf8Bom();
         chomp;
         push @{$self->{list}}, $_;
     }
-    close $fh || return;
+    close $fh;
     return $self;
+}
+
+sub readUtf8Bom {
+    (s|^(\xEF\xBB\xBF)||)[0] // "";
 }
 
 sub write {
     my ($self, $file) = @_;
     $file //= $self->{file};
     open (my $fh, '>', $file) || return;
+
+    print $fh $self->{bom}//"";
     foreach (@{$self->{list}}) {
-        print $fh "$_\n" || return;
+        print $fh "$_\n";
     }
-    close $fh || return;
+    close $fh;
     return $self;
 }
 
