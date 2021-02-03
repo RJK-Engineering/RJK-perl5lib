@@ -46,6 +46,7 @@ sub hasObserver {
 sub notifyObservers {
     my ($self, $event) = @_;
     my $method = "handle" . $event->{type} . "Event";
+    local $_ = $event;
 
     foreach my $observer (@{$self->{observers}}) {
         if ($observer->can($method)) {
