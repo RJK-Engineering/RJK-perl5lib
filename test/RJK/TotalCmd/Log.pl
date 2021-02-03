@@ -3,6 +3,7 @@ use warnings;
 
 use Data::Dump;
 use RJK::TotalCmd::Log;
+use RJK::TotalCmd::Log::Entry;
 
 my $file = 'c:\data\log\totalcmd\totalcmd.log';
 
