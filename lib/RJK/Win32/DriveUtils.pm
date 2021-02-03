@@ -10,36 +10,14 @@ package RJK::Win32::DriveUtils;
 
 use strict;
 use warnings;
-use Exporter ();
-
-our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(
-    GetDriveLetter
-    ConnectDrive
-    DisconnectDrive
-);
 
 ###############################################################################
 =pod
 
 ---++ Class methods
 
----+++ GetDriveLetter($path)
-Get drive letter.
-
-=cut
-###############################################################################
-
-sub GetDriveLetter {
-    my $path = shift;
-    return uc(($path =~ /^(\w):/)[0]);
-}
-
-###############################################################################
-=pod
-
----+++ ConnectDrive($path)
-    * =$path= - complete path or drive letter.
+---+++ connectDrive($path)
+    * =$path= - path to take drive from.
 
 Connect network drive.
 Drive host must be set in =RJK_NETWORK_DRIVE_HOST= environment variable.
@@ -47,42 +25,28 @@ Drive host must be set in =RJK_NETWORK_DRIVE_HOST= environment variable.
 =cut
 ###############################################################################
 
-sub ConnectDrive {
+sub connectDrive {
     my $path = shift;
     my $host = $ENV{RJK_NETWORK_DRIVE_HOST} || die "Environment variable RJK_NETWORK_DRIVE_HOST not set";
-
-    my $drive = $path;
-    unless ($path =~ /^\w$/) {
-        $drive = GetDriveLetter($path) || return;
-    }
-
-    return if -e "$drive:";
-
-    !system "net use $drive: \\\\$host\\$drive\$";
+    my $drive = ($path =~ /^(\w):/)[0] or return;
+    ! system "net use $drive: \\\\$host\\$drive\$";
 }
 
 ###############################################################################
 =pod
 
----+++ DisconnectDrive($path)
-    * =$path= - complete path or drive letter.
+---+++ disconnectDrive($path)
+    * =$path= - path to take drive from.
 
 Disconnect network drive.
 
 =cut
 ###############################################################################
 
-sub DisconnectDrive {
+sub disconnectDrive {
     my $path = shift;
-
-    my $drive = $path;
-    unless ($path =~ /^\w$/) {
-        $drive = GetDriveLetter($path) || return;
-    }
-
-    return if !-e "$drive:";
-
-    !system "net use /delete $drive:";
+    my $drive = ($path =~ /^(\w):/)[0] or return;
+    ! system "net use /delete $drive:";
 }
 
 1;
