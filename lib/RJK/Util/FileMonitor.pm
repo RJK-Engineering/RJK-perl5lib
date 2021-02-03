@@ -14,15 +14,18 @@ sub setFile {
 
 sub doPoll {
     my $self = shift;
-    my $modified = RJK::Stat->get($self->{file})->modified;
+    my $stat = RJK::Stat->get($self->{file});
 
-    if ($self->{modified} && $modified != $self->{modified}) {
+    if ($self->{modified} && $stat->modified != $self->{modified}) {
         $self->notifyObservers({
             type => "FileChanged",
-            payload => $self->{file}
+            payload => {
+                file => $self->{file},
+                stat => $stat
+            }
         });
     }
-    $self->{modified} = $modified;
+    $self->{modified} = $stat->modified;
 }
 
 1;
