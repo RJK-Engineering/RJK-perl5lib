@@ -44,10 +44,16 @@ sub parseInputInfo {
     while (&readLine) {
         if (/^(\s*)Metadata:/) {
             $info->{metadata} = &parseMetadata($1);
-        } elsif (/^\s*Duration: (\d+):(\d+):(\d+\.\d+), start: (-?\d+\.\d+), bitrate: (\d+)/) {
-            $info->{duration} = $1 * 3600 + $2 * 60 + $3;
-            $info->{start} = $4+0;
-            $info->{bitrate} = $5;
+        } elsif (s/^\s*Duration: //) {
+            if (s/^(\d+):(\d+):(\d+\.\d+)//) {
+                $info->{duration} = $1 * 3600 + $2 * 60 + $3;
+            }
+            if (s/, start: (-?\d+\.\d+)//) {
+                $info->{start} = $1+0;
+            }
+            if (s/, bitrate: (\d+)//) {
+                $info->{bitrate} = $1;
+            }
             &parseStreams;
         }
     }
