@@ -266,9 +266,7 @@ sub read {
 
     my ($pl, $keys, $section, $comment);
     while (<$in>) {
-        if (! $self->{bom} && s/^(\xEF\xBB\xBF)//) {
-            $self->{bom} = $1;
-        }
+        $self->{bom} //= readUtf8Bom();
         chomp;
         if (/^([;#].*)/) {
             $comment .= "$1\n";
@@ -293,6 +291,10 @@ sub read {
     return $self;
 }
 
+sub readUtf8Bom {
+    (s|^(\xEF\xBB\xBF)||)[0] // "";
+}
+
 sub clear {
     my $self = shift;
     $self->{sections} = [];   # sections
@@ -313,7 +315,7 @@ sub write {
            or throw OpenFileException(error => "$!", file => $file, mode => '>');
     }
 
-    print $fh $self->{bom} if $self->{bom};
+    print $fh $self->{bom}//"";
     foreach my $section ($sort ? sort @{$self->{sections}} : @{$self->{sections}}) {
         my $pl = $self->{properties}{$section};
         print $fh $self->{sectionComments}{$section}//"";
