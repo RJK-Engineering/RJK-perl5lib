@@ -1,4 +1,8 @@
+use strict;
+use warnings;
+
 use RJK::TotalCmd::Search;
+use RJK::TotalCmd::Settings::Ini;
 
 my $conf = {
     name => '.video',
@@ -8,7 +12,14 @@ my $conf = {
     SearchFlags => '0|000002000020||||||||22220|0000|',
 };
 
-my $s = new RJK::TotalCmd::Search(%$conf);
+my $search = new RJK::TotalCmd::Search(%$conf);
 
 use Data::Dump;
-dd($s);
+dd $search;
+
+my $ini = new RJK::TotalCmd::Settings::Ini()->read;
+$search = $ini->getSearch("MPC Snapshot");
+dd $search;
+
+$search = new RJK::TotalCmd::Search();
+dd $search;
