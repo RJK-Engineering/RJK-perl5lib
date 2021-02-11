@@ -37,7 +37,7 @@ sub hasProperty {
 sub getProperty {
     my ($self, $key) = @_;
     my $value;
-    $self->traverseProperties(sub {
+    $self->_traverseProperties(sub {
         return if $_[0] ne $key;
         $value = $_[1];
         return 1;
@@ -79,15 +79,20 @@ sub _isJsonPropValue {
 
 sub getProperties {
     my ($self) = @_;
-    my $props;
-    $self->traverseProperties(sub {
+    my $props = {};
+    $self->_traverseProperties(sub {
         $props->{$_[1]} = $_[2];
         return 0;
     });
-    return $props;
+    return bless $props, 'RJK::Filecheck::Properties';
 }
 
-sub traverseProperties {
+sub setProperties {
+    my ($self, $props) = @_;
+    $self->setProperty($_, $props->{$_}) for keys %$props;
+}
+
+sub _traverseProperties {
     my ($self, $callback) = @_;
     if (my $tsv = $self->{tsv}) {
         foreach (keys %{$self->{tsv}}) {
@@ -105,11 +110,11 @@ sub traverseProperties {
 
 sub saveProperties {
     my ($self) = @_;
-    $self->saveDirProperties();
-    $self->saveFileProperties();
+    $self->_saveDirProperties();
+    $self->_saveFileProperties();
 }
 
-sub saveDirProperties {
+sub _saveDirProperties {
     my ($self) = @_;
     if ($self->{tsvIsDirty}) {
         my @rows;
@@ -192,7 +197,7 @@ sub hasFileProperty {
 sub getFileProperty {
     my ($self, $filename, $key) = @_;
     my $value;
-    $self->traverseFileProperties(sub {
+    $self->_traverseFileProperties(sub {
         return if $_[0] ne $filename || $_[1] ne $key;
         $value = $_[2];
         return 1;
@@ -235,13 +240,13 @@ sub getFileProperties {
     my ($self, $filename) = @_;
     my $props;
     my $hit;
-    $self->traverseFileProperties(sub {
+    $self->_traverseFileProperties(sub {
         return $hit if $_[0] ne $filename;
         $hit = 1;
         $props->{$_[1]} = $_[2];
         return 0;
     });
-    return $props;
+    return bless $props, 'RJK::Filecheck::Properties';
 }
 
 sub setFileProperties {
@@ -249,7 +254,7 @@ sub setFileProperties {
     $self->setFileProperty($filename, $_, $props->{$_}) for keys %$props;
 }
 
-sub traverseFileProperties {
+sub _traverseFileProperties {
     my ($self, $callback) = @_;
 
     if (my $tsv = $self->{fileTsv}) {
@@ -274,7 +279,7 @@ sub _getJsonFilePropValue {
     return $f->{$key} if $f;
 }
 
-sub saveFileProperties {
+sub _saveFileProperties {
     my ($self) = @_;
     if ($self->{fileTsvIsDirty}) {
         my @rows;
