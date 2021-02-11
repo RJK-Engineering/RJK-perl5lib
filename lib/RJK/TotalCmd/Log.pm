@@ -116,13 +116,12 @@ sub parseEntry {
     } elsif (s/^(\w+)\(Skipped\): //) {
         $entry->{operation} = $1;
         $entry->{skipped} = 1;
-    } elsif (/^Program start \((.+)\)$/) {
+    } elsif (s/^Program start \((.+)\)//) {
         $entry->{operation} = "Startup";
         $entry->{user} = $1;
-    } elsif (/^Program start \((.+)\) (.+)$/) {
-        $entry->{operation} = "Startup";
-        $entry->{user} = $1;
-        $entry->{encoding} = $2;
+        if (/^ (.+)/) {
+            $entry->{encoding} = $1;
+        }
     } elsif (/^Program shutdown \((.+)\)$/) {
         $entry->{operation} = "Shutdown";
         $entry->{user} = $1;
