@@ -38,19 +38,19 @@ Package variable =@RJK::TotalCmd::Search::flagNames= contains an ordered list of
 field names used in the =flags= hash, these are listed in the second column.
 
 | *Position* | *Field* | *Description* | *Format* | *Default* |
-| 0 | archives | Search archives | 0=enabled, 1=disabled | 0 |
-| 1 | textWord | Find Text: Whole words only | 0=enabled, 1=disabled | 0 |
-| 2 | textCase | Find Text: Case sensitive | 0=enabled, 1=disabled | 0 |
-| 3 | textAscii | Find Text: Ascii charset | 0=enabled, 1=disabled | 0 |
-| 4 | textNot | Find Text: NOT containing text | 0=enabled, 1=disabled | 0 |
-| 5 | selected | Only search in selected | 0=enabled, 1=disabled | 0 |
+| 0 | archives | Search archives | 0=disabled, 1=enabled | 0 |
+| 1 | textWord | Find Text: Whole words only | 0=disabled, 1=enabled | 0 |
+| 2 | textCase | Find Text: Case sensitive | 0=disabled, 1=enabled | 0 |
+| 3 | textAscii | Find Text: Ascii charset | 0=disabled, 1=enabled | 0 |
+| 4 | textNot | Find Text: NOT containing text | 0=disabled, 1=enabled | 0 |
+| 5 | selected | Only search in selected | 0=disabled, 1=enabled | 0 |
 | 6 | compressed | Attribute: Compressed | 0=cleared, 1=set, 2=don't care | 2 |
-| 7 | textHex | Find Text: Hex | 0=enabled, 1=disabled | 0 |
-| 8 | textUnicode | Find Text: Unicode | 0=enabled, 1=disabled | 0 |
-| 9 | regex | Search For: Regex | 0=enabled, 1=disabled | 0 |
-| 10 | textRegex | Find Text: Regex | 0=enabled, 1=disabled | 0 |
+| 7 | textHex | Find Text: Hex | 0=disabled, 1=enabled | 0 |
+| 8 | textUnicode | Find Text: Unicode | 0=disabled, 1=enabled | 0 |
+| 9 | regex | Search For: Regex | 0=disabled, 1=enabled | 0 |
+| 10 | textRegex | Find Text: Regex | 0=disabled, 1=enabled | 0 |
 | 11 | encrypted | Attribute: Encrypted | 0=cleared, 1=set, 2=don't care | 2 |
-| 12 | textUtf8 | Find Text: UTF8-Search | 0=enabled, 1=disabled | 0 |
+| 12 | textUtf8 | Find Text: UTF8-Search | 0=disabled, 1=enabled | 0 |
 | 13 | start | Date between: Start | d-m-yyyy hh:mm:ss | |
 | 14 | end | Date between: End | d-m-yyyy hh:mm:ss | |
 | 15 | time | Not older then | Number | |
@@ -63,10 +63,10 @@ field names used in the =flags= hash, these are listed in the second column.
 | 22 | hidden | Attribute: Hidden | 0=cleared, 1=set, 2=don't care | 2 |
 | 23 | system | Attribute: System | 0=cleared, 1=set, 2=don't care | 2 |
 | 24 | directory | Attribute: Directory | 0=cleared, 1=set, 2=don't care | 2 |
-| 25 | dupes | Find duplicate files | 0=enabled, 1=disabled | 0 |
-| 26 | dupeContent | Find duplicate files: Same content | 0=enabled, 1=disabled | 0 |
-| 27 | dupeName | Find duplicate files: Same name | 0=enabled, 1=disabled | 0 |
-| 28 | dupeSize | Find duplicate files: Same size | 0=enabled, 1=disabled | 0 |
+| 25 | dupes | Find duplicate files | 0=disabled, 1=enabled | 0 |
+| 26 | dupeContent | Find duplicate files: Same content | 0=disabled, 1=enabled | 0 |
+| 27 | dupeName | Find duplicate files: Same name | 0=disabled, 1=enabled | 0 |
+| 28 | dupeSize | Find duplicate files: Same size | 0=disabled, 1=enabled | 0 |
 | 29 | depth | Search depth | Number | |
 
 ---++ Plugins
@@ -118,27 +118,20 @@ our @timeUnits = qw(
 );
 
 my $proto = {
-    name => "",
     SearchFor => "",
     SearchIn => "",
     SearchText => "",
     SearchFlags => "",
-    plugin => "",
 
-    paths => undef,
     flags => undef,
-    rules => undef,
+    paths => [],
+    rules => [],
 
-    mindate => undef,
-    maxdate => undef,
-    size => undef,
-    minsize => undef,
-    maxsize => undef,
+    mindate => "",
+    maxdate => "",
 
-    search => undef,
-    searchNot => undef,
-    patterns => undef,
-    patternsNot => undef,
+    search => "",
+    searchNot => "",
 };
 
 our @flagNames = qw(
@@ -157,7 +150,17 @@ my $flagsProto = {
     hidden => 2,
     system => 2,
     directory => 2,
-    depth => 99,
+
+    start => "",
+    end => "",
+    time => "",
+    timeUnit => "",
+
+    sizeMode => "",
+    size => "",
+    sizeUnit => "",
+
+    depth => 255
 };
 
 ###############################################################################
@@ -172,7 +175,7 @@ Returns a new =RJK::TotalCmd::Search= object.
 ###############################################################################
 
 sub new {
-    return bless {}, shift;
+    return (bless {}, shift)->defaults;
 }
 
 ###############################################################################
@@ -214,8 +217,8 @@ sub update {
 ###############################################################################
 =pod
 
----+++ defaults()
-Set defaults for undefined parameters.
+---+++ defaults() -> $self
+Set defaults.
 
 =cut
 ###############################################################################
@@ -224,11 +227,12 @@ sub defaults {
     my $self = shift;
     foreach my $field (keys %$proto) {
         if ($field eq "flags") {
-            $self->{flags}{$_} //= $flagsProto->{$_} // 0 for @flagNames;
+            $self->{flags}{$_} = $flagsProto->{$_} // 0 for @flagNames;
         } else {
-            $self->{$field} //= $proto->{$field} || "";
+            $self->{$field} = $proto->{$field} // "";
         }
     }
+    return $self;
 }
 
 ###############################################################################
