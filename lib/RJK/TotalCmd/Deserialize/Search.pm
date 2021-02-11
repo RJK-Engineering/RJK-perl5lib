@@ -54,14 +54,13 @@ use RJK::TotalCmd::Search;
 sub deserialize {
     my ($class, $conf) = @_;
     my $search = bless {
-        for => $conf->{SearchFor},
-        text => $conf->{SearchText}
+        SearchFor => $conf->{SearchFor},
+        SearchText => $conf->{SearchText}
     }, 'RJK::TotalCmd::Search';
 
-    # SearchIn split on ";"
     $search->{paths} = [ split /\s*;\s*/, $conf->{SearchIn} ];
 
-    # flag array
+    # flags
     my @flags = $conf->{SearchFlags} =~
         /^(\d)
         \|(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)
@@ -72,11 +71,11 @@ sub deserialize {
         "Error parsing SearchFlags: $conf->{SearchFlags}"
     );
 
-    # flag hash
-    my %flags; @flags{@RJK::TotalCmd::Search::flagNames} = map { $_//0 } @flags;
+    $flags[-1] ||= 255;
+    my %flags; @flags{@RJK::TotalCmd::Search::flagNames} = map { $_//2 } @flags;
     $search->{flags} = \%flags;
 
-    # Calculated from flags
+    # calculated from flags
     $search->{mindate} = $class->parseDate($flags{start}) if $flags{start};
     $search->{maxdate} = $class->parseDate($flags{end}, 1) if $flags{end};
 
