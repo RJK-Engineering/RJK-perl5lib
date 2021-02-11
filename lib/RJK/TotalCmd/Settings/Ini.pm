@@ -302,7 +302,7 @@ sub addToHistory {
 
 sub getSearch {
     my ($self, $name) = @_;
-    return bless {}, 'RJK::TotalCmd::Search' if ! defined $name;
+    return if not defined $name;
     my $searches = $self->getSearches(sub {shift->{name} =~ /^\Q$name\E$/}, 1);
     return $searches->{$name};
 }
