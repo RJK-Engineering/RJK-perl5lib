@@ -12,7 +12,7 @@ sub get {
     my ($class, $prop) = @_;
     $class->loadConfig() if ! $config;
     die "Missing configuration property: $prop" if ! $config->has($prop);
-    return $config->get($prop) =~ s'%(.*?)%' $ENV{$1} // $1 && "%$1%" || "%" 'egr;
+    return RJK::Env->subst($config->get($prop));
 }
 
 sub loadConfig {
