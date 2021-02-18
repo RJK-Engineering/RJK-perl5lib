@@ -37,14 +37,13 @@ sub getVolumes {
         GetVolumeInformation($path, @x);
         my $type = GetDriveType($path);
 
-        my $drive = $path;
-        $drive =~ s/:\\//;
-        $volumes{$drive} = {
+        my $letter = $path =~ s/\\//r;
+        $volumes{$letter} = {
             path => $path,
             label => $x[0],
             serial => $x[2],
             fs => $x[5],
-            drive => $drive,
+            letter => $letter,
             type => $type
         };
     }
