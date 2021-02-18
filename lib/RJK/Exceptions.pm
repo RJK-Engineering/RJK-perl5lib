@@ -103,7 +103,7 @@ sub printException {
 }
 
 sub printExceptionOneline {
-    print STDERR ref, " ", $_->error//"", " at ", $_->trace->frame(1)->subroutine,
+    print STDERR "[", ref, "] ", $_->error//"(no error message)", " at ", $_->trace->frame(1)->subroutine,
         " line ", $_->trace->frame(0)->line;
 }
 
