@@ -9,10 +9,9 @@ use RJK::Util::Properties;
 my $config;
 
 sub get {
-    my ($class, $prop) = @_;
+    my ($class, $prop, $default) = @_;
     $class->loadConfig() if ! $config;
-    die "Missing configuration property: $prop" if ! $config->has($prop);
-    return RJK::Env->subst($config->get($prop));
+    return RJK::Env->subst($config->get($prop, $default));
 }
 
 sub loadConfig {
