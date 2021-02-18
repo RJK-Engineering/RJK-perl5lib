@@ -10,12 +10,15 @@ use ModuleNotFoundException;
 sub load {
     shift;
     my $module = join "::", @_;
+    my $file = (join "/", @_) . ".pm";
     eval "require $module" && return $module;
 
-    throw ModuleNotFoundException(
-        error => "$@",
-        module => $module
-    ) if $! == 2;
+    if ($! == 2 && ! grep { -e "$_/$file" } @INC) {
+        throw ModuleNotFoundException(
+            error => "$@",
+            module => $module
+        );
+    }
 
     throw LoadModuleException(
         error => "$@",
