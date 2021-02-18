@@ -3,15 +3,21 @@ package RJK::Filecheck;
 use strict;
 use warnings;
 
-use Module::Load;
+use RJK::Drives;
+use RJK::Module;
 
-my $store;
+my $stores;
+
+sub getPath {
+    my ($self, $label, $dirpath) = @_;
+    my $driveName = RJK::Drives->getDriveName($label);
+    return "$driveName:$dirpath";
+}
 
 sub getStore {
     my ($self, $module) = @_;
-    return $store->{$module} if $store->{$module};
-    load $module;
-    return $store->{$module} = $module;
+    return $stores->{$module} if $stores->{$module};
+    return $stores->{$module} = RJK::Module->load($module);
 }
 
 sub createNameParser {
