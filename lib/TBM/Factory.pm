@@ -1,78 +1,114 @@
+package TBM::Factory;
+
 use strict;
 use warnings;
 
-package TBM::Factory;
+use RJK::DbTable;
 
-package TBM::Factory::Document;
+my $classes = {
+    'TBM::Object' => {
+        cols => [qw'id date_created date_last_update'],
+        readOnly => [qw'id date_created date_last_update'],
+    },
+    'TBM::Path' => {
+        table => 'path',
+        cols => [qw'head_id head_class tail_id tail_class filename'],
+    },
+    'TBM::Dir' => {
+        table => 'directory',
+        cols => ['path'],
+    },
+    'TBM::File' => {
+        table => 'file',
+        cols => [qw'name size created modified crc'],
+    }
+};
 
-use TBM::Constants;
-use TBM::Document;
+my $tables;
+my $objectCols = $classes->{'TBM::Object'}{cols};
 
-sub createInstance {
-    my ($store, $class, $id) = @_;
-    $store->createObject(TBM::Constants::CLASSNAME_DOCUMENT, $id);
+sub getCols { my $class = shift; [@$objectCols, @{$class->{cols}}] }
+
+use RJK::Module;
+
+foreach my $className (keys %$classes) {
+    my $class = $classes->{$className};
+    next if ! $class->{table};
+    RJK::Module->load($className);
+
+    $tables->{$className} = new RJK::DbTable(
+        table => $class->{table},
+        cols => getCols($class),
+        bless => $className
+    );
+};
+
+*::table = *TBM::Factory::table;
+sub table {
+    my ($class) = @_;
+    return $tables->{$class};
 }
 
-sub fetchInstance {
-    my ($store, $id, $properties) = @_;
-    $store->fetchObject(TBM::Constants::CLASSNAME_DOCUMENT, $id, $properties);
+sub create {
+    my ($self, $class, $id) = @_;
+    print " create $class\n";
+    my $dir = {};
+    table($class)->insert($dir);
 }
 
-sub fetchInstanceByPath {
-    my ($self, $store, $path, $properties) = @_;
-    $store->fetchObjectByPath(TBM::Constants::CLASSNAME_DOCUMENT, $path, $properties);
+sub save {
+    my ($self, $object) = @_;
+    table(ref $object)->update($object);
 }
 
-sub getInstance {
-    my ($store, $class, $id) = @_;
-    $store->getObject(TBM::Constants::CLASSNAME_DOCUMENT, $id);
+sub fetch {
+    my $self = shift;
+    my $class = shift;
+    print " fetch $class\n";
+
+    if (ref $_[0]) {
+        _fetchById($class, $_[0]);
+    } else {
+        _fetchByPath($class, $_[0]);
+    }
 }
 
-sub getInstanceByPath {
-    my ($store, $class, $path) = @_;
-    $store->getObjectByPath(TBM::Constants::CLASSNAME_DOCUMENT, $path);
+sub _fetchById {
+    my ($class, $id) = @_;
+    table($class)->get($id);
 }
 
-package TBM::Factory::JSON;
-our @ISA='TBM::Factory::Document';
-#~ use parent 'TBM::Factory::Document';
-
-use TBM::Constants;
-
-
-package TBM::Factory::Folder;
-
-use TBM::Constants;
-use TBM::Folder;
-
-sub createInstance {
-    my ($store, $class, $id) = @_;
-    $store->createObject(TBM::Constants::CLASSNAME_FOLDER, $id);
+sub _fetchByPath {
+    my ($class, $path) = @_;
+    if ($class eq 'TBM::Dir') {
+        _fetchDir($path);
+    } else {
+        $path =~ s|/([^/]+)$||;
+        my $filename = $1;
+        _fetchFile($class, $path, $filename);
+    }
 }
 
-sub fetchRoot {
-    my ($store, $properties) = @_;
-    $store->fetchObjectByPath(TBM::Constants::CLASSNAME_FOLDER, "", $properties);
+sub _fetchDir {
+    my ($path) = @_;
+    table('TBM::Dir')->first({path => $path});
 }
 
-sub fetchInstance {
-    my ($store, $id, $properties) = @_;
-    $store->fetchObject(TBM::Constants::CLASSNAME_FOLDER, $id, $properties);
+sub _fetchFile {
+    my ($class, $dirPath, $filename) = @_;
+    my $dir = _fetchDir($dirPath);
+    my $path = _fetchPath($dir, $filename);
+    $path->getFile();
 }
 
-sub fetchInstanceByPath {
-    my ($store, $path, $properties) = @_;
-    $store->fetchObjectByPath(TBM::Constants::CLASSNAME_FOLDER, $path, $properties);
+sub _fetchPath {
+    my ($dir, $filename) = @_;
+    table('TBM::Path')->first({
+        #~ tail => $dir,
+        tail_id => $dir->{id},
+        filename => $filename
+    });
 }
 
-sub getInstance {
-    my ($store, $class, $id) = @_;
-    $store->getObject(TBM::Constants::CLASSNAME_FOLDER, $id);
-}
-
-sub getInstanceByPath {
-    my ($store, $class, $path) = @_;
-    $store->getObjectByPath(TBM::Constants::CLASSNAME_FOLDER, $path);
-}
 
 1;
