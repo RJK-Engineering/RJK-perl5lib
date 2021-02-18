@@ -3,10 +3,38 @@ package RJK::DbTable;
 use strict;
 use warnings;
 
+use DBI;
+
+my $dbh;
+
+sub connect {
+    my ($self, %opts) = @_;
+    my $dsn = "dbi:mysql:$opts{db}:$opts{host}:$opts{port}";
+    $dbh = DBI->connect($dsn, $opts{user}, $opts{pass}, {
+        mysql_enable_utf8 => 1,
+        AutoCommit => 0
+    }) or die "Couldn't connect to database: " . DBI->errstr;
+
+    if ($opts{eventHandlers}{onError}) {
+        $dbh->{HandleError} = $opts{eventHandlers}{onError};
+    }
+}
+
+sub disconnect {
+    $dbh->disconnect if $dbh;
+}
+
+sub commit {
+    $dbh->commit if $dbh;
+}
+
 sub new {
     my $self = bless {}, shift;
     my %opts = @_;
-    $self->{$_} = $opts{$_} for qw(dbh table cols pkCol eventHandlers);
+
+    $self->{$_} = $opts{$_} for qw(table cols pkCol bless eventHandlers);
+    $self->{pkCol} //= "id";
+
     $self->{eventHandlers}{$_} //= sub {} for qw(
         preInsert postInsert preUpdate postUpdate preDelete postDelete
         onIdentical onDifferent onMissing onChange
@@ -28,23 +56,48 @@ sub new {
     return $self;
 }
 
-sub invalidate {
-    my ($self) = @_;
-    if ($self->{sth}) {
-        $self->{sth}->finish();
-    }
-}
-
 sub getId {
     my ($self, $object) = @_;
     return $object->{$self->{pkCol}};
 }
 
+sub select {
+    my ($self, $where, $callback) = @_;
+    my @cols = keys %$where;
+
+    my $stmt = $self->{selectStatement};
+    $stmt .= " WHERE ";
+    $stmt .= join " AND ", map { "$_=?" } @cols;
+
+    $self->{sth} = $dbh->prepare($stmt);
+    $self->{sth}->execute(map { $where->{$_} } @cols);
+
+    while (my $object = $self->{sth}->fetchrow_hashref) {
+        bless $object, $self->{bless} if $self->{bless};
+        $callback->($object);
+    }
+}
+
+sub first {
+    my ($self, $where) = @_;
+    my $stmt = $self->{selectStatement};
+    $stmt .= " WHERE ";
+    $stmt .= join " AND ", map {
+        "$_=" . ($where->{$_} =~ /^(?:\d+|\d*\.\d+)$/ ? $where->{$_} : "\"$where->{$_}\"")
+    } keys %$where;
+    my $object = $dbh->selectrow_hashref($stmt);
+    bless $object, $self->{bless} if $self->{bless};
+    return $object;
+}
+
 sub get {
     my ($self, $id) = @_;
-    $self->{sth} = $self->{dbh}->prepare($self->{getStatement});
+    $self->{sth} = $dbh->prepare($self->{getStatement});
     $self->{sth}->execute($id);
-    return $self->{sth}->fetchrow_hashref;
+
+    my $object = $self->{sth}->fetchrow_hashref;
+    bless $object, $self->{bless} if $self->{bless};
+    return $object;
 }
 
 sub insert {
@@ -53,11 +106,11 @@ sub insert {
 
     $self->{eventHandlers}{preInsert}($object);
 
-    $self->{sth} = $self->{dbh}->prepare($self->{insertStatement});
+    $self->{sth} = $dbh->prepare($self->{insertStatement});
     $self->{sth}->execute(map { $object->{$_} } @{$self->{cols}});
 
     if ($DBI::VERSION ge 1.38) {
-        my $pk = $self->{dbh}->last_insert_id(
+        my $pk = $dbh->last_insert_id(
             $self->{catalog} || "",
             $self->{schema} || "",
             $self->{table} || "",
@@ -69,6 +122,7 @@ sub insert {
     }
     $self->{eventHandlers}{postInsert}($object);
 
+    bless $object, $self->{bless} if $self->{bless};
     return $object;
 }
 
@@ -78,7 +132,7 @@ sub update {
 
     $self->{eventHandlers}{preUpdate}($object);
 
-    $self->{sth} = $self->{dbh}->prepare($self->{updateStatement});
+    $self->{sth} = $dbh->prepare($self->{updateStatement});
     $self->{sth}->execute(
         map { $object->{$_} }
             (grep { $_ ne $self->{pkCol} } @{$self->{cols}}),
@@ -92,7 +146,7 @@ sub delete {
 
     $self->{eventHandlers}{preDelete}($object);
 
-    $self->{sth} = $self->{dbh}->prepare($self->{deleteStatement});
+    $self->{sth} = $dbh->prepare($self->{deleteStatement});
     my $id = $self->getId($object);
     $self->{sth}->execute($id);
 
