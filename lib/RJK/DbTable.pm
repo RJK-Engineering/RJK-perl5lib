@@ -25,7 +25,11 @@ sub connect {
                     dsn => $dsn,
                     user => $opts{user},
                     stmt => $handler->{Statement},
-                    bound => map { $bound->{$_} } sort keys %$bound
+                    bound => join ", ", map {
+                        defined $bound->{$_} ?
+                            $bound->{$_} =~ /^(?:\d+|\d*\.\d+)$/ ? $bound->{$_} : "\"$bound->{$_}\""
+                            : "undef"
+                    } sort keys %$bound
                 );
             }
             throw DbException(
