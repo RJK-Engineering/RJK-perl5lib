@@ -4,6 +4,8 @@ use parent 'TBM::Object';
 use strict;
 use warnings;
 
+use TBM::Path;
+
 sub getFiles {
     my ($self) = @_;
     my %files;
@@ -17,7 +19,7 @@ sub getFiles {
 
 sub addFile {
     my ($self, $file) = @_;
-   ::table('TBM::Path')->insert({
+    ::table('TBM::Path')->insert({
         head_id => $file->{id},
         head_class => $file->{class},
         tail_id => $self->{id},
