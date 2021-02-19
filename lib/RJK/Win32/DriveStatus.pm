@@ -86,10 +86,9 @@ sub update {
 sub _setOffline {
     my ($self, $volumes, $changed) = @_;
     foreach my $vol (values %{$self->{status}}) {
-        my $l = $vol->{drive};
-        next if $self->{ignore}{$l};
+        next if $self->{ignore}{$vol->{name}};
         next if ! $vol->{online};
-        next if $volumes->{$l};
+        next if $volumes->{$vol->{letter}};
 
         $vol->{online} = 0;
         $$changed = 1;
@@ -98,18 +97,15 @@ sub _setOffline {
 
 sub _setOnline {
     my ($self, $volumes, $changed) = @_;
-    my $status = $self->{status};
     foreach my $vol (values %$volumes) {
-        my $l = $vol->{drive};
-        next if $self->{ignore}{$l};
+        my $name = $vol->{name};
+        next if $self->{ignore}{$name};
 
-        if ($status->{$l}) {
-            next if $status->{$l}{online};
-            $status->{$l}{online} = 1;
-            $$changed = 1;
-        } else {
-            $status->{$l} = $vol;
-        }
+        my $status = $self->{status}{$name} //= $vol;
+        next if $status->{online};
+
+        $status->{online} = 1;
+        $$changed = 1;
     }
 }
 
@@ -144,9 +140,9 @@ sub online {
     my $self = shift;
     my %online;
     foreach my $vol ($self->all) {
-        my $drive = $vol->{drive};
-        next if $self->{ignore}{$drive};
-        $online{$drive} = $vol if $vol->{online};
+        my $name = $vol->{name};
+        next if $self->{ignore}{$name};
+        $online{$name} = $vol if $vol->{online};
     }
     return wantarray ? valuesSortedByKey(\%online) : \%online;
 }
@@ -166,9 +162,9 @@ sub offline {
     my $self = shift;
     my %offline;
     foreach my $vol ($self->all) {
-        my $drive = $vol->{drive};
-        next if $self->{ignore}{$drive};
-        $offline{$drive} = $vol unless $vol->{online};
+        my $name = $vol->{name};
+        next if $self->{ignore}{$name};
+        $offline{$name} = $vol unless $vol->{online};
     }
     return wantarray ? valuesSortedByKey(\%offline) : \%offline;
 }
@@ -188,9 +184,9 @@ sub active {
     my $self = shift;
     my %active;
     foreach my $vol ($self->all) {
-        my $drive = $vol->{drive};
-        next if $self->{ignore}{$drive};
-        $active{$drive} = $vol if $vol->{active};
+        my $name = $vol->{name};
+        next if $self->{ignore}{$name};
+        $active{$name} = $vol if $vol->{active};
     }
     return wantarray ? valuesSortedByKey(\%active) : \%active;
 }
@@ -210,9 +206,9 @@ sub inactive {
     my $self = shift;
     my %inactive;
     foreach my $vol ($self->all) {
-        my $drive = $vol->{drive};
-        next if $self->{ignore}{$drive};
-        $inactive{$drive} = $vol unless $vol->{active};
+        my $name = $vol->{name};
+        next if $self->{ignore}{$name};
+        $inactive{$name} = $vol unless $vol->{active};
     }
     return wantarray ? valuesSortedByKey(\%inactive) : \%inactive;
 }
