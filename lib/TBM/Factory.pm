@@ -33,12 +33,9 @@ my $objectCols = $classes->{'TBM::Object'}{cols};
 
 sub getCols { my $class = shift; [@$objectCols, @{$class->{cols}}] }
 
-use RJK::Module;
-
 foreach my $className (keys %$classes) {
     my $class = $classes->{$className};
     next if ! $class->{table};
-    RJK::Module->load($className);
 
     $tables->{$className} = new RJK::DbTable(
         table => $class->{table},
