@@ -44,6 +44,7 @@ sub getVolumes {
             serial => $x[2],
             fs => $x[5],
             letter => $letter,
+            name => $letter =~ s/://r,
             type => $type
         };
     }
