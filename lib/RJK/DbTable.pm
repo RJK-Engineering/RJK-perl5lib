@@ -96,31 +96,34 @@ sub select {
     $stmt .= " WHERE ";
     $stmt .= join " AND ", map { "$_=?" } @cols;
 
-    $self->{sth} = $self->_prepare($stmt);
-    $self->{sth}->execute(map { $where->{$_} } @cols);
+    my $sth = $self->_prepare($stmt);
+    $sth->execute(map { $where->{$_} } @cols);
 
-    while (my $object = $self->{sth}->fetchrow_hashref) {
+    while (my $object = $sth->fetchrow_hashref) {
         $self->_prepareObject($object);
-        $callback->($object);
+        if ($callback->($object)) {
+            $sth->finish;
+            last;
+        }
     }
 }
 
 sub first {
     my ($self, $where) = @_;
-    my $stmt = $self->{selectStatement};
-    $stmt .= " WHERE ";
-    my @cols = keys %$where;
-    $stmt .= join " AND ", map { "$_=?" } @cols;
-    my $object = dbh()->selectrow_hashref($stmt, {}, map { $where->{$_} } @cols);
-    return $self->_prepareObject($object);
+    my $object;
+    $self->select($where, sub {
+        $object = $_[0];
+    });
+    return $object;
 }
 
 sub get {
     my ($self, $id) = @_;
-    $self->{sth} = $self->_prepare($self->{getStatement});
-    $self->{sth}->execute($id);
+    my $sth = $self->_prepare($self->{getStatement});
+    $sth->execute($id);
 
-    my $object = $self->{sth}->fetchrow_hashref;
+    my $object = $sth->fetchrow_hashref;
+    $sth->finish if $sth->{Active};
     return $self->_prepareObject($object);
 }
 
@@ -131,8 +134,8 @@ sub insert {
 
     $self->{eventHandlers}{preInsert}($object);
 
-    $self->{sth} = $self->_prepare($self->{insertStatement});
-    $self->{sth}->execute(map { $object->{$_} } @{$self->{cols}});
+    my $sth = $self->_prepare($self->{insertStatement});
+    $sth->execute(map { $object->{$_} } @{$self->{cols}});
 
     if ($DBI::VERSION ge 1.38) {
         my $pk = dbh()->last_insert_id(
@@ -156,8 +159,8 @@ sub update {
 
     $self->{eventHandlers}{preUpdate}($object);
 
-    $self->{sth} = $self->_prepare($self->{updateStatement});
-    $self->{sth}->execute(
+    my $sth = $self->_prepare($self->{updateStatement});
+    $sth->execute(
         map { $object->{$_} }
             (grep { $_ ne $self->{pkCol} } @{$self->{cols}}),
             $self->{pkCol}
@@ -170,9 +173,9 @@ sub delete {
 
     $self->{eventHandlers}{preDelete}($object);
 
-    $self->{sth} = $self->_prepare($self->{deleteStatement});
+    my $sth = $self->_prepare($self->{deleteStatement});
     my $id = $self->getId($object);
-    $self->{sth}->execute($id);
+    $sth->execute($id);
 
     $self->{eventHandlers}{postDelete}($object);
 }
