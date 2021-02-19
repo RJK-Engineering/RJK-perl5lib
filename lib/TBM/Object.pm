@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 sub save {
-    TBM::Factory->save($_[0]);
+    ::table(ref $_[0])->update($_[0]);
 }
 
 1;
