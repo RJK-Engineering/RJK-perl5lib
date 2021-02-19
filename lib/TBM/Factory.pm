@@ -21,7 +21,11 @@ my $classes = {
     'TBM::File' => {
         table => 'file',
         cols => [qw'name size created modified crc'],
-    }
+    },
+    'TBM::Volume' => {
+        table => 'volume',
+        cols => [qw'label cluster_size size_gb size_formatted free_space drive type'],
+    },
 };
 
 my $tables;
@@ -111,5 +115,24 @@ sub _fetchPath {
     });
 }
 
+sub AUTOLOAD {
+    our $AUTOLOAD;
+    bless {}, $AUTOLOAD;
+}
+
+package TBM::Factory::Dir;
+sub create { TBM::Factory->create('TBM::Dir', $_[1]) }
+sub fetch  { TBM::Factory->fetch ('TBM::Dir', $_[1]) }
+sub get    { TBM::Factory->get   ('TBM::Dir', $_[1]) }
+
+package TBM::Factory::File;
+sub create { TBM::Factory->create('TBM::File', $_[1]) }
+sub fetch  { TBM::Factory->fetch ('TBM::File', $_[1]) }
+sub get    { TBM::Factory->get   ('TBM::File', $_[1]) }
+
+package TBM::Factory::Volume;
+sub create { TBM::Factory->create('TBM::Volume', $_[1]) }
+sub fetch  { TBM::Factory->fetch ('TBM::Volume', $_[1]) }
+sub get    { TBM::Factory->get   ('TBM::Volume', $_[1]) }
 
 1;
