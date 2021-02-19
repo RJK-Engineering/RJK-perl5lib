@@ -61,11 +61,6 @@ sub create {
     table($class)->insert({id => $id});
 }
 
-sub save {
-    my ($self, $object) = @_;
-    table(ref $object)->update($object);
-}
-
 sub fetch {
     my $self = shift;
     my $class = shift;
