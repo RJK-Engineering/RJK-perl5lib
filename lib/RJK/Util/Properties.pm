@@ -11,8 +11,8 @@ sub new {
 }
 
 sub get {
-    my ($self, $key) = @_;
-    return $self->{props}{$key};
+    my ($self, $key, $default) = @_;
+    return $self->{props}{$key} // $default;
 }
 
 sub set {
