@@ -39,7 +39,9 @@ foreach my $className (keys %$classes) {
     $tables->{$className} = new RJK::DbTable(
         table => $class->{table},
         cols => getCols($class),
-        bless => $className
+        bless => $className,
+        static => { class => $className },
+        cached => 1
     );
 };
 
@@ -52,8 +54,7 @@ sub table {
 sub create {
     my ($self, $class, $id) = @_;
     print " create $class\n";
-    my $dir = {};
-    table($class)->insert($dir);
+    table($class)->insert({id => $id});
 }
 
 sub save {
