@@ -3,37 +3,64 @@ package RJK::DbTable;
 use strict;
 use warnings;
 
-use DBI;
+use Exceptions;
+use DbException;
+use SqlException;
 
+use DBI;
 my $dbh;
 
 sub connect {
     my ($self, %opts) = @_;
     my $dsn = "dbi:mysql:$opts{db}:$opts{host}:$opts{port}";
-    $dbh = DBI->connect($dsn, $opts{user}, $opts{pass}, {
+    my %attr = (
         mysql_enable_utf8 => 1,
-        AutoCommit => 0
-    }) or die "Couldn't connect to database: " . DBI->errstr;
+        AutoCommit => 0,
+        HandleError => $opts{eventHandlers}{onError} // sub {
+            my ($error, $handler) = @_;
+            if ($handler->isa('DBI::st')) {
+                my $bound = $handler->{ParamValues} // {};
+                throw SqlException(
+                    error => $error,
+                    dsn => $dsn,
+                    user => $opts{user},
+                    stmt => $handler->{Statement},
+                    bound => map { $bound->{$_} } sort keys %$bound
+                );
+            }
+            throw DbException(
+                error => $error,
+                dsn => $dsn,
+                user => $opts{user},
+            );
+        }
+    );
+    $dbh = DBI->connect($dsn, $opts{user}, $opts{pass}, \%attr) or throw DbException(
+        error => DBI->errstr,
+        dsn => $dsn,
+        user => $opts{user},
+    );
+}
 
-    if ($opts{eventHandlers}{onError}) {
-        $dbh->{HandleError} = $opts{eventHandlers}{onError};
-    }
+sub dbh {
+    $dbh;
 }
 
 sub disconnect {
-    $dbh->disconnect if $dbh;
+    dbh()->disconnect if $dbh;
 }
 
 sub commit {
-    $dbh->commit if $dbh;
+    dbh()->commit if $dbh;
 }
 
 sub new {
     my $self = bless {}, shift;
     my %opts = @_;
 
-    $self->{$_} = $opts{$_} for qw(table cols pkCol bless eventHandlers);
+    $self->{$_} = $opts{$_} for qw(table cols pkCol bless eventHandlers cached static);
     $self->{pkCol} //= "id";
+    $self->{static} //= {};
 
     $self->{eventHandlers}{$_} //= sub {} for qw(
         preInsert postInsert preUpdate postUpdate preDelete postDelete
@@ -69,11 +96,11 @@ sub select {
     $stmt .= " WHERE ";
     $stmt .= join " AND ", map { "$_=?" } @cols;
 
-    $self->{sth} = $dbh->prepare($stmt);
+    $self->{sth} = $self->_prepare($stmt);
     $self->{sth}->execute(map { $where->{$_} } @cols);
 
     while (my $object = $self->{sth}->fetchrow_hashref) {
-        bless $object, $self->{bless} if $self->{bless};
+        $self->_prepareObject($object);
         $callback->($object);
     }
 }
@@ -82,35 +109,33 @@ sub first {
     my ($self, $where) = @_;
     my $stmt = $self->{selectStatement};
     $stmt .= " WHERE ";
-    $stmt .= join " AND ", map {
-        "$_=" . ($where->{$_} =~ /^(?:\d+|\d*\.\d+)$/ ? $where->{$_} : "\"$where->{$_}\"")
-    } keys %$where;
-    my $object = $dbh->selectrow_hashref($stmt);
-    bless $object, $self->{bless} if $self->{bless};
-    return $object;
+    my @cols = keys %$where;
+    $stmt .= join " AND ", map { "$_=?" } @cols;
+    my $object = dbh()->selectrow_hashref($stmt, {}, map { $where->{$_} } @cols);
+    return $self->_prepareObject($object);
 }
 
 sub get {
     my ($self, $id) = @_;
-    $self->{sth} = $dbh->prepare($self->{getStatement});
+    $self->{sth} = $self->_prepare($self->{getStatement});
     $self->{sth}->execute($id);
 
     my $object = $self->{sth}->fetchrow_hashref;
-    bless $object, $self->{bless} if $self->{bless};
-    return $object;
+    return $self->_prepareObject($object);
 }
 
 sub insert {
     my ($self, $object) = @_;
-    $self->getObject(\$object);
+    $self->_getObject(\$object);
+    $self->_prepareObject($object);
 
     $self->{eventHandlers}{preInsert}($object);
 
-    $self->{sth} = $dbh->prepare($self->{insertStatement});
+    $self->{sth} = $self->_prepare($self->{insertStatement});
     $self->{sth}->execute(map { $object->{$_} } @{$self->{cols}});
 
     if ($DBI::VERSION ge 1.38) {
-        my $pk = $dbh->last_insert_id(
+        my $pk = dbh()->last_insert_id(
             $self->{catalog} || "",
             $self->{schema} || "",
             $self->{table} || "",
@@ -122,17 +147,16 @@ sub insert {
     }
     $self->{eventHandlers}{postInsert}($object);
 
-    bless $object, $self->{bless} if $self->{bless};
     return $object;
 }
 
 sub update {
     my ($self, $object) = @_;
-    $self->getObject(\$object);
+    $self->_getObject(\$object);
 
     $self->{eventHandlers}{preUpdate}($object);
 
-    $self->{sth} = $dbh->prepare($self->{updateStatement});
+    $self->{sth} = $self->_prepare($self->{updateStatement});
     $self->{sth}->execute(
         map { $object->{$_} }
             (grep { $_ ne $self->{pkCol} } @{$self->{cols}}),
@@ -146,32 +170,16 @@ sub delete {
 
     $self->{eventHandlers}{preDelete}($object);
 
-    $self->{sth} = $dbh->prepare($self->{deleteStatement});
+    $self->{sth} = $self->_prepare($self->{deleteStatement});
     my $id = $self->getId($object);
     $self->{sth}->execute($id);
 
     $self->{eventHandlers}{postDelete}($object);
 }
 
-sub getObject {
-    my ($self, $ref) = @_;
-    if (ref $$ref eq 'ARRAY') {
-        $$ref = $self->getObjectFromArray($$ref);
-    }
-}
-
-sub getObjectFromArray {
-    my ($self, $array) = @_;
-    my $object = {};
-    for (0 .. $#{$self->{cols}}) {
-        $object->{$self->{cols}[$_]} = $array->[$_];
-    }
-    return $object;
-}
-
 sub sync {
     my ($self, $object) = @_;
-    $self->getObject(\$object);
+    $self->_getObject(\$object);
 
     my $id = $self->getId($object);
     my $objectInDb = $self->get($id);
@@ -180,7 +188,7 @@ sub sync {
         my $message;
         foreach my $col (@{$self->{cols}}) {
             next if $col eq $self->{pkCol};
-            if ($self->updateValue($col, $object->{$col}, $objectInDb->{$col}, $id, \$message)) {
+            if ($self->_updateValue($col, $object->{$col}, $objectInDb->{$col}, $id, \$message)) {
                 push @$changes, {
                     update => 1,
                     column => $col,
@@ -220,7 +228,7 @@ sub sync {
     return $changes;
 }
 
-sub updateValue {
+sub _updateValue {
     my ($self, $column, $dataInValue, $dbValue, $id, $message) = @_;
     my $changed = 0;
     if (! defined $dataInValue) {
@@ -256,6 +264,38 @@ sub updateValue {
         }
     }
     return $changed;
+}
+
+sub _getObject {
+    my ($self, $ref) = @_;
+    if (ref $$ref eq 'ARRAY') {
+        $$ref = $self->_getObjectFromArray($$ref);
+    }
+}
+
+sub _getObjectFromArray {
+    my ($self, $array) = @_;
+    my $object = {};
+    for (0 .. $#{$self->{cols}}) {
+        $object->{$self->{cols}[$_]} = $array->[$_];
+    }
+    return $object;
+}
+
+sub _prepareObject {
+    my ($self, $object) = @_;
+    bless $object//{}, $self->{bless} if $self->{bless};
+    map { $object->{$_} = $self->{static}{$_} } keys %{$self->{static}};
+    return $object;
+}
+
+sub _prepare {
+    my ($self, $stmt) = @_;
+    if ($self->{cached}) {
+        dbh()->prepare_cached($stmt);
+    } else {
+        dbh()->prepare($stmt);
+    }
 }
 
 1;
