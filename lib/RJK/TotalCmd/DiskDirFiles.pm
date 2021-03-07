@@ -39,7 +39,7 @@ sub traverse {
     my ($class, $path, $visitor, $opts) = @_;
 
     open my $fh, '<', $path
-        or throw OpenFileException(error => "$!", file => $path, mode => '<');
+        or throw OpenFileException(error => "$!: $path", file => $path, mode => '<');
 
     my ($root, $dir, $result, $skip);
     my $stat = new RJK::TotalCmd::DiskDirStat;
