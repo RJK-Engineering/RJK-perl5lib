@@ -33,17 +33,17 @@ sub lastModified { $_[0]->stat->modified }
 sub createNewFile {
     return if -e $_[0]{path};
     open my $fh, '>', $_[0]{path}
-        or throw OpenFileException(error => "$!", file => $_[0]{path}, mode => '>');
+        or throw OpenFileException(error => "$!: $_[0]{path}", file => $_[0]{path}, mode => '>');
     close $fh;
 }
 
 sub delete {
     if ($_[0]->isFile) {
         unlink $_[0]{path}
-            or throw FileException(error => "$!", file => $_[0]{path});
+            or throw FileException(error => "$!: $_[0]{path}", file => $_[0]{path});
     } elsif ($_[0]->isDir) {
         rmdir $_[0]{path}
-            or throw FileException(error => "$!", file => $_[0]{path});
+            or throw FileException(error => "$!: $_[0]{path}", file => $_[0]{path});
     }
 }
 
@@ -51,7 +51,7 @@ sub filenames {
     my ($self, $filter) = @_;
 
     opendir my $dh, $self->{path}
-        or throw OpenDirException(error => "$!", file => $self->{path});
+        or throw OpenDirException(error => "$!: $self->{path}", file => $self->{path});
     my @names = readdir $dh;
     closedir $dh;
 
@@ -81,7 +81,7 @@ sub getParentFile {
 
 sub stat {
     RJK::Stat->get($_[0]{path})
-        || throw FileException(error => "Stat failed", file => $_[0]{path});
+        || throw FileException(error => "Stat failed: $_[0]{path}", file => $_[0]{path});
 }
 
 sub toPath {
@@ -92,7 +92,7 @@ sub open {
     my ($self, $mode) = @_;
     $mode ||= '<';
     CORE::open my $fh, $mode, $self->{path}
-        or throw OpenFileException(error => "$!", file => $self->{path}, mode => $mode);
+        or throw OpenFileException(error => "$!: $self->{path}", file => $self->{path}, mode => $mode);
     return $fh;
 }
 
