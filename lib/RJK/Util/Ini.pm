@@ -50,9 +50,10 @@ sub new {
    * =$propertyList= - =RJK::Util::PropertyList= object for new
      section or =undef= if section already exists
 
----+++ setSection($ini, $section) -> $propertyList
-   * =$ini= - =RJK::Util::Ini= object to reference to
+---+++ setSection($section, $hash, \@keys) -> $propertyList
    * =$section= - section name
+   * =$hash= - property hash
+   * =@keys= - optional order of keys
    * =$propertyList= - =RJK::Util::PropertyList= object for the section
 
 Set reference to a section in another =RJK::Util::Ini= object.
@@ -88,17 +89,21 @@ sub newSection {
 
 sub _newSection {
     my ($self, $section) = @_;
-    push @{$self->{sections}}, $section;
+    push @{$self->{sections}}, $section if not exists $self->{keys}{$section};
     $self->{keys}{$section} = [];
     return $self->{properties}{$section} = new RJK::Util::PropertyList;
 }
 
-# no deep copy!
+sub _getSection {
+    $_[0]{properties}{$_[1]} || $_[0]->_newSection($_[1])
+}
+
 sub setSection {
-    my ($self, $section, $ini) = @_;
-    my $pl = $self->{properties}{$section} || $self->_newSection($section);
-    $self->{keys}{$section} = $ini->{keys}{$section};
-    $self->{properties}{$section} = $ini->{properties}{$section};
+    my ($self, $section, $hash, $keys) = @_;
+    $keys //= keys %$hash;
+    my $pl = $self->_newSection($section);
+    $self->{keys}{$section} = $keys;
+    $pl->{props} = $hash;
 }
 
 sub allSections {
@@ -146,30 +151,22 @@ sub getPropertyList {
     return $properties->{$_[1]};
 }
 
-# ordered list
-sub getPropertyNames {
-    my $props = $_[0]{propertyNames};
-    exists $props->{$_[1]} || return;
-    return $props->{$_[1]};
-}
-
 sub getKeys {
-    my $pl = $_[0]->{properties}{$_[1]} || return;
-    return $pl->names;
+    $_[0]{keys}{$_[1]};
 }
 
 sub getValues {
-    my $pl = $_[0]->{properties}{$_[1]} || return;
+    my $pl = $_[0]{properties}{$_[1]} || return;
     return $pl->values;
 }
 
 sub getSection {
-    my $pl = $_[0]->{properties}{$_[1]} || return;
+    my $pl = $_[0]{properties}{$_[1]} || return;
     return $pl->hash;
 }
 
 sub get {
-    my $pl = $_[0]->{properties}{$_[1]} || return;
+    my $pl = $_[0]{properties}{$_[1]} || return;
     return $pl->get($_[2]);
 }
 
@@ -196,21 +193,21 @@ Does not check for existing property, may result in duplicates.
 
 sub set {
     my ($self, $section, $key, $value) = @_;
-    my $pl = $self->{properties}{$section} || $self->_newSection($section);
+    my $pl = $self->_getSection($section);
     push @{$self->{keys}{$section}}, $key if ! $pl->has($key);
     $pl->set($key, $value);
 }
 
 sub prepend {
     my ($self, $section, $key, $value) = @_;
-    my $pl = $self->{properties}{$section} || $self->_newSection($section);
+    my $pl = $self->_getSection($section);
     unshift @{$self->{keys}{$section}}, $key;
     $pl->set($key, $value);
 }
 
 sub prependAll {
     my ($self, $section, $hash) = @_;
-    my $pl = $self->{properties}{$section} || $self->_newSection($section);
+    my $pl = $self->_getSection($section);
     while (my ($key, $value) = each %$hash) {
         unshift @{$self->{keys}{$section}}, $key;
         $pl->set($key, $value);
@@ -219,14 +216,14 @@ sub prependAll {
 
 sub append {
     my ($self, $section, $key, $value) = @_;
-    my $pl = $self->{properties}{$section} || $self->_newSection($section);
+    my $pl = $self->_getSection($section);
     push @{$self->{keys}{$section}}, $key;
     $pl->set($key, $value);
 }
 
 sub appendAll {
     my ($self, $section, $hash) = @_;
-    my $pl = $self->{properties}{$section} || $self->_newSection($section);
+    my $pl = $self->_getSection($section);
     while (my ($key, $value) = each %$hash) {
         push @{$self->{keys}{$section}}, $key;
         $pl->set($key, $value);
@@ -241,11 +238,11 @@ sub appendAll {
 ---+++ file() -> $path
 Returns the ini file path.
 
----+++ read($path) -> $ini
+---+++ read($path) -> $self
 Uses path passed to =new= if =$path= is <code>undef</code>ined.%BR%
 Returns the object it's been called on or =undef= on failure.%BR%
 
----+++ write($path) -> $ini
+---+++ write($path) -> $self
 Uses path passed to =new= if =$path= is <code>undef</code>ined.%BR%
 Returns the object it's been called on or =undef= on failure.%BR%
 
@@ -261,7 +258,7 @@ sub read {
     $file //= $self->{file};
 
     open my $in, '<', $file
-        or throw OpenFileException(error => "$!", file => $file, mode => '<');
+        or throw OpenFileException(error => "$!: $file", file => $file, mode => '<');
     $self->clear();
 
     my ($pl, $keys, $section, $comment);
@@ -312,7 +309,7 @@ sub write {
         $fh = $file;
     } else {
         open $fh, '>', $file
-           or throw OpenFileException(error => "$!", file => $file, mode => '>');
+           or throw OpenFileException(error => "$!: $file", file => $file, mode => '>');
     }
 
     print $fh $self->{bom}//"";
@@ -592,7 +589,7 @@ sub getHashesLHS {
 
 sub setList {
     my ($self, $section, $array, $name) = @_;
-    my $pl = $self->{properties}{$section} || $self->_newSection($section);
+    my $pl = $self->_getSection($section);
 
     my @keys = $name ? map { "$name$_" } 0 .. @$array-1
                      :                   0 .. @$array-1;
@@ -607,7 +604,7 @@ sub setList {
 
 sub setHashList {
     my ($self, $section, $array, $keys) = @_;
-    my $pl = $self->{properties}{$section} || $self->_newSection($section);
+    my $pl = $self->_getSection($section);
     $pl->clear;
     my @propertyKeys;
     for (my $i=1; $i<=@$array; $i++) {
@@ -624,7 +621,7 @@ sub setHashList {
 
 sub setHashListRHS {
     my ($self, $section, $array, $opts) = @_;
-    my $pl = $self->{properties}{$section} || $self->_newSection($section);
+    my $pl = $self->_getSection($section);
     $pl->clear;
     return if ! @$array;
 
