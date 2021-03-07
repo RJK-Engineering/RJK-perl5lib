@@ -60,7 +60,7 @@ sub findPath {
 ###############################################################################
 =pod
 
----+++ findLocalFiles($relativeFilePath) -> @paths
+---+++ findLocalFiles($relativeFilePath) -> @paths or \@paths
    * =$relativeFilePath= - path to file relative to local data directory
    * =@paths= - list of existing paths
 
@@ -72,31 +72,30 @@ environment variables.
 
 sub findLocalFiles {
     my ($self, $relativeFilePath) = @_;
-    my @paths = (
-        $ENV{APPDATA},      # roaming conf
-        $ENV{LOCALAPPDATA}, # local conf
-    );
-    return grep { -e ($_ = "$_/$relativeFilePath") } @paths;
+    my @paths = ($ENV{APPDATA}, $ENV{LOCALAPPDATA});
+    @paths = grep { -e ($_ = "$_/$relativeFilePath") } @paths;
+    return wantarray ? @paths : \@paths;
 }
 
 ###############################################################################
 =pod
 
----+++ findProgramDirs($relativeDirPath) -> @paths
-Find program directory in directories set in =ProgramW6432= and =ProgramFiles=
-environment variables.
+---+++ findProgramDirs($relativeDirPath) -> @paths or \@paths
+Find program directory in directories set in =ProgramW6432=, =ProgramFiles=
+and =ProgramFiles(x86)= environment variables.
 
 =cut
 ###############################################################################
 
 sub findProgramDirs {
     my ($self, $relativeDirPath) = @_;
-    my @paths = (
-        $ENV{ProgramW6432},
-        $ENV{ProgramFiles},
+    my %paths = (
+        $ENV{ProgramW6432} => 1,
+        $ENV{ProgramFiles} => 1,
+        $ENV{'ProgramFiles(x86)'} => 1
     );
-    return grep { -e ($_ = "$_/$relativeDirPath") } @paths;
-
+    my @paths = grep { -e ($_ = "$_/$relativeDirPath") } keys %paths;
+    return wantarray ? @paths : \@paths;
 }
 
 1;
