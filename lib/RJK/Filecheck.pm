@@ -10,8 +10,8 @@ my $stores;
 
 sub getPath {
     my ($self, $label, $dirpath) = @_;
-    my $driveName = RJK::Drives->getDriveName($label);
-    return "$driveName:$dirpath";
+    my $driveLetter = RJK::Drives->getDriveLetter($label);
+    return $driveLetter . $dirpath;
 }
 
 sub getStore {
