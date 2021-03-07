@@ -9,7 +9,7 @@ $opts{categoryIni} = '';
 
 if (! $opts{categoryIni}) {
     my $file = 'eMule\config\Category.ini';
-    $opts{categoryIni} = (RJK::Env->findLocalFiles($file))[0]
+    $opts{categoryIni} = RJK::Env->findLocalFiles($file)->[0]
         or die "Category.ini not found";
 }
 
