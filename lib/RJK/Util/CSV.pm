@@ -15,7 +15,7 @@ sub read {
     my @rows;
     throw FileException(error => "Not a file", file => $file) if ! -f $file;
 
-    open my $fh, '<', $file or throw OpenFileException(file => $file, error => "$!");
+    open my $fh, '<', $file or throw OpenFileException(error => "$!: $file", file => $file);
     while (<$fh>) {
         chomp;
         my $row = [split /\Q$delimiter\E/];
@@ -29,7 +29,7 @@ sub read {
 
 sub write {
     my ($self, $file, $rows) = @_;
-    open my $fh, '>', $file or throw OpenFileException(file => $file, error => "$!");
+    open my $fh, '>', $file or throw OpenFileException(error => "$!: $file", file => $file);
     print $fh join($delimiter, @$_), "\n" for @$rows;
     close $fh;
 }
