@@ -13,12 +13,12 @@ use OpenFileException;
 sub read {
     my ($self, $file) = @_;
 
-    throw FileException(error => "Not a file", file => $file) if ! -f $file;
-    throw FileException(error => "File is empty", file => $file) if -z $file;
+    throw FileException(error => "Not a file: $file", file => $file) if ! -f $file;
+    throw FileException(error => "File is empty: $file", file => $file) if -z $file;
 
     local $/; # slurp entire file
     open my $fh, '<', $file
-        or throw OpenFileException(file => $file, error => "$!");
+        or throw OpenFileException(error => "$!: $file", file => $file);
 
     my $data;
     try {
