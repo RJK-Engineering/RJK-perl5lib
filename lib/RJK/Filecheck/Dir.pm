@@ -238,7 +238,7 @@ sub _deleteFileJsonProp {
 
 sub getFileProperties {
     my ($self, $filename) = @_;
-    my $props;
+    my $props = {};
     my $hit;
     $self->_traverseFileProperties(sub {
         return $hit if $_[0] ne $filename;
