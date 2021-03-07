@@ -10,7 +10,6 @@ my $fh;
 
 sub info {
     my ($self, $file) = @_;
-    $info = bless {}, 'RJK::Media::Info';
     close $fh if $fh;
 
     open $fh, "$executable \"$file\" 2>&1|" or die "$!";
@@ -18,7 +17,10 @@ sub info {
     close $fh;
     $fh = undef;
 
-    postProcessing();
+    if ($info) {
+        postProcessing();
+        bless $info, 'RJK::Media::Info';
+    }
     return $info;
 }
 
@@ -206,9 +208,8 @@ sub parseFormat {
 }
 
 sub postProcessing {
-    $info->{audio} //= [];
-    $info->{video} //= [];
-    foreach my $vi (@{$info->{video}}) {
+    my @v = @{$info->{video}} if $info->{video};
+    foreach my $vi (@v) {
         $vi->{framerate} ||= $vi->{tbr};
         if ($vi->{dar}) {
             $vi->{aspect} = $vi->{dar};
