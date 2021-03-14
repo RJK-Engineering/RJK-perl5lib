@@ -21,7 +21,9 @@ use RJK::Util::Properties;
 ---++ Class methods
 
 ---+++ GetOptions($filename, %defaultOptions) -> %options or \%options
+---+++ GetOptions(\@filenames, %defaultOptions) -> %options or \%options
    * =$filename= - path to config file relative to local data directory
+   * =@filenames= - paths to config files relative to local data directory
    * =%defaultOptions= - default options to return if not present in local config
    * =%options= - option key/values
 
@@ -31,13 +33,16 @@ Load options from config file(s) stored in local data directories.
 ###############################################################################
 
 sub GetOptions {
-    my ($filename, %options) = @_;
-    if ($filename =~ /\.properties$/) {
-        loadProperties($_, \%options) for RJK::Env->findLocalFiles($filename);
-    } elsif ($filename =~ /\.json$/) {
-        loadJson($_, \%options) for RJK::Env->findLocalFiles($filename);
-    } else {
-        die "Unsupported file type: $filename";
+    my ($files, %options) = @_;
+    $files = [$files] if not ref $files;
+    foreach my $filename (@$files) {
+        if ($filename =~ /\.properties$/) {
+            loadProperties($_, \%options) for RJK::Env->findLocalFiles($filename);
+        } elsif ($filename =~ /\.json$/) {
+            loadJson($_, \%options) for RJK::Env->findLocalFiles($filename);
+        } else {
+            die "Unsupported file type: $filename";
+        }
     }
     return wantarray ? %options : \%options;
 }
