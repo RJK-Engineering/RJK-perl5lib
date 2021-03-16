@@ -15,7 +15,7 @@ sub open {
 
 sub openWritable {
     my ($self, $path) = @_;
-    return *STDOUT if $path eq '-';
+    return *STDOUT if $path eq '';
 
     CORE::open my $fh, '>:encoding(utf8)', $path
         or throw OpenFileException(error => "$!: $path", file => $path, mode => 'write');
