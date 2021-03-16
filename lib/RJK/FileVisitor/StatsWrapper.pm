@@ -19,19 +19,16 @@ sub preVisitDir {
 
 sub postVisitDir {
     my $self = shift;
-    $self->{stats}->postVisitDir(@_);
     $self->{visitor}->postVisitDir(@_);
 }
 
 sub preVisitFiles {
     my $self = shift;
-    $self->{stats}->preVisitFiles(@_);
     $self->{visitor}->preVisitFiles(@_);
 }
 
 sub postVisitFiles {
     my $self = shift;
-    $self->{stats}->postVisitFiles(@_);
     $self->{visitor}->postVisitFiles(@_);
 }
 
