@@ -23,14 +23,29 @@ Button (Command, ButtonInterface)
 UserCmd (Button) (required inherited fields: cmd)
     name                # name (em_*) (required)
 
-Required fields
+Fields - [] = abstract class, * = required field
 
-Item:           number
-InternalCmd:    number, name
-DirMenuItem:    number, menu
-StartMenuItem:  number, cmd, menu
-Button:         number
-UserCmd:        number, cmd, name
+Item            number*, menu
+InternalCmd     number*, menu , name*
+[MenuItem]      number*, menu
+DirMenuItem     number*, menu*, cmd,  path
+[Command]       number*, menu , cmd,  param, path, iconic, key, shortcuts
+StartMenuItem   number*, menu*, cmd*, param, path, iconic, key, shortcuts
+Button          number*, menu , cmd , param, path, iconic, key, shortcuts, button
+UserCmd         number*, menu , cmd*, param, path, iconic, key, shortcuts, button, name*
+
+Required fields
+Item            number
+InternalCmd     number, name
+DirMenuItem     number, menu
+StartMenuItem   number, cmd, menu
+Button          number
+UserCmd         number, cmd, name
+
+- Commands stored as UserCmd can be referenced in MenuItems, Buttons and hotkey mappings.
+- UserCmds are stored in single file, Buttons are grouped in bar files.
+- UserCmd = Button + required (symbolic) name
+- Group UserCmds by their symbolic name
 
 Interfaces
 
