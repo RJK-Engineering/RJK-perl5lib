@@ -23,6 +23,7 @@ use Win32API::File qw(
 ---++ Class methods
 
 ---+++ getVolumes() -> \%volumes or @volumes
+---+++ getVolumesByLabel($label) -> \%volumes or @volumes
 
 Volume type value reference: https://metacpan.org/pod/Win32API::File#GetDriveType
 
@@ -48,7 +49,17 @@ sub getVolumes {
             type => $type
         };
     }
-    return wantarray ? map { $volumes{$_} } sort keys %volumes : \%volumes;
+    return wantarray ? sort { $a->{letter} cmp $b->{letter} } values %volumes : \%volumes;
+}
+
+sub getVolumesByLabel {
+    my ($self, $label) = @_;
+    my %volumes;
+    my @volumes = getVolumes();
+    foreach (@volumes) {
+        $volumes{$_->{letter}} = $_ if $_->{label} =~ /^$label$/i;
+    }
+    return wantarray ? sort { $a->{letter} cmp $b->{letter} } values %volumes : \%volumes;
 }
 
 ###############################################################################
