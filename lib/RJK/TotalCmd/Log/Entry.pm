@@ -6,7 +6,7 @@ use warnings;
 use Class::AccessorMaker {
     date => undef, time => undef,
     sourcedir => undef, sourcefile => undef, source => undef,
-    destdir => undef, destfile => undef, destination => undef,
+    targetdir => undef, targetfile => undef, target => undef,
     operation => undef, isFsPluginOp => undef,
     success => undef, error => undef, skipped => undef,
     user => undef, encoding => undef
