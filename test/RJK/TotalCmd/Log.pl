@@ -14,12 +14,12 @@ RJK::TotalCmd::Log->traverse(
     visitEntry => sub {
         my $entry = shift;
         opStats($entry);
-        return 0;
+        return 1;
     },
     visitFailed => sub {
         my $line = shift;
         print "Visit Failed: \"$line\"\n";
-        return 0;
+        return 1;
     },
 );
 
