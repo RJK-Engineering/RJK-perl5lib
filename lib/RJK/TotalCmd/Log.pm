@@ -18,7 +18,7 @@ use LineParseException;
 our @fields = qw(
     date time
     sourcedir sourcefile source
-    destdir destfile destination
+    targetdir targetfile target
     operation isFsPluginOp
     success error skipped
     user encoding
@@ -44,10 +44,10 @@ our @errors = (
 
 ---+++ traverse($file, %opts)
    * =$file= - path to log file.
-   * =$opts{visitEntry}= - traversal is stopped if this sub returns a true value.
+   * =$opts{visitEntry}= - traversal is stopped if this sub returns false.
      Subroutine arguments:
       * =$entry= - =RJK::TotalCmd::Log::Entry= object.
-   * =$opts{visitFailed}= - Optional. Traversal is stopped if this sub returns a true value.
+   * =$opts{visitFailed}= - Optional. Traversal is stopped if this sub returns false.
      Subroutine arguments:
       * =$line= - the corrupt line.
    * throws FileException
@@ -79,13 +79,12 @@ sub traverse {
         my $line = $_;
         if (my $entry = &parseEntry) {
             local $_ = $entry;
-            last if $opts{visitEntry}->($entry);
+            last if ! $opts{visitEntry}->($entry);
         } else {
-            last if $opts{visitFailed}->($line);
+            last if ! $opts{visitFailed}->($line);
         }
     }
     close $fh;
-    throw FileException(error => "$!", file => $opts{file}) if $!;
 }
 
 sub parseEntry {
@@ -131,9 +130,9 @@ sub parseEntry {
 
     # parse params
     if (s/ -> ((.+)\\(.+))//) {
-        $entry->{destination} = $1;
-        $entry->{destdir} = $2;
-        $entry->{destfile} = $3;
+        $entry->{target} = $1;
+        $entry->{targetdir} = $2;
+        $entry->{targetfile} = $3;
     }
     if (/((.+)\\(.+))/) {
         $entry->{source} = $1;
