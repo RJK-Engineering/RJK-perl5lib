@@ -16,7 +16,7 @@ sub get {
         =~ s|/|$separator|gr
         =~ s|$separatorsRegex|$separator|gr;
     my $i = index $path, '"';
-    die "Illegal char <\"> at index $i: $path" if $i < 0;
+    die "Illegal char <\"> at index $i: $path" if $i >= 0;
     my $trailingSeparator = $path =~ s|[$sep\s]+$||;
 
     my ($volume, $directories, $file) = $path =~ /$splitPathRegex/;
