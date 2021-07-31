@@ -120,9 +120,7 @@ sub traverseDir {
     return $visitor->visitFileFailed($dir, "$!") if not defined $entries;
 
     $result = $visitor->preVisitDir($dir, $dirStat);
-    if (FileVisitResult->matches($result,
-        FileVisitResult::TERMINATE, FileVisitResult::SKIP_SUBTREE, FileVisitResult::SKIP_SIBLINGS
-    )) {
+    if (FileVisitResult->matches($result, FileVisitResult::TERMINATE, FileVisitResult::SKIP_SUBTREE, FileVisitResult::SKIP_SIBLINGS)) {
         return $result;
     } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_FILES)) {
         $skipFiles = 1;
@@ -162,7 +160,8 @@ sub traverseDir {
         if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
             return FileVisitResult::TERMINATE;
         } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
-            return $visitor->postVisitDir($dir, $dirStat);
+            @dirs = ();
+            last;
         } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
             @dirs = ();
         } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_FILES)) {
@@ -173,10 +172,8 @@ sub traverseDir {
     $_ = $dir->{path};
     $result = $visitor->postVisitFiles($dir, $dirStat);
     if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
-        return FileVisitResult::TERMINATE;
-    } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
-        return $visitor->postVisitDir($dir, $dirStat);
-    } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
+        return $result;
+    } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS, FileVisitResult::SKIP_DIRS)) {
         @dirs = ();
     }
 
@@ -185,7 +182,7 @@ sub traverseDir {
         $_ = $dir->{path};
         $result = $self->traverseDir($dir, $visitor, $opts, $stat, $depth+1);
         if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
-            return FileVisitResult::TERMINATE;
+            return $result;
         } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
             last;
         }
