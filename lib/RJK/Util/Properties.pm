@@ -5,8 +5,8 @@ use warnings;
 
 sub new {
     my $self = bless {}, shift;
-    $self->{props} = {};
-    $self->{keys} = [];
+    $self->{props} = shift // {};
+    $self->{keys} = [sort keys %{$self->{props}}];
     return $self;
 }
 
