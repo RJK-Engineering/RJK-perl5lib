@@ -12,6 +12,7 @@ BEGIN {
     push @INC, @dirs;
 
     require Exception;
+    Exception->Trace(1);
 }
 
 1;
