@@ -12,40 +12,35 @@ use OpenFileException;
 
 sub read {
     my ($self, $file) = @_;
-
-    throw FileException(error => "Not a file: $file", file => $file) if ! -f $file;
-    throw FileException(error => "File is empty: $file", file => $file) if -z $file;
+    throw FileException(error => "Not a file: $file", file => $file) if !-f $file;
 
     local $/; # slurp entire file
-    open my $fh, '<', $file
-        or throw OpenFileException(error => "$!: $file", file => $file);
+    open my $fh, '<', $file or throw OpenFileException(error => "$!: $file", file => $file);
+    my $data = <$fh>;
+    close $fh;
 
-    my $data;
-    try {
-        $data = JSON->new->decode(<$fh>);
-    } catch {
-        throw Exception(shift);
-    } finally {
-        close $fh;
-    };
-
-    return $data;
+    return JSON->new->decode($data) if $data ne "";
 }
 
 sub write {
     my ($self, $file, $data) = @_;
+    my $json = JSON->new->convert_blessed->canonical->pretty->encode($data);
 
-    open my $fh, '>', $file
-        or throw OpenFileException(file => $file, error => "$!");
+    open my $fh, '>', $file or throw OpenFileException(file => $file, error => "$!");
+    print $fh $json;
+    close $fh;
+}
 
-    try {
-        #~ print $fh JSON->new->allow_nonref->convert_blessed->canonical->pretty->encode($data);
-        print $fh JSON->new->canonical->pretty->encode($data);
-    } catch {
-        throw Exception(shift);
-    } finally {
-        close $fh;
-    };
+sub UNIVERSAL::TO_JSON {
+    eval "require Data::Structure::Util"
+        or throw Exception("Data::Structure::Util package required to convert objects to JSON");
+    my $self = shift;
+
+    my $ref; # new reference required, TO_JSON is not allowed to return self
+    eval { $ref = {%$self} }
+        or throw Exception("Only blessed HASH objects allowed in conversion to JSON");
+    Data::Structure::Util::unbless($ref);
+    return $ref;
 }
 
 1;
