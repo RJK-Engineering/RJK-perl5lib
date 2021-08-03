@@ -43,8 +43,11 @@ RJK::AppData
     write($filename, $data)
     write($filename, RJK::Data)
 RJK::Data
-    get() -> $value
-    read($filename)
+    new($data)      -- calls add($data)
+    get() -> $data  -- get pure perl data representation
+    clear()         -- remove all data
+    add($data)      -- load (update) from pure perl data
+    load($filename) -- load (update) from file
     write($filename)
 RJK::JSON implements RJK::Data
 RJK::INI implements RJK::Data
@@ -96,7 +99,7 @@ sub loadProperties {
 
 sub loadJson {
     my ($path, $data) = @_;
-    my $json = RJK::Util::JSON->read($path);
+    my $json = RJK::Util::JSON->read($path) || return;
 
     while (my ($k, $v) = each %$json) {
         $data->{$k} = $v;
@@ -125,7 +128,7 @@ sub write {
     } elsif ($filename =~ /\.json$/) {
         RJK::Util::JSON->write($local, $data);
     } else {
-        die "Unsupported file type: $filename";
+        die "Unsupported file type: $local";
     }
 }
 
