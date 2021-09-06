@@ -136,7 +136,7 @@ sub getImageInfo {
 }
 
 sub isVideo {
-    return $_[0] =~ /\.(mp4|wmv|mpe?g|avi|rm|mkv|webm|flv|rmvb|asf|m4v|divx|mov)$/i;
+    return $_[0] =~ /\.(mp4|wmv|mpe?g|avi|rm|mkv|webm|flv|rmvb|asf|m4v|divx|mov|part)$/i;
 }
 
 sub createSnapshot {
@@ -150,7 +150,7 @@ sub createSnapshot {
         "\"$output\""
     );
     print "@cmd\n" if $opts->{verbose};
-    `@cmd 2>&1 >NUL`;
+    `@cmd 2>&1 >NUL 2>NUL`;
 }
 
 1;
