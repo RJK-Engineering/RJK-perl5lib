@@ -12,9 +12,16 @@ use constant {
     SKIP_FILES => bless([], 'FileVisitResult::SKIP_FILES'),
 };
 
+@FileVisitResult::CONTINUE::ISA = qw(FileVisitResult);
+@FileVisitResult::TERMINATE::ISA = qw(FileVisitResult);
+@FileVisitResult::SKIP_SUBTREE::ISA = qw(FileVisitResult);
+@FileVisitResult::SKIP_SIBLINGS::ISA = qw(FileVisitResult);
+@FileVisitResult::SKIP_DIRS::ISA = qw(FileVisitResult);
+@FileVisitResult::SKIP_FILES::ISA = qw(FileVisitResult);
+
 sub matches {
     shift;
-    my $result = shift // return 0;
+    UNIVERSAL::isa(my $result = shift, 'FileVisitResult') || return 0;
     foreach (@_) {
         return 1 if $result == $_;
     }
