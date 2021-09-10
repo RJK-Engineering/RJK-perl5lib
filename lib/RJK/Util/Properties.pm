@@ -33,6 +33,7 @@ sub hash {
 
 sub load {
     my ($self, $path) = @_;
+    $self = $self->new if !ref $self;
     my ($eat, @prop, $comment);
 
     open my $fh, '<', $path or die "$!: $path";
