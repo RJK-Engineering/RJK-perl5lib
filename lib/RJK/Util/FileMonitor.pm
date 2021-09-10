@@ -9,14 +9,16 @@ use RJK::Stat;
 sub setFile {
     my $self = shift;
     $self->{file} = shift;
-    $self->{modified} = RJK::Stat->get($self->{file})->modified;
+    my $stat = RJK::Stat->get($self->{file});
+    $self->{modified} = $stat->modified;
+    $self->{size} = $stat->size;
 }
 
 sub doPoll {
     my $self = shift;
     my $stat = RJK::Stat->get($self->{file});
 
-    if ($self->{modified} && $stat->modified != $self->{modified}) {
+    if ($stat->modified != $self->{modified} || $stat->size != $self->{size}) {
         $self->notifyObservers({
             type => "FileChanged",
             payload => {
