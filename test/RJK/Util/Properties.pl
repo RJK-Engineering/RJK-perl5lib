@@ -1,8 +1,11 @@
+use strict;
+use warnings;
+
 use RJK::Util::Properties;
 
-my $p = new RJK::Util::Properties();
-$p->load(shift);
+my $p = RJK::Util::Properties->new;
+$p->read(shift);
 use Data::Dump;
 dd $p;
 
-$p->save("test~.properties");
+$p->write("test~.properties");
