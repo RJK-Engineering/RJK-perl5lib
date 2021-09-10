@@ -5,20 +5,20 @@ use warnings;
 
 my $commands;
 my $aliases;
+my %opts;
 
 sub new {
     my $self = bless {}, shift;
-    my %opts = @_;
-    $commands = $opts{commands};
-    $aliases = $opts{aliases};
+    %opts = @_;
+    $opts{noCommandMessage} //= 'Pardon?';
     return $self;
 }
 
 sub execute {
     my ($self, $cmd, @args) = @_;
-    $cmd = $aliases->{$cmd} if $aliases->{$cmd};
-    if (! ($cmd = $commands->{$cmd})) {
-        print "Pardon?\n";
+    $cmd = $opts{aliases}{$cmd} if $opts{aliases}{$cmd};
+    if (! ($cmd = $opts{commands}{$cmd})) {
+        print "$opts{noCommandMessage}\n" if defined $opts{noCommandMessage};
         return;
     }
 
