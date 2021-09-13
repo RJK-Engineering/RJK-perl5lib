@@ -27,18 +27,14 @@ use RJK::Util::Properties;
 
 ---++ Class methods
 
----+++ get($filename) -> (\@loaded, $data)
----+++ get(\@filenames) -> (\@loaded, $data)
----+++ get($filename, $data) -> (\@loaded, $data)
----+++ get(\@filenames, $data) -> (\@loaded, $data)
+---+++ get($filename, $defaults) -> (\@loaded, $data)
    * =$filename= - path to data file relative to data directory
-   * =@filenames= - paths to data files relative to data directory
-   * =$data= - optional argument, updates existing data if present
+   * =$defaults= - optional default data, not static, may be altered
    * =@loaded= - path list of loaded files
+   * =$data= - the data
 
 RJK::AppData
-    get($filename) -> $data
-    get($filename, $data) -> $data
+    get($filename, $defaults) -> $data
     read($filename) -> RJK::Data
     write($filename, $data)
     write($filename, RJK::Data)
@@ -63,47 +59,45 @@ AppData->write("file.json", $dataObj);
 ###############################################################################
 
 sub get {
-    my ($self, $filenames, $data) = @_;
-    $self->read($filenames, $data);
+    my ($self, $filename, $defaults) = @_;
+    $self->read($filename, $defaults);
+}
+
+sub getFile {
+    my ($self, $filename) = @_;
+    RJK::Env->findLocalFiles($filename) or die "File not found: $filename";
 }
 
 sub read {
-    my ($self, $filenames, $data) = @_;
-    my @loaded;
-    $filenames = [$filenames] if not ref $filenames;
-    $data //= {};
-    foreach my $file (@$filenames) {
-        my @local = RJK::Env->findLocalFiles($file);
-        push @loaded, @local;
-        if ($file =~ /\.properties$/) {
-            loadProperties($_, $data) for @local;
-        } elsif ($file =~ /\.json$/) {
-            loadJson($_, $data) for @local;
-        } else {
-            die "Unsupported file type: $file";
-        }
+    my ($self, $filename, $defaults) = @_;
+    my $data;
+    my @paths = RJK::Env->findLocalFiles($filename) or die "File not found: $filename";
+    if ($filename =~ /\.properties$/) {
+        $data = loadProperties(\@paths, $defaults);
+    } elsif ($filename =~ /\.json$/) {
+        $data = loadJson(\@paths, $defaults);
+    } else {
+        die "Unsupported file type: $filename";
     }
-    return \@loaded, $data;
+    return \@paths, $data;
 }
 
 sub loadProperties {
-    my ($path, $data) = @_;
-    my $props = new RJK::Util::Properties();
-    $props->load($path);
-
-    while (my ($k, $v) = each %{$props->hash}) {
-        $k =~ s/\.(\w?)/\U$1/g; # make camelCase
-        $data->{$k} = $v;
-    }
+    my ($paths, $defaults) = @_;
+    my $p = new RJK::Util::Properties($defaults);
+    $p->load($_) for @$paths;
+    return $p->hash;
 }
 
 sub loadJson {
-    my ($path, $data) = @_;
-    my $json = RJK::Util::JSON->read($path) || return;
-
-    while (my ($k, $v) = each %$json) {
-        $data->{$k} = $v;
+    my ($paths, $defaults) = @_;
+    foreach (@$paths) {
+        my $json = RJK::Util::JSON->read($_) || return;
+        while (my ($k, $v) = each %$json) {
+            $defaults->{$k} = $v;
+        }
     }
+    return $defaults;
 }
 
 ###############################################################################
@@ -118,17 +112,17 @@ sub loadJson {
 
 sub write {
     my ($self, $filename, $data) = @_;
-    my $local = (RJK::Env->findLocalFiles($filename))[0] || die "File not found: $filename";
+    my $path = (RJK::Env->findLocalFiles($filename))[0] or die "File not found: $filename";
 
     if (UNIVERSAL::isa('RJK::Data', $data)) {
-        $data->write($local);
+        $data->write($path);
     } elsif ($filename =~ /\.properties$/) {
         $data = new RJK::Util::Properties($data) if not UNIVERSAL::isa('RJK::Util::Properties', $data);
-        $data->write($local);
+        $data->write($path);
     } elsif ($filename =~ /\.json$/) {
-        RJK::Util::JSON->write($local, $data);
+        RJK::Util::JSON->write($path, $data);
     } else {
-        die "Unsupported file type: $local";
+        die "Unsupported file type: $path";
     }
 }
 
