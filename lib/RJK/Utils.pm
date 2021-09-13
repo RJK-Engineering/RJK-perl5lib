@@ -13,6 +13,10 @@ use warnings;
 
 use RJK::AppData;
 
+sub getAppDataFile {
+    RJK::AppData->getFile("RJK-utils/$_[1]");
+}
+
 sub getAppData {
     RJK::AppData->get("RJK-utils/$_[1]");
 }
