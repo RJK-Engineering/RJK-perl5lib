@@ -36,7 +36,14 @@ sub sendCommand {
 ###############################################################################
 =pod
 
----+++ setPaths($left, $right)
+---+++ setPath(%opts)
+   * =%opts= - Options:
+      * newInstance => $boolean
+      * newTab => $boolean
+      * left => $path
+      * right => $path
+      * source => $path
+      * target => $path
 
 See topic "Command line parameters" in Total Commander help.
 
@@ -58,10 +65,14 @@ See topic "Command line parameters" in Total Commander help.
 =cut
 ###############################################################################
 
-sub setPaths {
-    my ($self, $left, $right) = @_;
-    my @args = ($ENV{COMMANDER_EXE}, "/O", "/L=\"$left\"");
-    push @args, "/R=\"$right\"" if $right;
+sub setPath {
+    my ($self, %opts) = @_;
+    my @args = ($ENV{COMMANDER_EXE}, '/O');
+    push @args, '/N' if $opts{newInstance};
+    push @args, '/T' if $opts{newTab};
+    push @args, '/S' if $opts{source} || $opts{target};
+    push @args, '/L='.($opts{source} || $opts{left}) if $opts{source} || $opts{left};
+    push @args, '/R='.($opts{target} || $opts{right}) if $opts{target} || $opts{right};
     system @args;
 }
 
@@ -104,51 +115,6 @@ sub tempFile {
 
     open (my $fh, '>', $file) || return (undef, $file, "$!");
     return ($fh, $file);
-}
-
-###############################################################################
-=pod
-
----+++ setLeftRightPaths()
-
-=cut
-###############################################################################
-
-sub setLeftRightPaths {
-    my ($self, $l, $r) = @_;
-    my @args = ($ENV{COMMANDER_EXE}, "/O");
-    push @args, "/L=\"$l\"" if $l;
-    push @args, "/L=\"$r\"" if $r;
-    system @args;
-}
-
-
-###############################################################################
-=pod
-
----+++ setSourcePath($path)
----+++ setTargetPath($path)
----+++ setSourceTargetPaths($source, $target)
-
-=cut
-###############################################################################
-
-sub setSourcePath {
-    my ($self, $s) = @_;
-    $self->setSourceTargetPaths($s);
-}
-
-sub setTargetPath {
-    my ($self, $t) = @_;
-    $self->setSourceTargetPaths(undef, $t);
-}
-
-sub setSourceTargetPaths {
-    my ($self, $s, $t) = @_;
-    my @args = ($ENV{COMMANDER_EXE}, "/O", "/S");
-    push @args, "/L=\"$s\"" if $s;
-    push @args, "/R=\"$t\"" if $t;
-    system @args;
 }
 
 ###############################################################################
