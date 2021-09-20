@@ -32,4 +32,7 @@ sub execute {
     }
 }
 
+sub aliases { map { $opts{aliases}{$_} => $_ } keys %{$opts{aliases}} }
+sub names { sort keys %{$opts{commands}} }
+
 1;
