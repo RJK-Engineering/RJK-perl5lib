@@ -48,14 +48,13 @@ sub new {
 =cut
 ###############################################################################
 
-sub root { $_[0]{root} }
+sub root { $_[0]{directories}[0][0] }
 sub directories { $_[0]{directories} }
 sub files { $_[0]{files} }
 
 sub setRoot {
     my ($self, $path) = @_;
     $path =~ s/\\$//;
-    $self->{root} = $path;
     $self->{directories}[0][0] = $path;
 }
 
@@ -123,8 +122,8 @@ sub setFile {
 sub setDir {
     my ($self, $path, $stat) = @_;
     my $dir = $self->_splitDir($path);
-    $dir || throw Exception("Path not in root: $path, root: $self->{root}");
-    return if $dir eq $self->{root};
+    $dir || throw Exception("Path not in root: $path, root: $self->{directories}[0][0]");
+    return if $dir eq $self->{directories}[0][0];
 
     my $f = new RJK::IO::File($path);
     $stat //= $f->stat;
@@ -182,7 +181,7 @@ sub read {
     chomp $root;
 
     $self->{directories} = [];
-    $self->setRoot($root);
+    $self->{directories}[0][0] = $root;
     $self->{files} = {};
 
     my $dirpath = "";
@@ -204,7 +203,7 @@ sub read {
 
 sub write {
     my ($self, $path) = @_;
-    $self->{root} || throw Exception("No root path set");
+    $self->{directories}[0][0] || throw Exception("No root path set");
 
     my $file = new RJK::IO::File($path);
     my $fh = $file->open('>');
@@ -218,7 +217,7 @@ sub write {
             print $fh join("\t", @fields), "\n";
         } else {
             # root has path only
-            print $fh "$self->{root}\\\n";
+            print $fh "$self->{directories}[0][0]\\\n";
         }
 
         my $files = $self->{files}{$path};
@@ -231,14 +230,14 @@ sub write {
 
 sub _splitFile {
     my ($self, $path) = @_;
-    return () if $path !~ s/^\Q$self->{root}\E//i;
+    return () if $path !~ s/^\Q$self->{directories}[0][0]\E//i;
     my ($dirpath, $filename) = $path =~ /\\?(.*)\\(.+)/;
-    return ($dirpath || $self->{root}, $filename);
+    return ($dirpath || $self->{directories}[0][0], $filename);
 }
 
 sub _splitDir {
     my ($self, $path) = @_;
-    return ($path =~ /^\Q$self->{root}\E\\(.*?)\\*$/i)[0] || $self->{root};
+    return ($path =~ /^\Q$self->{directories}[0][0]\E\\(.*?)\\*$/i)[0] || $self->{directories}[0][0];
 }
 
 sub fileExists {
