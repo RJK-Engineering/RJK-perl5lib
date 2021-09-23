@@ -12,10 +12,11 @@ use v5.16; # enables fc feature
 use strict;
 use warnings;
 
-use Time::Local 'timelocal';
 use Exceptions;
-
 use RJK::IO::File;
+use RJK::TotalCmd::DiskDirFile::DateTime;
+
+our $dateTimeFormatter = 'RJK::TotalCmd::DiskDirFile::DateTime';
 
 ###############################################################################
 =pod
@@ -115,7 +116,7 @@ sub setFile {
 
     $self->{files}{$dir}{$file} = [
         $file, $stat->size,
-        format_datetime($stat->modified)
+        $dateTimeFormatter->format($stat->modified),
     ];
 }
 
@@ -130,7 +131,7 @@ sub setDir {
 
     if ($self->dirExists($dir)) {
         my $dir = $self->_getDir($dir);
-        ($dir->[2], $dir->[3]) = format_datetime($stat->modified);
+        ($dir->[2], $dir->[3]) = $dateTimeFormatter->format($stat->modified);
     } else {
         my $parent = $f->parent;
         if (! $self->{files}{$parent}) {
@@ -139,7 +140,7 @@ sub setDir {
         }
 
         push @{$self->{directories}}, [
-            $dir, 0, format_datetime($stat->modified)
+            $dir, 0, $dateTimeFormatter->format($stat->modified)
         ];
         $self->{files}{$dir} = {};
     }
@@ -248,20 +249,6 @@ sub fileExists {
 sub dirExists {
     my ($self, $dir) = @_;
     return exists $self->{files}{$dir};
-}
-
-sub parse_datetime {
-    my @t = reverse split /[:\. ]/, shift;
-    die if @t != 6;
-    $t[5] -= 1900;
-    $t[4]--;
-    return timelocal(@t);
-}
-
-sub format_datetime {
-    my @t = localtime shift;
-    return (sprintf("%s.%s.%s", $t[5]+1900, $t[4]+1, $t[3]),
-            sprintf("%s:%s.%s", $t[2], $t[1], $t[0]));
 }
 
 1;
