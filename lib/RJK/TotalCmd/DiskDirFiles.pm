@@ -15,10 +15,12 @@ use Exceptions;
 use OpenFileException;
 
 use FileVisitResult;
-use RJK::TotalCmd::DiskDirFile;
 use RJK::TotalCmd::DiskDirStat;
 use RJK::Path;
 use RJK::Paths;
+
+use RJK::TotalCmd::DiskDirFile::DateTime;
+my $dateTimeParser = 'RJK::TotalCmd::DiskDirFile::DateTime';
 
 ###############################################################################
 =pod
@@ -75,7 +77,7 @@ sub traverse {
             if (@$fields > 1) {
                 $dir = RJK::Paths->get($root, $fields->[0]);
                 if (! $opts->{nostat}) {
-                    $stat->{modified} = RJK::TotalCmd::DiskDirFile::parse_datetime("$fields->[2] $fields->[3]");
+                    $stat->{modified} =$dateTimeParser->parse("$fields->[2] $fields->[3]");
                 }
             } else {
                 $dir = RJK::Paths->get($fields->[0]);
@@ -114,7 +116,7 @@ sub traverse {
             if (! $opts->{nostat}) {
                 $stat = new RJK::TotalCmd::DiskDirStat;
                 $stat->{size} = $fields->[1];
-                $stat->{modified} = ! $opts->{nostat} && RJK::TotalCmd::DiskDirFile::parse_datetime("$fields->[2] $fields->[3]");
+                $stat->{modified} = ! $opts->{nostat} && $dateTimeParser->parse("$fields->[2] $fields->[3]");
             }
 
             $result = $visitor->visitFile($file, $stat);
