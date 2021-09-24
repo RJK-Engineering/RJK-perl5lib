@@ -104,7 +104,7 @@ sub hasDir {
 }
 
 sub setFile {
-    my ($self, $path, $stat) = @_;
+    my ($self, $path, $stat, $includeCreationDateTime) = @_;
     my ($dir, $file) = $self->_splitFile($path);
 
     my $f = new RJK::IO::File($path);
@@ -116,31 +116,29 @@ sub setFile {
     $self->{files}{$dir}{$file} = [
         $file, $stat->size,
         $dateTimeFormatter->format($stat->modified),
+        $includeCreationDateTime ? $dateTimeFormatter->format($stat->created) : ()
     ];
 }
 
 sub setDir {
-    my ($self, $path, $stat) = @_;
-    my $dir = $self->_splitDir($path);
-    $dir || throw Exception("Path not in root: $path, root: $self->{directories}[0][0]");
+    my ($self, $path, $stat, $includeCreationDateTime) = @_;
+    my $dir = $self->_splitDir($path)
+        or throw Exception("Path not in root: $path, root: $self->{directories}[0][0]");
     return if $dir eq $self->{directories}[0][0];
 
     my $f = new RJK::IO::File($path);
     $stat //= $f->stat;
 
+    my @modified = $dateTimeFormatter->format($stat->modified);
+    my @created = $dateTimeFormatter->format($stat->created) if $includeCreationDateTime;
     if ($self->dirExists($dir)) {
         my $dir = $self->_getDir($dir);
-        ($dir->[2], $dir->[3]) = $dateTimeFormatter->format($stat->modified);
+        ($dir->[2], $dir->[3]) = @modified;
+        ($dir->[4], $dir->[5]) = @created if @created;
     } else {
         my $parent = $f->parent;
-        if (! $self->{files}{$parent}) {
-            # add parent directories recursively
-            $self->setDir($parent);
-        }
-
-        push @{$self->{directories}}, [
-            $dir, 0, $dateTimeFormatter->format($stat->modified)
-        ];
+        $self->{files}{$parent} or $self->setDir($parent);
+        push @{$self->{directories}}, [ $dir, 0, @modified, @created ];
         $self->{files}{$dir} = {};
     }
 }
