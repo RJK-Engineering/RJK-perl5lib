@@ -1,6 +1,10 @@
+.*
 ~*
 *~
 *~.*
-*.*-workspace
+*.orig
+*.bak
+*.lnk
+*.tmp
 *.*-project
-.*
+*.*-workspace
