@@ -53,8 +53,8 @@ my $terminated = RJK::Files->traverse($path, $visitor, {sort=>1});
 print "TERMINATEd\n" if $terminated;
 
 sub createFileTree {
-    die "Testdir does not exist: $testDir" if !-e $testDir;
-    die "Testdir is not writeable: $testDir" if !-w $testDir;
+    -e $testDir or die "Testdir does not exist: $testDir";
+    -w $testDir or die "Testdir is not writeable: $testDir";
     mkdir "$testDir/dir1";
     mkdir "$testDir/dir1/dir2";
     mkdir "$testDir/dir3";
