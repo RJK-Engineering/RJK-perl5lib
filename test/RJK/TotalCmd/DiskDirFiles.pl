@@ -5,8 +5,8 @@ use FileVisitResult;
 use RJK::SimpleFileVisitor;
 use RJK::TotalCmd::DiskDirFiles;
 
-my $file = 'DiskDirFiles.test~.lst';
-#~ my $file = 'DiskDirFiles.test.noroot~.lst';
+my $file = '~DiskDirFiles.test.lst';
+#~ my $file = '~DiskDirFiles.test.noroot.lst';
 
 RJK::TotalCmd::DiskDirFiles->traverse($file, new RJK::SimpleFileVisitor(
     visitFile => sub {
