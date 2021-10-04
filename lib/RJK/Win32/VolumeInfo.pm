@@ -77,6 +77,7 @@ sub getUsage {
     my ($free, $total, $available);
     $volume =~ s/:?$/:/;
     my @lines = `fsutil volume diskfree $volume`;
+    $?>>8 == 0 or die "Execution of fsutil failed";
 
     foreach (@lines) {
         if (/Total # of free bytes\s*:\s*(\d+)/) {
@@ -87,8 +88,7 @@ sub getUsage {
             $available = $1;
         }
     }
-
-    die $lines[0] if ! $free;
+    $free or die $lines[0] // "Error parsing fsutil output";
 
     return wantarray ? ($free, $total, $available) : {
         free => $free,
