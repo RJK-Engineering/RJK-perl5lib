@@ -45,16 +45,22 @@ sub hasObserver {
 
 sub notifyObservers {
     my ($self, $event) = @_;
-    my $method = "handle" . $event->{type} . "Event";
-    local $_ = $event;
 
+    my $var = "$event->{type}::ISA";
+    if (eval "\@$var and \$${var}[0] eq 'RJK::Event'") {
+        local $_ = bless $event, $event->{type};
+    } else {
+        local $_ = bless $event, 'RJK::Event';
+    }
+
+    my $method = 'handle' . $event->{type};
     foreach my $observer (@{$self->{observers}}) {
         if ($observer->can($method)) {
-            $observer->$method($event->{payload}, $self);
-        } elsif ($observer->can("update")) {
+            $observer->$method($event, $self);
+        } elsif ($observer->can('update')) {
             $observer->update($event, $self);
         } else {
-            warn "No handler method for $event->{type} event in observer class " . ref($observer);
+            warn "No handler method for $event->{type} in observer class " . ref($observer);
         }
     }
 }
