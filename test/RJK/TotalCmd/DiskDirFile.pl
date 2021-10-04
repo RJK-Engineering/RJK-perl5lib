@@ -4,7 +4,7 @@ use warnings;
 use RJK::TotalCmd::DiskDirFile;
 use Data::Dump;
 
-my $filepath = 'DiskDirFile.test~.lst';
+my $filepath = '~DiskDirFile.test.lst';
 
 my $ddf = new RJK::TotalCmd::DiskDirFile();
 $ddf->read($filepath);
@@ -16,11 +16,11 @@ foreach (@{$ddf->getFiles('.')}) {
     print "$_->[0]\n";
 }
 
-$filepath = 'DiskDirFile.test.write~.lst';
+$filepath = '~DiskDirFile.test.write.lst';
 $ddf->write($filepath);
 
 $ddf->setRoot("c:\\test");
-$filepath = 'DiskDirFile.test.setRoot~.lst';
+$filepath = '~DiskDirFile.test.setRoot.lst';
 $ddf->write($filepath);
 
 my $file = 'c:\\test\\BLUEMAX1.T64';
@@ -44,7 +44,7 @@ dd $ddf->getFile($file);
 
 $ddf->deleteFile($file);
 $ddf->deleteDir('c:\\test\\QB\rob');
-$filepath = 'DiskDirFile.test.delete~.lst';
+$filepath = '~DiskDirFile.test.delete.lst';
 $ddf->write($filepath);
 
 use Try::Tiny;
@@ -87,5 +87,5 @@ try {
 $file = 'c:\\temp\\1\\2\\3\\a.txt';
 $ddf->setFile($file);
 
-$filepath = 'DiskDirFile.test.new~.lst';
+$filepath = '~DiskDirFile.test.new.lst';
 $ddf->write($filepath);
