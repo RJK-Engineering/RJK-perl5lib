@@ -178,7 +178,7 @@ Shutdown: Program shutdown ([user])
 params for operations:
 [operation]              [params]
 Move, Copy:              [filepath] -> [filepath] *1) File might be renamed
-Move:                    [dirpath -> dirpath]     *2) Moving a directory on same filesystem
+Move:                    [dirpath] -> [dirpath]   *2) Moving a directory on same filesystem
 Delete, CreateFile:      [filepath]               *3) A Delete also occurs after a Move to a different filesystem
 NewFolder, DeleteFolder: [dirpath]                *2) Also occurs when moving a directory to a different filesystem
 
