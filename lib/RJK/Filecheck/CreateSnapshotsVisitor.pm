@@ -150,7 +150,7 @@ sub createSnapshot {
         "\"$output\""
     );
     print "@cmd\n" if $opts->{verbose};
-    `@cmd 2>&1 >NUL 2>NUL`;
+    `@cmd >NUL 2>NUL`;
 }
 
 1;
