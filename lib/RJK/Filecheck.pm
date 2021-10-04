@@ -12,8 +12,11 @@ my $stores;
 sub getRealPath {
     my ($self, $vpath) = @_;
     my @volumes = RJK::Win32::VolumeInfo->getVolumesByLabel($vpath->label);
-    return RJK::Paths->get($volumes[0]{letter} . $vpath->relative) if @volumes == 1;
-    die "Multiple volumes with same label mounted" if @volumes;
+    if (@volumes == 1) {
+        return RJK::Paths->get($vpath->getRealPath($volumes[0]))
+    } elsif (@volumes) {
+        die "Multiple volumes with same label mounted";
+    }
     return undef;
 }
 
