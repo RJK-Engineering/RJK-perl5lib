@@ -16,16 +16,29 @@ sub doPoll {
     my $self = shift;
     my $stat = RJK::Stat->get($self->{file});
 
-    if ($stat->modified != $self->{stat}->modified || $stat->size != $self->{stat}->size) {
-        $self->notifyObservers({
-            type => "FileChangeEvent",
-            payload => {
-                file => $self->{file},
-                stat => $stat
-            }
-        });
+    if (not $self->fileExists) {
+        $self->notifyObservers("FileCreateEvent", $self->getPayload($stat)) if $stat->exists;
+    }
+    elsif (not $stat->exists) {
+        $self->notifyObservers("FileDeleteEvent", $self->getPayload($stat));
+    }
+    elsif ($stat->modified != $self->{stat}->modified
+    or $stat->size != $self->{stat}->size) {
+        $self->notifyObservers("FileChangeEvent", $self->getPayload($stat));
     }
     $self->{stat} = $stat;
+}
+
+sub fileExists {
+    $_[0]{stat}->exists;
+}
+
+sub getPayload {
+    my ($self, $stat) = @_;
+    payload => {
+        file => $self->{file},
+        stat => $stat
+    };
 }
 
 1;
