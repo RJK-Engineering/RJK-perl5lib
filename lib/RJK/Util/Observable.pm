@@ -44,7 +44,14 @@ sub hasObserver {
 }
 
 sub notifyObservers {
-    my ($self, $event) = @_;
+    my $self = shift;
+    my $event = shift;
+    my %opts = @_ == 1 ? (payload => $_[0]) : @_;
+
+    if (! ref $event) {
+        $opts{type} = $event;
+        $event = \%opts;
+    }
 
     my $var = "$event->{type}::ISA";
     if (eval "\@$var and \$${var}[0] eq 'RJK::Event'") {
