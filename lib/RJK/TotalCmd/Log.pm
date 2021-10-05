@@ -167,7 +167,7 @@ Shutdown: Program shutdown ([user])
 [op] := FS:[operation] | [operation]
 [operation] :=
     Move | Copy | Delete | CreateFile | NewFolder | DeleteFolder |
-    Pack | Unpack | Shortcut | Startup | Shutdown
+    Pack | Unpack | Shortcut
 [error] :=
     Failed | Aborted | Not found | Identical | Read error |
     Write error | Invalid name | Packer not found | Temp file error |
@@ -181,6 +181,9 @@ Move, Copy:              [filepath] -> [filepath] *1) File might be renamed
 Move:                    [dirpath] -> [dirpath]   *2) Moving a directory on same filesystem
 Delete, CreateFile:      [filepath]               *3) A Delete also occurs after a Move to a different filesystem
 NewFolder, DeleteFolder: [dirpath]                *2) Also occurs when moving a directory to a different filesystem
+Pack:                    [archive filepath]       * NB: not logged WHAT is being packed
+Unpack:                  [archive path] -> [path] * [archive path] := [archive filepath]/[path in archive]
+Shortcut:                [path] -> [link filepath]
 
 
 NOTES
