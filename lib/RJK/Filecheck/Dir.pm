@@ -17,6 +17,27 @@ sub new {
 # Directory Properties
 ################################################################################
 
+sub getProperties {
+    my ($self) = @_;
+    my $props = {};
+    $self->_traverseProperties(sub {
+        $props->{$_[0]} = $_[1];
+        return 0;
+    });
+    return bless $props, 'RJK::Filecheck::Properties';
+}
+
+sub getProperty {
+    my ($self, $key) = @_;
+    my $value;
+    $self->_traverseProperties(sub {
+        return if $_[0] ne $key;
+        $value = $_[1];
+        return 1;
+    });
+    return $value;
+}
+
 sub hasProperty {
     my ($self, $key, $value) = @_;
     $value = undef if _isJsonPropValue($value);
@@ -34,15 +55,9 @@ sub hasProperty {
     }
 }
 
-sub getProperty {
-    my ($self, $key) = @_;
-    my $value;
-    $self->_traverseProperties(sub {
-        return if $_[0] ne $key;
-        $value = $_[1];
-        return 1;
-    });
-    return $value;
+sub setProperties {
+    my ($self, $props) = @_;
+    $self->setProperty($_, $props->{$_}) for keys %$props;
 }
 
 sub setProperty {
@@ -67,6 +82,12 @@ sub setProperty {
     }
 }
 
+sub saveProperties {
+    my ($self) = @_;
+    $self->_saveDirProperties();
+    $self->_saveFileProperties();
+}
+
 sub _deleteJsonProp {
     my ($self, $key) = @_;
     my $json = $self->_getJson;
@@ -75,21 +96,6 @@ sub _deleteJsonProp {
 
 sub _isJsonPropValue {
     defined $_[0] && $_[0] eq ""
-}
-
-sub getProperties {
-    my ($self) = @_;
-    my $props = {};
-    $self->_traverseProperties(sub {
-        $props->{$_[1]} = $_[2];
-        return 0;
-    });
-    return bless $props, 'RJK::Filecheck::Properties';
-}
-
-sub setProperties {
-    my ($self, $props) = @_;
-    $self->setProperty($_, $props->{$_}) for keys %$props;
 }
 
 sub _traverseProperties {
@@ -106,12 +112,6 @@ sub _traverseProperties {
             $callback->(@_);
         });
     }
-}
-
-sub saveProperties {
-    my ($self) = @_;
-    $self->_saveDirProperties();
-    $self->_saveFileProperties();
 }
 
 sub _saveDirProperties {
