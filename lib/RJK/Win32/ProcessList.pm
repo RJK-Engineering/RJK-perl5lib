@@ -15,6 +15,8 @@ our @fields = qw(
     WindowTitle
 );
 
+my $taskListExecutable = "tasklist.exe";
+
 sub getByPid {
     my ($self, $pid) = @_;
     my $proc;
@@ -48,7 +50,7 @@ sub findProcesses {
     my @list;
     my $header = 1;
 
-    my $cmd = "tasklist /v /fo csv";
+    my $cmd = "$taskListExecutable /v /fo csv";
     $cmd .= " /fi \"$match eq $value\"" if defined $value;
 
     foreach (`$cmd`) {
@@ -72,6 +74,11 @@ sub findProcesses {
         }
     }
     return \@list;
+}
+
+sub ignore {
+    my ($self, $process) = @_;
+    return $process->{ImageName} eq $taskListExecutable;
 }
 
 1;

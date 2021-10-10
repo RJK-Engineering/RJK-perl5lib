@@ -11,7 +11,7 @@ sub setImageName {
     $self->{imageName} = shift;
 }
 
-sub resume {
+sub init {
     my $self = shift;
     $self->{processHash} = $self->getProcessHash();
 }
@@ -24,21 +24,23 @@ sub doPoll {
     my @spawned;
 
     foreach my $process (values %$processHash) {
-        push @spawned, $process
-            if ! $previous->{$process->{PID}};
+        next if not $self->{imageName}
+            and RJK::Win32::ProcessList->ignore($process);
+        $self->notifyObservers("ProcessSpawnEvent", payload => $process)
+            if not $previous->{$process->{PID}};
     }
-
-    $self->notifyObservers({
-        type => "ProcessSpawned",
-        payload => \@spawned
-    }) if @spawned;
-
+    foreach my $process (values %$previous) {
+        next if not $self->{imageName}
+            and RJK::Win32::ProcessList->ignore($process);
+        $self->notifyObservers("ProcessGoneEvent", payload => $process)
+            if not $processHash->{$process->{PID}};
+    }
     $self->{processHash} = $processHash;
 }
 
 sub getProcessHash {
     my $self = shift;
-    return RJK::Win32::ProcessList->getProcessHash($self->{imageName});
+    return RJK::Win32::ProcessList->getProcessHash();
 }
 
 1;
