@@ -14,8 +14,10 @@ use warnings;
 $^O =~ /mswin/i or die "Wrong OS";
 
 use Win32API::File qw(
-    getLogicalDrives GetVolumeInformation GetDriveType
-    :DRIVE_);
+    getLogicalDrives
+    GetVolumeInformation
+    GetDriveType
+);
 
 ###############################################################################
 =pod
