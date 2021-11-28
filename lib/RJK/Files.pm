@@ -70,14 +70,12 @@ SKIP_SIBLINGS skips dir2, file2, dir3
 
 sub traverse {
     my ($self, $path, $visitor, $opts, $stats) = @_;
-    my $result;
     if ($stats) {
         &traverseWithStats;
-        $result = $stats->{result};
+        return $stats->{result};
     } else {
-        $result = &_traverse;
+        return &_traverse;
     }
-    return FileVisitResult->matches($result, FileVisitResult::TERMINATE);
 }
 
 sub _traverse {
@@ -85,15 +83,17 @@ sub _traverse {
     $visitor = createSimpleFileVisitor($visitor) if ! UNIVERSAL::isa($visitor, 'RJK::FileVisitor');
     $path = RJK::Paths->get($path);
     my $stat = RJK::Stat->get($path->{path});
+    my $result;
 
     $_ = $path->{path};
     if (! $stat) {
-        return $visitor->visitFileFailed($path, "Stat failed");
+        $result = $visitor->visitFileFailed($path, "Stat failed");
     } elsif ($stat->isDir) {
-        return $self->traverseDir($path, $visitor, $opts, $stat, 0);
+        $result = $self->traverseDir($path, $visitor, $opts, $stat, 0);
     } elsif ($stat->isFile) {
-        return $visitor->visitFile($path, $stat);
+        $result = $visitor->visitFile($path, $stat);
     }
+    return $result if FileVisitResult->isaFileVisitResult($result);
 }
 
 sub createSimpleFileVisitor {
@@ -120,12 +120,17 @@ sub traverseDir {
     return $visitor->visitFileFailed($dir, "$!") if not defined $entries;
 
     $result = $visitor->preVisitDir($dir, $dirStat);
-    if (FileVisitResult->matches($result, FileVisitResult::TERMINATE, FileVisitResult::SKIP_SUBTREE, FileVisitResult::SKIP_SIBLINGS)) {
-        return $result;
-    } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_FILES)) {
-        $skipFiles = 1;
-    } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
-        $skipDirs = 1;
+
+    if (FileVisitResult->isaFileVisitResult($result)) {
+        if ($result == FileVisitResult::TERMINATE
+        or $result == FileVisitResult::SKIP_SUBTREE
+        or $result == FileVisitResult::SKIP_SIBLINGS) {
+            return $result;
+        } elsif ($result == FileVisitResult::SKIP_FILES) {
+            $skipFiles = 1;
+        } elsif ($result == FileVisitResult::SKIP_DIRS) {
+            $skipDirs = 1;
+        }
     }
 
     chdir $_ if $opts->{chdir};
@@ -134,61 +139,69 @@ sub traverseDir {
     foreach (@$entries) {
         my $child = RJK::Paths->get($dir->{path}, $_);
         my $stat = RJK::Stat->get($child->{path});
-        if (! $stat) {
-            push @files, [ $child ] unless $skipFiles;
-        } elsif ($stat->isDir) {
+        if ($stat and $stat->isDir) {
             push @dirs, [ $child, $stat ] unless $skipDirs;
-        } elsif ($stat->isFile) {
+        } else {
             push @files, [ $child, $stat ] unless $skipFiles;
         }
     }
 
     if ($opts->{sort}) {
         @files = sort {
+            $a->[0]{$by} cmp $b->[0]{$by} or
             $a->[0]{name} cmp $b->[0]{name};
         } @files;
     }
 
     foreach (@files) {
         my ($file, $stat) = @$_;
-        $_ = $file->{path};
+        local $_ = $file->{path};
+
         if ($stat) {
             $result = $visitor->visitFile($file, $stat);
         } else {
             $result = $visitor->visitFileFailed($file, "Stat failed");
         }
-        if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
-            return FileVisitResult::TERMINATE;
-        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
+        FileVisitResult->isaFileVisitResult($result) or next;
+
+        if ($result == FileVisitResult::TERMINATE) {
+            return $result;
+        } elsif ($result == FileVisitResult::SKIP_SIBLINGS) {
             @dirs = ();
             last;
-        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_DIRS)) {
+        } elsif ($result == FileVisitResult::SKIP_DIRS) {
             @dirs = ();
-        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_FILES)) {
+        } elsif ($result == FileVisitResult::SKIP_FILES) {
             last;
         }
     }
 
     $_ = $dir->{path};
     $result = $visitor->postVisitFiles($dir, $dirStat);
-    if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
-        return $result;
-    } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS, FileVisitResult::SKIP_DIRS)) {
-        @dirs = ();
+
+    if (FileVisitResult->isaFileVisitResult($result)) {
+        if ($result == FileVisitResult::TERMINATE) {
+            return $result;
+        } elsif ($result == FileVisitResult::SKIP_SIBLINGS
+        or $result == FileVisitResult::SKIP_DIRS) {
+            @dirs = ();
+        }
     }
 
     foreach (@dirs) {
         my ($dir, $stat) = @$_;
-        $_ = $dir->{path};
+        local $_ = $dir->{path};
+
         $result = $self->traverseDir($dir, $visitor, $opts, $stat, $depth+1);
-        if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
+        FileVisitResult->isaFileVisitResult($result) or next;
+
+        if ($result == FileVisitResult::TERMINATE) {
             return $result;
-        } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
+        } elsif ($result == FileVisitResult::SKIP_SIBLINGS) {
             last;
         }
     }
 
-    $_ = $dir->{path};
     return $visitor->postVisitDir($dir, $dirStat);
 }
 
