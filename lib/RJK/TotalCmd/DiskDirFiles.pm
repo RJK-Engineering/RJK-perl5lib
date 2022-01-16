@@ -58,19 +58,21 @@ sub traverse {
 
             if ($dir) {
                 $result = $visitor->postVisitFiles($dir, $stat);
-
-                if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
-                    return 1;
-                } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
-                    $skip = quotemeta($dir->parent || $dir->{path});
+                if (FileVisitResult->isaFileVisitResult($result)) {
+                    if ($result == FileVisitResult::TERMINATE) {
+                        return 1;
+                    } elsif ($result == FileVisitResult::SKIP_SIBLINGS) {
+                        $skip = quotemeta($dir->parent || $dir->{path});
+                    }
                 }
 
                 $result = $visitor->postVisitDir($dir, $stat);
-
-                if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
-                    return 1;
-                } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
-                    $skip = quotemeta($dir->parent || $dir->{path});
+                if (FileVisitResult->isaFileVisitResult($result)) {
+                    if ($result == FileVisitResult::TERMINATE) {
+                        return 1;
+                    } elsif ($result == FileVisitResult::SKIP_SIBLINGS) {
+                        $skip = quotemeta($dir->parent || $dir->{path});
+                    }
                 }
             }
 
@@ -85,24 +87,24 @@ sub traverse {
             }
 
             $result = $visitor->preVisitDir($dir, $stat);
-
-            if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
-                return 1;
-            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SUBTREE)) {
-                $skip = quotemeta $dir->{path};
-            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
-                $skip = quotemeta($dir->parent || $dir->{path});
-                $dir = undef; # don't postVisitFiles()
-                next;
+            if (FileVisitResult->isaFileVisitResult($result)) {
+                if ($result == FileVisitResult::TERMINATE) {
+                    return 1;
+                } elsif ($result == FileVisitResult::SKIP_SUBTREE) {
+                    $skip = quotemeta $dir->{path};
+                } elsif ($result == FileVisitResult::SKIP_SIBLINGS) {
+                    $skip = quotemeta($dir->parent || $dir->{path});
+                    $dir = undef; # don't postVisitFiles()
+                    next;
+                }
             }
 
             $result = $visitor->preVisitFiles($dir, $stat);
-
-            if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
+            if ($result == FileVisitResult::TERMINATE) {
                 return 1;
-            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SUBTREE)) {
+            } elsif ($result == FileVisitResult::SKIP_SUBTREE) {
                 $skip = quotemeta $dir->{path};
-            } elsif (FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
+            } elsif ($result == FileVisitResult::SKIP_SIBLINGS) {
                 $skip = quotemeta($dir->parent || $dir->{path});
                 $dir = undef; # don't postVisitFiles()
             }
@@ -121,10 +123,12 @@ sub traverse {
 
             $result = $visitor->visitFile($file, $stat);
 
-            if (FileVisitResult->matches($result, FileVisitResult::TERMINATE)) {
-                return 1;
-            } elsif ($dir && FileVisitResult->matches($result, FileVisitResult::SKIP_SIBLINGS)) {
-                $skip = quotemeta $dir->{path};
+            if (FileVisitResult->isaFileVisitResult($result)) {
+                if ($result == FileVisitResult::TERMINATE) {
+                    return 1;
+                } elsif ($dir && $result == FileVisitResult::SKIP_SIBLINGS) {
+                    $skip = quotemeta $dir->{path};
+                }
             }
         }
     }
@@ -133,7 +137,8 @@ sub traverse {
         $result = $visitor->postVisitFiles($dir, $stat);
         $result = $visitor->postVisitDir($dir, $stat);
     }
-    return FileVisitResult->matches($result, FileVisitResult::TERMINATE);
+    return FileVisitResult->isaFileVisitResult($result)
+        && $result == FileVisitResult::TERMINATE;
 }
 
 1;
