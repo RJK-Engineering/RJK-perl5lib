@@ -146,7 +146,7 @@ sub traverseDir {
         }
     }
 
-    if ($opts->{sort}) {
+    if (my $by = $opts->{sort}) {
         @files = sort {
             $a->[0]{$by} cmp $b->[0]{$by} or
             $a->[0]{name} cmp $b->[0]{name};
