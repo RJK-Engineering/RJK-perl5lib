@@ -100,13 +100,15 @@ sub traverse {
             }
 
             $result = $visitor->preVisitFiles($dir, $stat);
-            if ($result == FileVisitResult::TERMINATE) {
-                return 1;
-            } elsif ($result == FileVisitResult::SKIP_SUBTREE) {
-                $skip = quotemeta $dir->{path};
-            } elsif ($result == FileVisitResult::SKIP_SIBLINGS) {
-                $skip = quotemeta($dir->parent || $dir->{path});
-                $dir = undef; # don't postVisitFiles()
+            if (FileVisitResult->isaFileVisitResult($result)) {
+                if ($result == FileVisitResult::TERMINATE) {
+                    return 1;
+                } elsif ($result == FileVisitResult::SKIP_SUBTREE) {
+                    $skip = quotemeta $dir->{path};
+                } elsif ($result == FileVisitResult::SKIP_SIBLINGS) {
+                    $skip = quotemeta($dir->parent || $dir->{path});
+                    $dir = undef; # don't postVisitFiles()
+                }
             }
         } else {
             next if defined $skip;
@@ -122,7 +124,6 @@ sub traverse {
             }
 
             $result = $visitor->visitFile($file, $stat);
-
             if (FileVisitResult->isaFileVisitResult($result)) {
                 if ($result == FileVisitResult::TERMINATE) {
                     return 1;
