@@ -86,7 +86,7 @@ sub _traverse {
     my $result;
 
     $_ = $path->{path};
-    if (! $stat) {
+    if (!$stat || !@$stat) {
         $result = $visitor->visitFileFailed($path, "Stat failed");
     } elsif ($stat->isDir) {
         $result = $self->traverseDir($path, $visitor, $opts, $stat, 0);
