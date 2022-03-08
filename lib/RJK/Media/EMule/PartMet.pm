@@ -52,7 +52,7 @@ sub read {
 
         CORE::read $fh, $d, FILENAME_LENGHT_SIZE or return;
         my $c = unpack("s", $d);
-        next unless 1024 > $c && $c > 4;
+        $c > 4 and $c < 1024 or next;
         last if getNameAndSize($fh, $data, $c);
     }
     return $data;
