@@ -64,6 +64,19 @@ sub getVolumesByLabel {
     return wantarray ? sort { $a->{letter} cmp $b->{letter} } values %volumes : \%volumes;
 }
 
+sub removeSubstDrives {
+    my ($self, $driveArray) = @_;
+    my (@drives, %substHash);
+    foreach (`subst`) {
+        my ($rootpath) = split /: =>/;
+        $substHash{$rootpath} = 1;
+    }
+    foreach (@$driveArray) {
+        push @drives, $_ if not $substHash{$_->{path}};
+    }
+    @$driveArray = @drives;
+}
+
 ###############################################################################
 =pod
 
